@@ -1,0 +1,311 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|c:\\users\\tmthong\\source\\repos\\gopet-csharp\\gserver\\manager\\gopetmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|solutionrelative:manager\\gopetmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|c:\\users\\tmthong\\source\\repos\\gopet-csharp\\gserver\\server\\menucontroller.inputdialog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|solutionrelative:server\\menucontroller.inputdialog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|c:\\users\\tmthong\\source\\repos\\gopet-csharp\\gserver\\server\\player.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|solutionrelative:server\\player.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|c:\\users\\tmthong\\source\\repos\\gopet-csharp\\gserver\\server\\io\\msgreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|solutionrelative:server\\io\\msgreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|c:\\users\\tmthong\\source\\repos\\gopet-csharp\\gserver\\server\\server.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|solutionrelative:server\\server.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|c:\\users\\tmthong\\source\\repos\\gopet-csharp\\gserver\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|c:\\users\\tmthong\\source\\repos\\gopet-csharp\\gserver\\apis\\httpserver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|solutionrelative:apis\\httpserver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|c:\\users\\tmthong\\source\\repos\\gopet-csharp\\gserver\\apis\\servercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|solutionrelative:apis\\servercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|c:\\users\\tmthong\\source\\repos\\gopet-csharp\\gserver\\app.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|solutionrelative:app.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D3A54453-9D13-45D6-A498-2D69C577DA08}|..\\GopetHost\\GopetHost.csproj|c:\\users\\tmthong\\source\\repos\\gopet-csharp\\gopethost\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D3A54453-9D13-45D6-A498-2D69C577DA08}|..\\GopetHost\\GopetHost.csproj|c:\\users\\tmthong\\source\\repos\\gopet-csharp\\gopethost\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|c:\\users\\tmthong\\source\\repos\\gopet-csharp\\gserver\\place\\gopetplace.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|solutionrelative:place\\gopetplace.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|c:\\users\\tmthong\\source\\repos\\gopet-csharp\\gserver\\data\\pet\\pet.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|solutionrelative:data\\pet\\pet.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|c:\\users\\tmthong\\source\\repos\\gopet-csharp\\gserver\\data\\pet\\peteffect.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|solutionrelative:data\\pet\\peteffect.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|c:\\users\\tmthong\\source\\repos\\gopet-csharp\\gserver\\manager\\historymanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|solutionrelative:manager\\historymanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|c:\\users\\tmthong\\source\\repos\\gopet-csharp\\gserver\\manager\\mysqlmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|solutionrelative:manager\\mysqlmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|c:\\users\\tmthong\\source\\repos\\gopet-csharp\\gserver\\manager\\mapmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|solutionrelative:manager\\mapmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|c:\\users\\tmthong\\source\\repos\\gopet-csharp\\gserver\\manager\\fieldmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0F996AF0-289B-4A3E-9BFA-B6B0AE056513}|Gopet.csproj|solutionrelative:manager\\fieldmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 12,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "MenuController.inputDialog.cs",
+              "DocumentMoniker": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Server\\MenuController.inputDialog.cs",
+              "RelativeDocumentMoniker": "Server\\MenuController.inputDialog.cs",
+              "ToolTip": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Server\\MenuController.inputDialog.cs",
+              "RelativeToolTip": "Server\\MenuController.inputDialog.cs",
+              "ViewState": "AgIAAKwCAAAAAAAAAIAwwMcCAABTAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-15T04:29:46.968Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "MsgReader.cs",
+              "DocumentMoniker": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Server\\IO\\MsgReader.cs",
+              "RelativeDocumentMoniker": "Server\\IO\\MsgReader.cs",
+              "ToolTip": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Server\\IO\\MsgReader.cs",
+              "RelativeToolTip": "Server\\IO\\MsgReader.cs",
+              "ViewState": "AgIAACMAAAAAAAAAAAAqwBoAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-14T09:31:35.17Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "HttpServer.cs",
+              "DocumentMoniker": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\APIs\\HttpServer.cs",
+              "RelativeDocumentMoniker": "APIs\\HttpServer.cs",
+              "ToolTip": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\APIs\\HttpServer.cs",
+              "RelativeToolTip": "APIs\\HttpServer.cs",
+              "ViewState": "AgIAADgAAAAAAAAAAAAIwEgAAAAkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-14T09:27:24.57Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "ServerController.cs",
+              "DocumentMoniker": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\APIs\\ServerController.cs",
+              "RelativeDocumentMoniker": "APIs\\ServerController.cs",
+              "ToolTip": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\APIs\\ServerController.cs",
+              "RelativeToolTip": "APIs\\ServerController.cs",
+              "ViewState": "AgIAACAAAAAAAAAAAAAQwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-14T09:27:21.62Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Player.cs",
+              "DocumentMoniker": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Server\\Player.cs",
+              "RelativeDocumentMoniker": "Server\\Player.cs",
+              "ToolTip": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Server\\Player.cs",
+              "RelativeToolTip": "Server\\Player.cs",
+              "ViewState": "AgIAAJIAAAAAAAAAAAAqwKQAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-14T09:26:13.093Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Server.cs",
+              "DocumentMoniker": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Server\\Server.cs",
+              "RelativeDocumentMoniker": "Server\\Server.cs",
+              "ToolTip": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Server\\Server.cs",
+              "RelativeToolTip": "Server\\Server.cs",
+              "ViewState": "AgIAAD4AAAAAAAAAAAAAADsAAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-14T09:26:08.58Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "App.config",
+              "DocumentMoniker": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\App.config",
+              "RelativeDocumentMoniker": "App.config",
+              "ToolTip": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\App.config",
+              "RelativeToolTip": "App.config",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
+              "WhenOpened": "2025-03-14T04:35:10.764Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-14T04:35:09.656Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "GopetPlace.cs",
+              "DocumentMoniker": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Place\\GopetPlace.cs",
+              "RelativeDocumentMoniker": "Place\\GopetPlace.cs",
+              "ToolTip": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Place\\GopetPlace.cs",
+              "RelativeToolTip": "Place\\GopetPlace.cs",
+              "ViewState": "AgIAANsAAAAAAAAAAAAlwOIAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-13T13:20:20.814Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "Pet.cs",
+              "DocumentMoniker": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Data\\pet\\Pet.cs",
+              "RelativeDocumentMoniker": "Data\\pet\\Pet.cs",
+              "ToolTip": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Data\\pet\\Pet.cs",
+              "RelativeToolTip": "Data\\pet\\Pet.cs",
+              "ViewState": "AgIAAAkCAAAAAAAAAAAAABgCAAAfAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-13T13:19:49.232Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "PetEffect.cs",
+              "DocumentMoniker": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Data\\pet\\PetEffect.cs",
+              "RelativeDocumentMoniker": "Data\\pet\\PetEffect.cs",
+              "ToolTip": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Data\\pet\\PetEffect.cs",
+              "RelativeToolTip": "Data\\pet\\PetEffect.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAABAAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-13T13:12:10.369Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "GopetManager.cs",
+              "DocumentMoniker": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Manager\\GopetManager.cs",
+              "RelativeDocumentMoniker": "Manager\\GopetManager.cs",
+              "ToolTip": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Manager\\GopetManager.cs",
+              "RelativeToolTip": "Manager\\GopetManager.cs",
+              "ViewState": "AgIAACMEAAAAAAAAAAAAAD0EAABQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-13T13:10:54.832Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "HistoryManager.cs",
+              "DocumentMoniker": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Manager\\HistoryManager.cs",
+              "RelativeDocumentMoniker": "Manager\\HistoryManager.cs",
+              "ToolTip": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Manager\\HistoryManager.cs",
+              "RelativeToolTip": "Manager\\HistoryManager.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-13T13:11:02.004Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "MYSQLManager.cs",
+              "DocumentMoniker": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Manager\\MYSQLManager.cs",
+              "RelativeDocumentMoniker": "Manager\\MYSQLManager.cs",
+              "ToolTip": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Manager\\MYSQLManager.cs",
+              "RelativeToolTip": "Manager\\MYSQLManager.cs",
+              "ViewState": "AgIAABIAAAAAAAAAAAAowAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-13T13:10:57.438Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "MapManager.cs",
+              "DocumentMoniker": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Manager\\MapManager.cs",
+              "RelativeDocumentMoniker": "Manager\\MapManager.cs",
+              "ToolTip": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Manager\\MapManager.cs",
+              "RelativeToolTip": "Manager\\MapManager.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-13T13:10:56.648Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "FieldManager.cs",
+              "DocumentMoniker": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Manager\\FieldManager.cs",
+              "RelativeDocumentMoniker": "Manager\\FieldManager.cs",
+              "ToolTip": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GServer\\Manager\\FieldManager.cs",
+              "RelativeToolTip": "Manager\\FieldManager.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-13T13:10:54.056Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GopetHost\\Program.cs",
+              "RelativeDocumentMoniker": "..\\GopetHost\\Program.cs",
+              "ToolTip": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GopetHost\\Program.cs",
+              "RelativeToolTip": "..\\GopetHost\\Program.cs",
+              "ViewState": "AgIAAEQAAAAAAAAAAAAAABYAAABjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-13T13:03:57.298Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GopetHost\\appsettings.json",
+              "RelativeDocumentMoniker": "..\\GopetHost\\appsettings.json",
+              "ToolTip": "C:\\Users\\TMThong\\source\\repos\\Gopet-CSharp\\GopetHost\\appsettings.json",
+              "RelativeToolTip": "..\\GopetHost\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-03-13T12:56:26.389Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

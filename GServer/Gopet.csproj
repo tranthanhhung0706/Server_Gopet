@@ -1,0 +1,74 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<Configurations>Debug;Release;Deploy;UP_V2</Configurations>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DefineConstants>$(DefineConstants);NEW_SERVER;DEBUG_LOG</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DefineConstants>$(DefineConstants);NEW_SERVER</DefineConstants>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Remove="config\database.json" />
+		<None Remove="config\server.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="config\database.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="config\server.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+		<PackageReference Include="Dapper" Version="2.1.35" />
+		<PackageReference Include="MailKit" Version="4.10.0" />
+		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+		<PackageReference Include="MongoDB.Driver" Version="3.0.0" />
+		<PackageReference Include="MySqlBackup.NET.MySqlConnector" Version="2.3.8" />
+		<PackageReference Include="MySqlConnector" Version="2.4.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="Otp.NET" Version="1.4.0" />
+		<PackageReference Include="SixLaborsCaptcha.Core" Version="0.2.2" />
+		<PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
+		<PackageReference Include="StringLibrary" Version="1.0.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.5.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.5.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.5.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.5.0" />
+		<PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.1" />
+		<PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+		<PackageReference Include="System.ServiceModel.Primitives" Version="4.8.0" />
+		<None Update="assets\**">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="assets\html\email.html">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="backup_sql\readme.txt">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="Language\en.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+	<PropertyGroup>
+		<ServerGarbageCollection>true</ServerGarbageCollection>
+	</PropertyGroup>
+	 
+</Project>

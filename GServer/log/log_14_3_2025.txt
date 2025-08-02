@@ -1,0 +1,496 @@
+﻿[Máy chủ 3/14/2025 7:48:45 PM] Trình dọn rác: True
+
+[Máy chủ 3/14/2025 7:48:45 PM] Tải dữ liệu thú cưng từ cơ sở dữ liệu OK
+
+[Máy chủ 3/14/2025 7:48:45 PM] Tải dữ liệu vật phẩm từ cơ sở dữ liệu OK
+
+[Máy chủ 3/14/2025 7:48:46 PM] Tải dữ liệu quái từ cơ sở dữ liệu OK
+
+[Máy chủ 3/14/2025 7:48:46 PM] Tải dữ liệu cường hóa cánh từ cơ sở dữ liệu OK
+
+[Máy chủ 3/14/2025 7:48:46 PM] Tải dữ liệu cửa hàng từ cơ sở dữ liệu OK
+
+[Máy chủ 3/14/2025 7:48:46 PM] Tải dữ liệu boss từ cơ sở dữ liệu OK
+
+[Máy chủ 3/14/2025 7:48:46 PM] Tải dữ liệu map từ cơ sở dữ liệu OK
+
+[Máy chủ 3/14/2025 7:48:46 PM] Tải dữ liệu trao đổi thưởng từ cơ sở dữ liệu OK
+
+[Máy chủ 3/14/2025 7:48:46 PM] Tải dữ liệu shop đấu trường từ cơ sở dữ liệu OK
+
+[Máy chủ 3/14/2025 7:48:46 PM] Tải dữ liệu exps từ cơ sở dữ liệu OK
+
+[Máy chủ 3/14/2025 7:48:46 PM] Tải dữ liệu các dòng từ cơ sở dữ liệu OK
+
+[Máy chủ 3/14/2025 7:48:46 PM] Tải dữ liệu kỹ năng pet từ cơ sở dữ liệu OK
+
+[Máy chủ 3/14/2025 7:48:46 PM] Tải dữ liệu danh hiệu từ cơ sở dữ liệu OK
+
+[Máy chủ 3/14/2025 7:48:46 PM] Tải dữ liệu trùng sinh thú cưng từ cơ sở dữ liệu OK
+
+[Máy chủ 3/14/2025 7:48:46 PM] Tải dữ liệu hiệu ứng thú cưng từ cơ sở dữ liệu OK
+
+[Máy chủ 3/14/2025 7:48:46 PM] Thời gian bảo trì định kỳ: 3/15/2025 5:00:00 AM
+
+[Máy chủ 3/14/2025 7:48:55 PM] CLIENT REQUEST IMAGE: npcs\\tran_tran.png
+
+[Máy chủ 3/14/2025 7:48:55 PM] Load ASSETS: npcs\\tran_tran.png
+
+[Máy chủ 3/14/2025 7:48:55 PM] CLIENT REQUEST IMAGE: npcs/Su gia bang hoi.png
+
+[Máy chủ 3/14/2025 7:48:55 PM] Load ASSETS: npcs/Su gia bang hoi.png
+
+[Máy chủ 3/14/2025 7:48:55 PM] CLIENT REQUEST IMAGE: npcs\\su_gia_thien_than.png
+
+[Máy chủ 3/14/2025 7:48:55 PM] Load ASSETS: npcs\\su_gia_thien_than.png
+
+[Máy chủ 3/14/2025 7:48:55 PM] CLIENT REQUEST IMAGE: npcs\\giaNoel.png
+
+[Máy chủ 3/14/2025 7:48:55 PM] Load ASSETS: npcs\\giaNoel.png
+
+[Máy chủ 3/14/2025 7:48:55 PM]  MESSAGE SERVICE: 9
+
+[Máy chủ 3/14/2025 7:48:55 PM] CLIENT REQUEST IMAGE: 1 anim_wings/154125.png
+
+[Máy chủ 3/14/2025 7:48:55 PM] Load ASSETS: anim_wings/154125.png
+
+[Máy chủ 3/14/2025 7:48:56 PM] CLIENT REQUEST IMAGE: npcs/bac_si_xi_tin.png
+
+[Máy chủ 3/14/2025 7:48:56 PM] Load ASSETS: npcs/bac_si_xi_tin.png
+
+[Máy chủ 3/14/2025 7:48:59 PM]  MESSAGE SERVICE: 92
+
+[Máy chủ 3/14/2025 7:48:59 PM] Message cánh: 2
+
+[Máy chủ 3/14/2025 7:48:59 PM] CLIENT REQUEST IMAGE: anim_wings/154125.icon.png
+
+[Máy chủ 3/14/2025 7:48:59 PM] Load ASSETS: anim_wings/154125.icon.png
+
+[Máy chủ 3/14/2025 7:48:59 PM] CLIENT REQUEST IMAGE: anim_wings/w_4.png
+
+[Máy chủ 3/14/2025 7:48:59 PM] Load ASSETS: anim_wings/w_4.png
+
+[Máy chủ 3/14/2025 7:48:59 PM] CLIENT REQUEST IMAGE: anim_wings/154130.icon.png
+
+[Máy chủ 3/14/2025 7:48:59 PM] Load ASSETS: anim_wings/154130.icon.png
+
+[Máy chủ 3/14/2025 7:48:59 PM] CLIENT REQUEST IMAGE: anim_wings/154127.icon.png
+
+[Máy chủ 3/14/2025 7:48:59 PM] Load ASSETS: anim_wings/154127.icon.png
+
+[Máy chủ 3/14/2025 7:48:59 PM] CLIENT REQUEST IMAGE: anim_wings/154131.icon.png
+
+[Máy chủ 3/14/2025 7:48:59 PM] Load ASSETS: anim_wings/154131.icon.png
+
+[Máy chủ 3/14/2025 7:48:59 PM] CLIENT REQUEST IMAGE: anim_wings/w_3.png
+
+[Máy chủ 3/14/2025 7:48:59 PM] Load ASSETS: anim_wings/w_3.png
+
+[Máy chủ 3/14/2025 7:48:59 PM] CLIENT REQUEST IMAGE: anim_wings/154129.icon.png
+
+[Máy chủ 3/14/2025 7:48:59 PM] Load ASSETS: anim_wings/154129.icon.png
+
+[Máy chủ 3/14/2025 7:48:59 PM] CLIENT REQUEST IMAGE: anim_wings/w_1.png
+
+[Máy chủ 3/14/2025 7:48:59 PM] Load ASSETS: anim_wings/w_1.png
+
+[Máy chủ 3/14/2025 7:49:02 PM]  MESSAGE SERVICE: 92
+
+[Máy chủ 3/14/2025 7:49:02 PM] Message cánh: 5
+
+[Máy chủ 3/14/2025 7:49:06 PM]  MESSAGE SERVICE: 9
+
+[Máy chủ 3/14/2025 7:49:06 PM] CLIENT REQUEST IMAGE: 1 petFrame3/3.png
+
+[Máy chủ 3/14/2025 7:49:06 PM] Load ASSETS: petFrame3/3.png
+
+[Máy chủ 3/14/2025 7:49:06 PM] CLIENT REQUEST IMAGE: npcs/arena.png
+
+[Máy chủ 3/14/2025 7:49:06 PM] Load ASSETS: npcs/arena.png
+
+[Máy chủ 3/14/2025 7:49:06 PM] CLIENT REQUEST IMAGE: npcs\bac_hoc_dau_gau.png
+
+[Máy chủ 3/14/2025 7:49:06 PM] Load ASSETS: npcs\bac_hoc_dau_gau.png
+
+[Máy chủ 3/14/2025 7:49:06 PM]  MESSAGE SERVICE: 9
+
+[Máy chủ 3/14/2025 7:49:06 PM] CLIENT REQUEST IMAGE: 1 petFrame3/7.png
+
+[Máy chủ 3/14/2025 7:49:06 PM] Load ASSETS: petFrame3/7.png
+
+[Máy chủ 3/14/2025 7:49:06 PM]  MESSAGE SERVICE: 9
+
+[Máy chủ 3/14/2025 7:49:06 PM] CLIENT REQUEST IMAGE: 1 petFrame3/6.png
+
+[Máy chủ 3/14/2025 7:49:06 PM] Load ASSETS: petFrame3/6.png
+
+[Máy chủ 3/14/2025 7:49:10 PM]  MESSAGE SERVICE: 91
+
+[Máy chủ 3/14/2025 7:49:10 PM] Bang hội MSG: 14
+
+[Máy chủ 3/14/2025 7:49:15 PM]  MESSAGE SERVICE: 9
+
+[Máy chủ 3/14/2025 7:49:15 PM] CLIENT REQUEST IMAGE: 1 petFrame3/7.png
+
+[Máy chủ 3/14/2025 7:49:15 PM] Load ASSETS: petFrame3/7.png
+
+[Máy chủ 3/14/2025 7:49:15 PM]  MESSAGE SERVICE: 9
+
+[Máy chủ 3/14/2025 7:49:15 PM] CLIENT REQUEST IMAGE: 1 petFrame3/6.png
+
+[Máy chủ 3/14/2025 7:49:15 PM] Load ASSETS: petFrame3/6.png
+
+[Máy chủ 3/14/2025 7:49:15 PM] CLIENT REQUEST IMAGE: npcs/arena.png
+
+[Máy chủ 3/14/2025 7:49:15 PM] Load ASSETS: npcs/arena.png
+
+[Máy chủ 3/14/2025 7:49:15 PM] CLIENT REQUEST IMAGE: npcs\bac_hoc_dau_gau.png
+
+[Máy chủ 3/14/2025 7:49:15 PM] Load ASSETS: npcs\bac_hoc_dau_gau.png
+
+[Máy chủ 3/14/2025 7:49:15 PM]  MESSAGE SERVICE: 9
+
+[Máy chủ 3/14/2025 7:49:15 PM] CLIENT REQUEST IMAGE: 1 petFrame3/3.png
+
+[Máy chủ 3/14/2025 7:49:15 PM] Load ASSETS: petFrame3/3.png
+
+[Máy chủ 3/14/2025 7:49:18 PM]  MESSAGE SERVICE: 103
+
+[Máy chủ 3/14/2025 7:49:18 PM] onClientSpeedRespose
+
+[Máy chủ 3/14/2025 7:49:39 PM]  MESSAGE SERVICE: 103
+
+[Máy chủ 3/14/2025 7:49:39 PM] onClientSpeedRespose
+
+[Máy chủ 3/14/2025 7:50:04 PM]  MESSAGE SERVICE: 103
+
+[Máy chủ 3/14/2025 7:50:04 PM] onClientSpeedRespose
+
+[Máy chủ 3/14/2025 7:50:31 PM]  MESSAGE SERVICE: 103
+
+[Máy chủ 3/14/2025 7:50:31 PM] onClientSpeedRespose
+
+[Máy chủ 3/14/2025 7:50:53 PM]  MESSAGE SERVICE: 103
+
+[Máy chủ 3/14/2025 7:50:53 PM] onClientSpeedRespose
+
+[Máy chủ 3/14/2025 7:51:19 PM]  MESSAGE SERVICE: 103
+
+[Máy chủ 3/14/2025 7:51:19 PM] onClientSpeedRespose
+
+[Máy chủ 3/14/2025 7:51:53 PM] CLIENT REQUEST IMAGE: npcs\\tran_tran.png
+
+[Máy chủ 3/14/2025 7:51:53 PM] Load ASSETS: npcs\\tran_tran.png
+
+[Máy chủ 3/14/2025 7:51:53 PM] CLIENT REQUEST IMAGE: npcs/Su gia bang hoi.png
+
+[Máy chủ 3/14/2025 7:51:53 PM] Load ASSETS: npcs/Su gia bang hoi.png
+
+[Máy chủ 3/14/2025 7:51:53 PM] CLIENT REQUEST IMAGE: npcs\\su_gia_thien_than.png
+
+[Máy chủ 3/14/2025 7:51:53 PM] Load ASSETS: npcs\\su_gia_thien_than.png
+
+[Máy chủ 3/14/2025 7:51:53 PM] CLIENT REQUEST IMAGE: npcs\\giaNoel.png
+
+[Máy chủ 3/14/2025 7:51:53 PM] Load ASSETS: npcs\\giaNoel.png
+
+[Máy chủ 3/14/2025 7:51:58 PM]  MESSAGE SERVICE: 5
+
+[Máy chủ 3/14/2025 7:51:59 PM] CLIENT REQUEST IMAGE: icons/3106.icon.png
+
+[Máy chủ 3/14/2025 7:51:59 PM] Load ASSETS: icons/3106.icon.png
+
+[Máy chủ 3/14/2025 7:51:59 PM] CLIENT REQUEST IMAGE: icons/3.icon.png
+
+[Máy chủ 3/14/2025 7:51:59 PM] Load ASSETS: icons/3.icon.png
+
+[Máy chủ 3/14/2025 7:51:59 PM] CLIENT REQUEST IMAGE: icons/3103.icon.png
+
+[Máy chủ 3/14/2025 7:51:59 PM] Load ASSETS: icons/3103.icon.png
+
+[Máy chủ 3/14/2025 7:51:59 PM] CLIENT REQUEST IMAGE: icons/89.icon.png
+
+[Máy chủ 3/14/2025 7:51:59 PM] Load ASSETS: icons/89.icon.png
+
+[Máy chủ 3/14/2025 7:51:59 PM] CLIENT REQUEST IMAGE: icons/93.icon.png
+
+[Máy chủ 3/14/2025 7:51:59 PM] Load ASSETS: icons/93.icon.png
+
+[Máy chủ 3/14/2025 7:51:59 PM] CLIENT REQUEST IMAGE: icons/3093.icon.png
+
+[Máy chủ 3/14/2025 7:51:59 PM] Load ASSETS: icons/3093.icon.png
+
+[Máy chủ 3/14/2025 7:51:59 PM] CLIENT REQUEST IMAGE: icons/3091.icon.png
+
+[Máy chủ 3/14/2025 7:51:59 PM] Load ASSETS: icons/3091.icon.png
+
+[Máy chủ 3/14/2025 7:51:59 PM] CLIENT REQUEST IMAGE: icons/2093.icon.png
+
+[Máy chủ 3/14/2025 7:51:59 PM] Load ASSETS: icons/2093.icon.png
+
+[Máy chủ 3/14/2025 7:51:59 PM] CLIENT REQUEST IMAGE: icons/2002.icon.png
+
+[Máy chủ 3/14/2025 7:51:59 PM] Load ASSETS: icons/2002.icon.png
+
+[Máy chủ 3/14/2025 7:52:05 PM]  MESSAGE SERVICE: 5
+
+[Máy chủ 3/14/2025 7:52:05 PM] CLIENT REQUEST IMAGE: icons/3.icon.png
+
+[Máy chủ 3/14/2025 7:52:05 PM] Load ASSETS: icons/3.icon.png
+
+[Máy chủ 3/14/2025 7:52:05 PM] CLIENT REQUEST IMAGE: icons/3103.icon.png
+
+[Máy chủ 3/14/2025 7:52:05 PM] Load ASSETS: icons/3103.icon.png
+
+[Máy chủ 3/14/2025 7:52:05 PM] CLIENT REQUEST IMAGE: icons/89.icon.png
+
+[Máy chủ 3/14/2025 7:52:05 PM] Load ASSETS: icons/89.icon.png
+
+[Máy chủ 3/14/2025 7:52:05 PM] CLIENT REQUEST IMAGE: icons/93.icon.png
+
+[Máy chủ 3/14/2025 7:52:05 PM] Load ASSETS: icons/93.icon.png
+
+[Máy chủ 3/14/2025 7:52:05 PM] CLIENT REQUEST IMAGE: icons/3093.icon.png
+
+[Máy chủ 3/14/2025 7:52:05 PM] Load ASSETS: icons/3093.icon.png
+
+[Máy chủ 3/14/2025 7:52:05 PM] CLIENT REQUEST IMAGE: icons/3091.icon.png
+
+[Máy chủ 3/14/2025 7:52:05 PM] Load ASSETS: icons/3091.icon.png
+
+[Máy chủ 3/14/2025 7:52:05 PM] CLIENT REQUEST IMAGE: icons/2093.icon.png
+
+[Máy chủ 3/14/2025 7:52:05 PM] Load ASSETS: icons/2093.icon.png
+
+[Máy chủ 3/14/2025 7:52:05 PM] CLIENT REQUEST IMAGE: icons/2002.icon.png
+
+[Máy chủ 3/14/2025 7:52:05 PM] Load ASSETS: icons/2002.icon.png
+
+[Máy chủ 3/14/2025 7:52:05 PM] CLIENT REQUEST IMAGE: icons/3099.icon.png
+
+[Máy chủ 3/14/2025 7:52:05 PM] Load ASSETS: icons/3099.icon.png
+
+[Máy chủ 3/14/2025 7:52:08 PM]  MESSAGE SERVICE: 9
+
+[Máy chủ 3/14/2025 7:52:08 PM] CLIENT REQUEST IMAGE: 1 petFrame3/2012.png
+
+[Máy chủ 3/14/2025 7:52:08 PM] Load ASSETS: petFrame3/2012.png
+
+[Máy chủ 3/14/2025 7:52:08 PM]  MESSAGE SERVICE: 9
+
+[Máy chủ 3/14/2025 7:52:08 PM] CLIENT REQUEST IMAGE: 1 petFrame3/2005.png
+
+[Máy chủ 3/14/2025 7:52:08 PM] Load ASSETS: petFrame3/2005.png
+
+[Máy chủ 3/14/2025 7:52:08 PM]  MESSAGE SERVICE: 9
+
+[Máy chủ 3/14/2025 7:52:08 PM] CLIENT REQUEST IMAGE: 1 petFrame3/2015.png
+
+[Máy chủ 3/14/2025 7:52:08 PM] Load ASSETS: petFrame3/2015.png
+
+[Máy chủ 3/14/2025 7:52:08 PM]  MESSAGE SERVICE: 9
+
+[Máy chủ 3/14/2025 7:52:08 PM] CLIENT REQUEST IMAGE: 1 petFrame3/2011.png
+
+[Máy chủ 3/14/2025 7:52:08 PM] Load ASSETS: petFrame3/2011.png
+
+[Máy chủ 3/14/2025 7:52:12 PM]  MESSAGE SERVICE: 9
+
+[Máy chủ 3/14/2025 7:52:12 PM] CLIENT REQUEST IMAGE: 1 petFrame3/2007.png
+
+[Máy chủ 3/14/2025 7:52:12 PM] Load ASSETS: petFrame3/2007.png
+
+[Máy chủ 3/14/2025 7:52:12 PM] CLIENT REQUEST IMAGE: npcs/Du_Con.png
+
+[Máy chủ 3/14/2025 7:52:12 PM] Load ASSETS: npcs/Du_Con.png
+
+[Máy chủ 3/14/2025 7:52:15 PM]  MESSAGE SERVICE: 103
+
+[Máy chủ 3/14/2025 7:52:15 PM] onClientSpeedRespose
+
+[Máy chủ 3/14/2025 7:52:39 PM]  MESSAGE SERVICE: 103
+
+[Máy chủ 3/14/2025 7:52:39 PM] onClientSpeedRespose
+
+[Máy chủ 3/14/2025 7:53:57 PM] CLIENT REQUEST IMAGE: npcs\\tran_tran.png
+
+[Máy chủ 3/14/2025 7:53:57 PM] Load ASSETS: npcs\\tran_tran.png
+
+[Máy chủ 3/14/2025 7:53:57 PM] CLIENT REQUEST IMAGE: npcs/Su gia bang hoi.png
+
+[Máy chủ 3/14/2025 7:53:57 PM] Load ASSETS: npcs/Su gia bang hoi.png
+
+[Máy chủ 3/14/2025 7:53:57 PM] CLIENT REQUEST IMAGE: npcs\\su_gia_thien_than.png
+
+[Máy chủ 3/14/2025 7:53:57 PM] Load ASSETS: npcs\\su_gia_thien_than.png
+
+[Máy chủ 3/14/2025 7:53:57 PM] CLIENT REQUEST IMAGE: npcs/bac_si_xi_tin.png
+
+[Máy chủ 3/14/2025 7:53:57 PM] Load ASSETS: npcs/bac_si_xi_tin.png
+
+[Máy chủ 3/14/2025 7:53:57 PM] CLIENT REQUEST IMAGE: npcs\\giaNoel.png
+
+[Máy chủ 3/14/2025 7:53:57 PM] Load ASSETS: npcs\\giaNoel.png
+
+[Máy chủ 3/14/2025 7:54:23 PM] CLIENT REQUEST IMAGE: npcs\\tran_tran.png
+
+[Máy chủ 3/14/2025 7:54:23 PM] Load ASSETS: npcs\\tran_tran.png
+
+[Máy chủ 3/14/2025 7:54:23 PM] CLIENT REQUEST IMAGE: npcs/Su gia bang hoi.png
+
+[Máy chủ 3/14/2025 7:54:23 PM] Load ASSETS: npcs/Su gia bang hoi.png
+
+[Máy chủ 3/14/2025 7:54:23 PM] CLIENT REQUEST IMAGE: npcs\\su_gia_thien_than.png
+
+[Máy chủ 3/14/2025 7:54:23 PM] Load ASSETS: npcs\\su_gia_thien_than.png
+
+[Máy chủ 3/14/2025 7:54:23 PM] CLIENT REQUEST IMAGE: npcs/bac_si_xi_tin.png
+
+[Máy chủ 3/14/2025 7:54:23 PM] Load ASSETS: npcs/bac_si_xi_tin.png
+
+[Máy chủ 3/14/2025 7:54:23 PM] CLIENT REQUEST IMAGE: npcs\\giaNoel.png
+
+[Máy chủ 3/14/2025 7:54:23 PM] Load ASSETS: npcs\\giaNoel.png
+
+[Máy chủ 3/14/2025 7:54:27 PM]  MESSAGE SERVICE: 5
+
+[Máy chủ 3/14/2025 7:54:27 PM] CLIENT REQUEST IMAGE: icons/3.icon.png
+
+[Máy chủ 3/14/2025 7:54:27 PM] Load ASSETS: icons/3.icon.png
+
+[Máy chủ 3/14/2025 7:54:27 PM] CLIENT REQUEST IMAGE: icons/3103.icon.png
+
+[Máy chủ 3/14/2025 7:54:27 PM] Load ASSETS: icons/3103.icon.png
+
+[Máy chủ 3/14/2025 7:54:27 PM] CLIENT REQUEST IMAGE: icons/89.icon.png
+
+[Máy chủ 3/14/2025 7:54:27 PM] Load ASSETS: icons/89.icon.png
+
+[Máy chủ 3/14/2025 7:54:27 PM] CLIENT REQUEST IMAGE: icons/93.icon.png
+
+[Máy chủ 3/14/2025 7:54:27 PM] Load ASSETS: icons/93.icon.png
+
+[Máy chủ 3/14/2025 7:54:27 PM] CLIENT REQUEST IMAGE: icons/3093.icon.png
+
+[Máy chủ 3/14/2025 7:54:27 PM] Load ASSETS: icons/3093.icon.png
+
+[Máy chủ 3/14/2025 7:54:27 PM] CLIENT REQUEST IMAGE: icons/3091.icon.png
+
+[Máy chủ 3/14/2025 7:54:27 PM] Load ASSETS: icons/3091.icon.png
+
+[Máy chủ 3/14/2025 7:54:27 PM] CLIENT REQUEST IMAGE: icons/2093.icon.png
+
+[Máy chủ 3/14/2025 7:54:27 PM] Load ASSETS: icons/2093.icon.png
+
+[Máy chủ 3/14/2025 7:54:27 PM] CLIENT REQUEST IMAGE: icons/2002.icon.png
+
+[Máy chủ 3/14/2025 7:54:27 PM] Load ASSETS: icons/2002.icon.png
+
+[Máy chủ 3/14/2025 7:54:27 PM] CLIENT REQUEST IMAGE: icons/3099.icon.png
+
+[Máy chủ 3/14/2025 7:54:27 PM] Load ASSETS: icons/3099.icon.png
+
+[Máy chủ 3/14/2025 7:54:32 PM]  MESSAGE SERVICE: 9
+
+[Máy chủ 3/14/2025 7:54:32 PM] CLIENT REQUEST IMAGE: 1 petFrame3/3.png
+
+[Máy chủ 3/14/2025 7:54:32 PM] Load ASSETS: petFrame3/3.png
+
+[Máy chủ 3/14/2025 7:54:32 PM] CLIENT REQUEST IMAGE: npcs/Tien_Nu.png
+
+[Máy chủ 3/14/2025 7:54:32 PM] Load ASSETS: npcs/Tien_Nu.png
+
+[Máy chủ 3/14/2025 7:54:32 PM] CLIENT REQUEST IMAGE: npcs/arena.png
+
+[Máy chủ 3/14/2025 7:54:32 PM] Load ASSETS: npcs/arena.png
+
+[Máy chủ 3/14/2025 7:54:32 PM]  MESSAGE SERVICE: 9
+
+[Máy chủ 3/14/2025 7:54:32 PM] CLIENT REQUEST IMAGE: 1 petFrame3/2.png
+
+[Máy chủ 3/14/2025 7:54:32 PM] Load ASSETS: petFrame3/2.png
+
+[Máy chủ 3/14/2025 7:54:32 PM] CLIENT REQUEST IMAGE: npcs\bac_hoc_dau_gau.png
+
+[Máy chủ 3/14/2025 7:54:32 PM] Load ASSETS: npcs\bac_hoc_dau_gau.png
+
+[Máy chủ 3/14/2025 7:54:32 PM]  MESSAGE SERVICE: 9
+
+[Máy chủ 3/14/2025 7:54:32 PM] CLIENT REQUEST IMAGE: 1 petFrame3/6.png
+
+[Máy chủ 3/14/2025 7:54:32 PM] Load ASSETS: petFrame3/6.png
+
+[Máy chủ 3/14/2025 7:54:32 PM]  MESSAGE SERVICE: 9
+
+[Máy chủ 3/14/2025 7:54:32 PM] CLIENT REQUEST IMAGE: 1 petFrame3/7.png
+
+[Máy chủ 3/14/2025 7:54:32 PM] Load ASSETS: petFrame3/7.png
+
+[Máy chủ 3/14/2025 7:54:35 PM]  MESSAGE SERVICE: 2
+
+[Máy chủ 3/14/2025 7:54:35 PM] CLIENT REQUEST IMAGE: anim_characters/50_icon.png
+
+[Máy chủ 3/14/2025 7:54:35 PM] Load ASSETS: anim_characters/50_icon.png
+
+[Máy chủ 3/14/2025 7:54:35 PM] CLIENT REQUEST IMAGE: anim_characters/51_icon.png
+
+[Máy chủ 3/14/2025 7:54:35 PM] Load ASSETS: anim_characters/51_icon.png
+
+[Máy chủ 3/14/2025 7:54:35 PM] CLIENT REQUEST IMAGE: anim_characters/52_icon.png
+
+[Máy chủ 3/14/2025 7:54:35 PM] Load ASSETS: anim_characters/52_icon.png
+
+[Máy chủ 3/14/2025 7:54:47 PM]  MESSAGE SERVICE: 103
+
+[Máy chủ 3/14/2025 7:54:47 PM] onClientSpeedRespose
+
+[Máy chủ 3/14/2025 7:54:48 PM]  MESSAGE SERVICE: 62
+
+[Máy chủ 3/14/2025 7:54:48 PM] CLIENT REQUEST IMAGE: anim_characters/44_icon.png
+
+[Máy chủ 3/14/2025 7:54:48 PM] Load ASSETS: anim_characters/44_icon.png
+
+[Máy chủ 3/14/2025 7:55:06 PM]  MESSAGE SERVICE: 103
+
+[Máy chủ 3/14/2025 7:55:06 PM] onClientSpeedRespose
+
+[Máy chủ 3/14/2025 7:55:28 PM]  MESSAGE SERVICE: 9
+
+[Máy chủ 3/14/2025 7:55:28 PM] CLIENT REQUEST IMAGE: 1 petFrame3/3.png
+
+[Máy chủ 3/14/2025 7:55:28 PM] Load ASSETS: petFrame3/3.png
+
+[Máy chủ 3/14/2025 7:55:28 PM] CLIENT REQUEST IMAGE: npcs/Tien_Nu.png
+
+[Máy chủ 3/14/2025 7:55:28 PM] Load ASSETS: npcs/Tien_Nu.png
+
+[Máy chủ 3/14/2025 7:55:28 PM] CLIENT REQUEST IMAGE: npcs/arena.png
+
+[Máy chủ 3/14/2025 7:55:28 PM] Load ASSETS: npcs/arena.png
+
+[Máy chủ 3/14/2025 7:55:28 PM]  MESSAGE SERVICE: 9
+
+[Máy chủ 3/14/2025 7:55:28 PM] CLIENT REQUEST IMAGE: 1 petFrame3/6.png
+
+[Máy chủ 3/14/2025 7:55:28 PM] Load ASSETS: petFrame3/6.png
+
+[Máy chủ 3/14/2025 7:55:28 PM] CLIENT REQUEST IMAGE: npcs\bac_hoc_dau_gau.png
+
+[Máy chủ 3/14/2025 7:55:28 PM] Load ASSETS: npcs\bac_hoc_dau_gau.png
+
+[Máy chủ 3/14/2025 7:55:28 PM]  MESSAGE SERVICE: 9
+
+[Máy chủ 3/14/2025 7:55:28 PM] CLIENT REQUEST IMAGE: 1 petFrame3/7.png
+
+[Máy chủ 3/14/2025 7:55:28 PM] Load ASSETS: petFrame3/7.png
+
+[Máy chủ 3/14/2025 7:55:28 PM]  MESSAGE SERVICE: 9
+
+[Máy chủ 3/14/2025 7:55:28 PM] CLIENT REQUEST IMAGE: 1 petFrame3/2.png
+
+[Máy chủ 3/14/2025 7:55:28 PM] Load ASSETS: petFrame3/2.png
+
+[Máy chủ 3/14/2025 7:55:33 PM]  MESSAGE SERVICE: 103
+
+[Máy chủ 3/14/2025 7:55:33 PM] onClientSpeedRespose
+
