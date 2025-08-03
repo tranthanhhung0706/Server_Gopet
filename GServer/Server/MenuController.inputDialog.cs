@@ -47,6 +47,11 @@ public partial class MenuController
                     break;
                 case INPUT_DIALOG_KIOSK:
                     {
+                        if (player.user.role == UserData.ROLE_NON_ACTIVE)
+                        {
+                            player.redDialog(player.Language.AccountNonAcitve);
+                            return;
+                        }
                         int priceItem = reader.readInt(0);
                         if (priceItem <= 0)
                         {
@@ -701,8 +706,8 @@ public partial class MenuController
                                 IPEndPoint iPEndPoint = (IPEndPoint)player.session.CSocket.RemoteEndPoint;
                                 PlayerManager.EmailTracker.Add(player.user.username + player.user.email);
                                 GopetManager.SendHtmlMailAsync(
-                                    player.user.email, 
-                                    "Gopet - Thông báo đăng nhập 2 lớp OTP", 
+                                    player.user.email,
+                                    "Gopet - Thông báo đăng nhập 2 lớp OTP",
                                     $"Có vẻ ai đó có mật khẩu của bạn! Nếu không phải là bạn hãy nhanh chóng đổi mật khẩu. Otp đã được thử 10 lần không thành công. <br> Địa chỉ IP thử OTP là: <b>{iPEndPoint.Address.ToString()}</b>");
                             }
                             player.redDialog("Bạn đã thử OTP nhiều lần. Vui lòng thử lại sau 30 phút.");
