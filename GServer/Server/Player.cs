@@ -391,11 +391,11 @@ Thread.Sleep(1000);
 
     public void ProcessingUser(MySqlConnection conn)
     {
-        if (user.role == UserData.ROLE_NON_ACTIVE)
-        {
-            redDialog(Language.AccountNonAcitve);
-            return;
-        }
+        // if (user.role == UserData.ROLE_NON_ACTIVE)
+        // {
+        //     redDialog(Language.AccountNonAcitve);
+        //     return;
+        // }
         switch (user.isBaned)
         {
             case UserData.BAN_INFINITE:
