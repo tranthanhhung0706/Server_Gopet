@@ -60,7 +60,7 @@ namespace Gopet.Data.pet
 
         public PetEffect(PetEffectTemplate template)
         {
-            IdTemplate = template.IdTemplate;
+            IdTemplate = template.Id;
             Atk = template.Atk;
             Def = template.Def;
             Hp = template.Hp;

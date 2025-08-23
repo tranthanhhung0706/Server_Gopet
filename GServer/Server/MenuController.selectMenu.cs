@@ -2690,7 +2690,7 @@ public partial class MenuController
                         Item cardReincarnation = player.controller.selectItemsbytemp(GopetManager.ID_ITEM_CARD_REINCARNATION, GopetManager.NORMAL_INVENTORY);
                         if (cardReincarnation == null)
                         {
-                            player.redDialog("Không có thẻ trùng sinh");
+                            player.redDialog("Không có thẻ trùng sinh nha cu");
                             return;
                         }
                         if (!GameController.checkCount(cardReincarnation, petReincarnation.NumCard))
