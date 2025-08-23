@@ -16,7 +16,7 @@ namespace Gopet.Data.pet
         /// <summary>
         /// ID của template
         /// </summary>
-        public int IdTemplate { get; set; }
+        public int Id { get; set; }
         /// <summary>
         /// Tên của template
         /// </summary>

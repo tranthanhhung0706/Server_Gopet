@@ -2719,6 +2719,26 @@ public partial class MenuController
                             }
                             player.okDialog("Trùng sinh thành công");
                             player.playerData.isOnSky = true;
+                            pet.LoadEffectsFromTemplates(1, 2, 3, 4, 5, 6, 7);
+                            foreach (var effect1 in pet.PetEffectss)
+                            {
+                                if (pet.Template.element == effect1.IdTemplate)
+                                {
+                                    pet.EffectTemplates = new List<PetEffectTemplate>()
+                            {
+                                new PetEffectTemplate()
+                                {
+                                    Id=effect1.IdTemplate,
+                                    FramePath = effect1.Template.FramePath,
+                                    FrameNum = effect1.Template.FrameNum,
+                                    IsDrawBefore = true,
+                                    FrameTime =effect1.Template.FrameTime,
+                                    vY = effect1.Template.vY,
+                                    vX=effect1.Template.vX
+                                },
+                            };
+                                }
+                            }
                         }
                         else
                         {

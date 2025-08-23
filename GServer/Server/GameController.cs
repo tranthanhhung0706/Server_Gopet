@@ -5208,6 +5208,8 @@ public class GameController
 
     public static void WritePetEffect(Message message, IEnumerable<PetEffectTemplate> petEffects)
     {
+        if (petEffects == null)
+            petEffects = Enumerable.Empty<PetEffectTemplate>();
         message.putInt(petEffects.Count());
         foreach (var petEffect in petEffects)
         {

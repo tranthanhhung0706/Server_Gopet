@@ -74,12 +74,24 @@ public class Pet : GameObject, IBinaryObject<Pet>
     public CopyOnWriteArrayList<int> HiddenStats = new CopyOnWriteArrayList<int>();
 
     public CopyOnWriteArrayList<PetEffect> PetEffects = new CopyOnWriteArrayList<PetEffect>();
+    public List<PetEffect> PetEffectss { get; set; } = new List<PetEffect>();
     protected Pet()
     {
 
     }
 
+    public void LoadEffectsFromTemplates(params int[] templateIds)
+    {
+        foreach (var id in templateIds)
+        {
+            if (GopetManager.PET_EFF_TEMP.TryGetValue(id, out var template))
+            {
+                PetEffectss.Add(new PetEffect(template));
 
+            }
+
+        }
+    }
     public Pet(int petIdTemplate)
     {
         this.petIdTemplate = petIdTemplate;
@@ -523,21 +535,22 @@ public class Pet : GameObject, IBinaryObject<Pet>
         this.petId = id;
     }
 
-    public IEnumerable<PetEffectTemplate> EffectTemplates
-    {
-        get
-        {
-            return new List<PetEffectTemplate>()
-            {
-            /*new PetEffectTemplate ()
-            {
-                FramePath = "peteff/output2.png",
-                FrameNum = 6,
-                IsDrawBefore = true,
-                FrameTime = 80,
-                vY = -100
-            }*/
-            };
-        }
-    }
+    // public IEnumerable<PetEffectTemplate> EffectTemplates
+    // {
+    //     get
+    //     {
+    //         return new List<PetEffectTemplate>()
+    //         {
+    //         new PetEffectTemplate ()
+    //         {
+    //             FramePath = "peteff/output2.png",
+    //             FrameNum = 6,
+    //             IsDrawBefore = true,
+    //             FrameTime = 80,
+    //             vY = -100
+    //         }
+    //         };
+    //     }
+    // }
+    public IEnumerable<PetEffectTemplate> EffectTemplates { get; set; } = Enumerable.Empty<PetEffectTemplate>();
 }
