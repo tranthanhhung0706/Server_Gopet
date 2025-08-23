@@ -37,7 +37,7 @@ public class PlayerData
     public int star { get; set; } = 0;
     public Item skin { get; set; }
     public Item wing { get; set; }
-    public bool isOnSky { get; private set; } = false;
+    public bool isOnSky { get; set; } = false;
     public BuffExp? buffExp { get; set; } = new BuffExp();
     public int pkPoint { get; set; } = 0;
     public DateTime pkPointTime { get; set; }
@@ -82,7 +82,7 @@ public class PlayerData
     /// Trường này để ghi lại số lượng hoa tặng dùng vàng
     /// </summary>
     public int NumGiveFlowerGold { get; set; } = 0;
-   
+
     /// <summary>
     /// Trường thuộc sự kiện 20/11 2024
     /// Trường này để ghi lại số lượng hoa tặng dùng ngọc

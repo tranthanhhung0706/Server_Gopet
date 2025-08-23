@@ -2662,11 +2662,11 @@ public partial class MenuController
                 break;
             case MENU_OPTION_PET_REINCARNATION:
                 {
-                    if (!player.checkIsAdmin())
-                    {
-                        player.redDialog("Tính năng này cho admin kiểm thử");
-                        return;
-                    }
+                    // if (!player.checkIsAdmin())
+                    // {
+                    //     player.redDialog("Tính năng này cho admin kiểm thử");
+                    //     return;
+                    // }
                     if (index >= 0 && index < 2)
                     {
                         if (!player.controller.objectPerformed.ContainsKey(OBJKEY_PET_REINCARNATION))
@@ -2718,6 +2718,7 @@ public partial class MenuController
                                 pet.tatto.removeAt(Utilities.nextInt(0, pet.tatto.Count));
                             }
                             player.okDialog("Trùng sinh thành công");
+                            player.playerData.isOnSky = true;
                         }
                         else
                         {
