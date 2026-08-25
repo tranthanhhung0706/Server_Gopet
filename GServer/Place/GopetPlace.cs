@@ -400,7 +400,7 @@ public class GopetPlace : Place
 
     public void startFightMob(int mobId, Player player)
     {
-        if (this.map.mapID == 12)
+        /*if (this.map.mapID == 12)
         {
             if (Utilities.CurrentTimeMillis - player.controller.getLastTimeKillMob() < 4500)
             {
@@ -408,7 +408,7 @@ public class GopetPlace : Place
                 player.session.Close();
                 return;
             }
-        }
+        }*/
         Mob mob = getMob(mobId);
         if (mob != null)
         {
