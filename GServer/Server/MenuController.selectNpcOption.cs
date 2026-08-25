@@ -416,6 +416,9 @@ public partial class MenuController
             case OP_SELECT_PET_DEF_LEAGUE:
                 sendMenu(MENU_SELECT_PET_TO_DEF_LEAGUE, player);
                 break;
+            case OP_PET_LEAGUE_BETA:
+                player.controller.showArenaMenu();
+                break;
             case OP_SHOW_ALL_TATTO:
                 sendMenu(MENU_SHOW_ALL_TATTO, player);
                 break;

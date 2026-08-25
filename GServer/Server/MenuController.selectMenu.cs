@@ -459,6 +459,30 @@ public partial class MenuController
                     }
                 }
                 break;
+            case MENU_ARENA_MAIN:
+                if (index == 0)
+                {
+                    sendMenu(MENU_SELECT_PET_TO_DEF_LEAGUE, player);
+                }
+                else if (index == 1)
+                {
+                    player.controller.showArenaOpponentList();
+                }
+                else if (index == 2)
+                {
+                    player.controller.showArenaLeaderboard();
+                }
+                break;
+            case MENU_ARENA_OPPONENT_LIST:
+                if (paymentIndex == 0)
+                {
+                    player.controller.showArenaOpponentPetInfo(index);
+                }
+                else if (paymentIndex == 1)
+                {
+                    player.controller.startArenaBattle(index);
+                }
+                break;
             case MENU_SKIN_INVENTORY:
                 if (index == -1)
                 {

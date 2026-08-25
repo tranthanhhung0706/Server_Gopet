@@ -126,6 +126,15 @@ namespace Gopet.Battle
             this.userInvitePK = userInvitePK;
         }
 
+        private bool isArenaMode = false;
+        private int arenaDefenderUserId = -1;
+
+        public void setIsArenaMode(bool isArenaMode, int arenaDefenderUserId)
+        {
+            this.isArenaMode = isArenaMode;
+            this.arenaDefenderUserId = arenaDefenderUserId;
+        }
+
         public void setIsPK(bool isPK)
         {
             this.isPK = isPK;
@@ -180,6 +189,11 @@ namespace Gopet.Battle
 
         public void onMessage(Message message, Player player)
         {
+            // Arena: cả 2 phía đều tự động đánh, không cho người chơi thao tác thủ công (tấn công/skill/item).
+            if (isArenaMode)
+            {
+                return;
+            }
             if (petAttackMob)
             {
                 if (this.actions.Count > 100)
@@ -523,6 +537,61 @@ namespace Gopet.Battle
             }
         }
 
+        public void sendStartArenaBattle(Mob mob, Player player)
+        {
+            Message message = new Message(GopetCMD.PET_SERVICE);
+            message.putsbyte(GopetCMD.ARENA_BATTLE_START);
+            message.putInt(Utilities.round(delaTimeTurn - Utilities.CurrentTimeMillis));
+            message.putInt((int)GopetManager.TimeNextTurn);
+            message.putInt(player.user.user_id);
+            writeMyPetInfo(player.playerData.petSelected, message, player);
+            message.putInt(mob.getMobId());
+            writeMobInfo(mob, message);
+            message.cleanup();
+            player.session.sendMessage(message);
+        }
+
+        private void winArena()
+        {
+            bool attackerWon = getWinId() == activePlayer.user.user_id;
+            int pointDelta = attackerWon ? 15 : -10;
+            int newPoint = Math.Max(0, activePlayer.playerData.ArenaPoint + pointDelta);
+            activePlayer.playerData.ArenaPoint = newPoint;
+            int coin = 0;
+            int exp = 0;
+            JArrayList<Popup> petBattleTexts = new();
+            if (attackerWon)
+            {
+                coin = 200;
+                exp = genExpWhenMobDie(activePlayer, activePet, mob, 50);
+                activePlayer.addCoin(coin);
+                activePet.addExp(exp);
+                activePlayer.controller.updatePetLvl();
+                petBattleTexts.add(new Popup(pointDelta >= 0 ? $"+{pointDelta} điểm đấu trường" : $"{pointDelta} điểm đấu trường"));
+            }
+            else
+            {
+                petBattleTexts.add(new Popup($"{pointDelta} điểm đấu trường"));
+            }
+            ArenaPointManager.adjustPoint(arenaDefenderUserId, attackerWon ? -5 : 10);
+            Message m = new Message(GopetCMD.PET_SERVICE);
+            m.putsbyte(GopetCMD.PET_BATTLE_STATE);
+            m.putInt(activePlayer.user.user_id);
+            m.putInt(getWinId());
+            m.putsbyte(0);
+            m.putInt(coin);
+            m.putInt(exp);
+            m.putsbyte(petBattleTexts.Count);
+            foreach (Popup petBattleText in petBattleTexts)
+            {
+                m.putUTF(petBattleText.getText());
+                m.putUTF("2");
+            }
+            m.cleanup();
+            activePlayer.session.sendMessage(m);
+            activePlayer.controller.sendMyPetInfo();
+        }
+
         public static void writeMyPetInfo(Pet pet, Message message, Player player)
         {
             message.putInt(pet.getPetIdTemplate());
@@ -634,7 +703,14 @@ namespace Gopet.Battle
                     {
                         if (getUserTurnId() != mob.getMobId())
                         {
-                            petAttack(activePlayer);
+                            if (isArenaMode)
+                            {
+                                arenaSmartAttack(false);
+                            }
+                            else
+                            {
+                                petAttack(activePlayer);
+                            }
                         }
                     }
                     nextTurn();
@@ -647,7 +723,14 @@ namespace Gopet.Battle
                     }
                     else if (getUserTurnId() == mob.getMobId() && this.MobAttackTime < DateTime.Now && !IsMobFighted)
                     {
-                        mobAttack();
+                        if (isArenaMode)
+                        {
+                            arenaSmartAttack(true);
+                        }
+                        else
+                        {
+                            mobAttack();
+                        }
                     }
                     else if (mob.getMobId() != getUserTurnId())
                     {
@@ -694,11 +777,13 @@ namespace Gopet.Battle
             return (mob != null ? mob.getHp() <= 0 : false) || (activePet != null ? activePet.hp <= 0 || isClose : false) || (!petAttackMob ? activePet.hp <= 0 || passivePet.hp <= 0 || isClose : false);
         }
 
+        private const long ARENA_TURN_DELAY_MS = 2000;
+
         private void nextTurn()
         {
             IsMobFighted = false;
             setIsActiveTurn(!isActiveTurn);
-            setDelaTimeTurn(Utilities.CurrentTimeMillis + GopetManager.TimeNextTurn);
+            setDelaTimeTurn(Utilities.CurrentTimeMillis + (isArenaMode ? ARENA_TURN_DELAY_MS : GopetManager.TimeNextTurn));
             updateDamageToxic();
             updateDamagePhanDoan();
             if (isActiveTurn)
@@ -737,6 +822,11 @@ namespace Gopet.Battle
             else
             {
                 hadFinished = true;
+            }
+            if (isArenaMode)
+            {
+                winArena();
+                return;
             }
             JArrayList<Popup> petBattleTexts = new();
             if (petAttackMob)
@@ -1420,6 +1510,77 @@ namespace Gopet.Battle
             //        } else {
             //            mobUseNormalAttack();
             //        }
+        }
+
+        // Chọn ngẫu nhiên 1 skill còn dùng được (không cooldown, đủ mp) trong danh sách skill thật của pet.
+        // Trả về null nếu không có skill nào dùng được -> nơi gọi sẽ fallback về đánh thường.
+        private int[] pickUsableSkill(int[][] skillArray, PetBattleInfo battleInfo, int currentMp)
+        {
+            if (skillArray == null)
+            {
+                return null;
+            }
+            JArrayList<int[]> candidates = new();
+            foreach (int[] skillInfo in skillArray)
+            {
+                PetSkill petSkill = GopetManager.PETSKILL_HASH_MAP.get(skillInfo[0]);
+                if (petSkill == null)
+                {
+                    continue;
+                }
+                PetSkillLv petSkillLv = petSkill.skillLv.get(skillInfo[1] - 1);
+                if (petSkillLv == null)
+                {
+                    continue;
+                }
+                if (battleInfo.isCoolDown(skillInfo[0]))
+                {
+                    continue;
+                }
+                if (currentMp < petSkillLv.mpLost)
+                {
+                    continue;
+                }
+                candidates.add(skillInfo);
+            }
+            if (candidates.Count == 0)
+            {
+                return null;
+            }
+            return candidates.get(Utilities.nextInt(candidates.Count));
+        }
+
+        // Auto turn cho Arena: ưu tiên dùng skill nếu có thể, không thì đánh thường. Dùng cho cả 2 phía
+        // (pet phòng thủ ảo lẫn pet của người thách đấu) khi hết thời gian lượt mà chưa có thao tác thủ công.
+        private void arenaSmartAttack(bool isMobTurn)
+        {
+            if (isMobTurn)
+            {
+                int[] chosen = pickUsableSkill(mob.skill, passiveBattleInfo, mob.mp);
+                if (chosen != null)
+                {
+                    PetSkill petSkill = GopetManager.PETSKILL_HASH_MAP.get(chosen[0]);
+                    PetSkillLv petSkillLv = petSkill.skillLv.get(chosen[1] - 1);
+                    mobUseSkill(petSkill, petSkillLv);
+                }
+                else
+                {
+                    mobUseNormalAttack();
+                }
+            }
+            else
+            {
+                Pet pet = activePlayer.getPet();
+                int[] chosen = pet != null ? pickUsableSkill(pet.skill, activeBattleInfo, pet.mp) : null;
+                if (chosen != null)
+                {
+                    useSkill(activePlayer, chosen[0]);
+                }
+                else
+                {
+                    petAttack(activePlayer);
+                }
+            }
         }
 
         private void applySkill(PetSkillLv petSkillLv, PetBattleInfo petBattleInfo, PetBattleInfo nonBattleInfo)

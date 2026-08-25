@@ -51,6 +51,8 @@ public class PlayerData
 
     public Pet PetDefLeague { get; set; }
 
+    public int ArenaPoint { get; set; } = 1000;
+
     public int EventPoint { get; set; }
     public int NumOfUseKiteNormal { get; set; }
     public int NumOfUseKiteVip { get; set; }
@@ -208,6 +210,7 @@ public class PlayerData
                             numUseEnergy = @numUseEnergy,
                             AccumulatedPoint = @AccumulatedPoint,
                             PetDefLeague = @PetDefLeague,
+                            ArenaPoint = @ArenaPoint,
                             EventPoint = @EventPoint,
                             achievements = @achievements,
                             NumOfUseKiteNormal = @NumOfUseKiteNormal,

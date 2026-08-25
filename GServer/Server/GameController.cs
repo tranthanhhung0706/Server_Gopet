@@ -21,6 +21,7 @@ using Gopet.Data.user;
 using static System.Net.Mime.MediaTypeNames;
 using System.Numerics;
 using Gopet.Data.pet;
+using Gopet.Data.Mob;
 
 [NonController]
 public class GameController
@@ -996,6 +997,10 @@ public class GameController
             case GopetCMD.MAGIC:
                 magic(player.user.user_id, true);
                 break;
+            case GopetCMD.ARENA_MENU:
+                message.reader().readsbyte();
+                showArenaMenu();
+                break;
             case GopetCMD.MAGIC_LEARN_SKILL:
                 int skillId = message.readInt();
                 learnSkill(skillId);
@@ -1368,6 +1373,282 @@ public class GameController
             message.cleanup();
             player.session.sendMessage(message);
         }
+    }
+
+    public void showArenaMenu()
+    {
+        JArrayList<MenuItemInfo> menuItemInfos = new();
+        string defPetName = player.playerData.PetDefLeague != null ? player.playerData.PetDefLeague.getNameWithStar(player) : "Chưa chọn";
+        menuItemInfos.add(new MenuItemInfo("Chọn pet phòng thủ", $"Hiện tại: {defPetName}", "npcs/ky-tien.png", true));
+        menuItemInfos.add(new MenuItemInfo("Danh sách đối thủ", $"Điểm đấu trường của bạn: {Utilities.FormatNumber(player.playerData.ArenaPoint)}", "npcs/information.png", true));
+        menuItemInfos.add(new MenuItemInfo("Bảng xếp hạng", "Xem hạng của tất cả người chơi", "npcs/xephang_Pet.png", true));
+        showMenuItem(MENU_ARENA_MAIN, TYPE_MENU_NONE, "Đấu trường", menuItemInfos);
+    }
+
+    public void showArenaLeaderboard()
+    {
+        JArrayList<MenuItemInfo> menuItemInfos = new();
+        try
+        {
+            using (var conn = MYSQLManager.create())
+            {
+                var myRow = conn.QueryFirstOrDefault("SELECT name, avatarPath, ArenaPoint FROM `player` WHERE user_id = @myId", new { myId = player.user.user_id });
+                if (myRow != null)
+                {
+                    int myHigherCount = conn.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM `player` WHERE isAdmin = 0 AND ArenaPoint > @point", new { point = (int)myRow.ArenaPoint });
+                    menuItemInfos.add(new MenuItemInfo($"Hạng {myHigherCount + 1}. {myRow.name} (Bạn)", $"Điểm: {Utilities.FormatNumber((int)myRow.ArenaPoint)}", (string)myRow.avatarPath, false));
+                    menuItemInfos.add(new MenuItemInfo("----------TOP----------", "", "npcs/xephang_Pet.png", false));
+                }
+
+                var rows = conn.Query("SELECT user_id, name, avatarPath, ArenaPoint FROM `player` WHERE isAdmin = 0 ORDER BY ArenaPoint DESC LIMIT 50");
+                int rank = 1;
+                foreach (dynamic row in rows)
+                {
+                    menuItemInfos.add(new MenuItemInfo($"Hạng {rank}. {row.name}", $"Điểm: {Utilities.FormatNumber((int)row.ArenaPoint)}", (string)row.avatarPath, false));
+                    rank++;
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        showMenuItem(-1, TYPE_MENU_NONE, "Bảng xếp hạng đấu trường", menuItemInfos);
+    }
+
+    private const int ARENA_OPPONENT_LIST_SIZE = 10;
+    private const int ARENA_OPPONENT_LIST_HALF = ARENA_OPPONENT_LIST_SIZE / 2;
+
+    public void showArenaOpponentList()
+    {
+        JArrayList<MenuItemInfo> menuItemInfos = new();
+        try
+        {
+            using (var conn = MYSQLManager.create())
+            {
+                int totalCount = conn.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM `player` WHERE isAdmin = 0 AND PetDefLeague IS NOT NULL");
+                int? myArenaPoint = conn.QueryFirstOrDefault<int?>("SELECT ArenaPoint FROM `player` WHERE user_id = @myId AND isAdmin = 0 AND PetDefLeague IS NOT NULL", new { myId = player.user.user_id });
+                int myRank;
+                if (myArenaPoint.HasValue)
+                {
+                    int higherCount = conn.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM `player` WHERE isAdmin = 0 AND PetDefLeague IS NOT NULL AND ArenaPoint > @point", new { point = myArenaPoint.Value });
+                    myRank = higherCount + 1;
+                }
+                else
+                {
+                    myRank = 1;
+                }
+
+                int windowStart = myRank - ARENA_OPPONENT_LIST_HALF;
+                if (windowStart < 1)
+                {
+                    windowStart = 1;
+                }
+                if (windowStart + ARENA_OPPONENT_LIST_SIZE - 1 > totalCount)
+                {
+                    windowStart = Math.Max(1, totalCount - ARENA_OPPONENT_LIST_SIZE + 1);
+                }
+
+                var rows = conn.Query("SELECT user_id, name, ArenaPoint FROM `player` WHERE isAdmin = 0 AND PetDefLeague IS NOT NULL ORDER BY ArenaPoint DESC LIMIT @limit OFFSET @offset",
+                    new { limit = ARENA_OPPONENT_LIST_SIZE, offset = windowStart - 1 });
+
+                int rank = windowStart;
+                foreach (dynamic row in rows)
+                {
+                    if ((int)row.user_id != player.user.user_id)
+                    {
+                        MenuItemInfo info = new MenuItemInfo($"{rank}. {row.name}", $"Điểm: {Utilities.FormatNumber((int)row.ArenaPoint)}", "npcs/fone2.png", true);
+                        info.setHasId(true);
+                        info.setItemId((int)row.user_id);
+                        info.setShowDialog(true);
+                        info.setDialogText($"Chọn thao tác với {row.name}:");
+                        info.setLeftCmdText("Chọn");
+                        info.setPaymentOptions(new MenuItemInfo.PaymentOption[] {
+                            new MenuItemInfo.PaymentOption(0, "Xem thông tin pet", 1),
+                            new MenuItemInfo.PaymentOption(1, "Thách đấu", 1)
+                        });
+                        menuItemInfos.add(info);
+                    }
+                    rank++;
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        showMenuItem(MENU_ARENA_OPPONENT_LIST, TYPE_MENU_PAYMENT, "Danh sách đối thủ", menuItemInfos);
+    }
+
+    private long lastArenaChallengeTime = 0;
+    private const int ARENA_CHALLENGE_ENERGY_COST = 1;
+
+    // atk/def lưu trong DB chỉ được tính lại mỗi khi applyInfo() chạy (lúc chọn pet phòng thủ),
+    // nên nếu người chơi luyện thêm tiềm năng sau đó, field atk/def sẽ bị cũ so với str/agi hiện tại.
+    // Hai hàm dưới tự tính lại atk/def "sạch" (không tính trang bị/xăm) từ chỉ số hiện tại, dùng chung
+    // cho cả màn xem thông tin lẫn lúc thực chiến để đảm bảo nhất quán.
+    private static int computeArenaAtk(Pet pet)
+    {
+        int baseAtk = pet.getStr() * 30;
+        switch (pet.Template.nclass)
+        {
+            case GopetManager.Archer:
+            case GopetManager.Fighter:
+                return baseAtk + (pet.getStr() / 3) + 5;
+            case GopetManager.Demon:
+            case GopetManager.Assassin:
+                return baseAtk + (pet.getAgi() / 3) + 5;
+            case GopetManager.Angel:
+            case GopetManager.Wizard:
+                return baseAtk + (pet.getInt() / 3) + 5;
+        }
+        return 0;
+    }
+
+    private static int computeArenaDef(Pet pet)
+    {
+        return (pet.getAgi() * 20) + (pet.getAgi() / 3);
+    }
+
+    private Pet loadArenaDefensePet(int defenderUserId)
+    {
+        Player defenderOnline = PlayerManager.get(defenderUserId);
+        if (defenderOnline != null)
+        {
+            return defenderOnline.playerData.PetDefLeague;
+        }
+        using (var conn = MYSQLManager.create())
+        {
+            string petDefLeagueJson = conn.QueryFirstOrDefault<string>("SELECT PetDefLeague FROM `player` WHERE user_id = @id", new { id = defenderUserId });
+            return petDefLeagueJson != null ? Newtonsoft.Json.JsonConvert.DeserializeObject<Pet>(petDefLeagueJson, Gopet.Adapter.JsonAdapter<Pet>.SerializerSettings) : null;
+        }
+    }
+
+    public void showArenaOpponentPetInfo(int defenderUserId)
+    {
+        Pet pet = loadArenaDefensePet(defenderUserId);
+        if (pet == null)
+        {
+            player.redDialog("Người chơi này chưa chọn pet phòng thủ.");
+            return;
+        }
+        Message message = new Message(GopetCMD.PET_SERVICE);
+        message.putsbyte(GopetCMD.MAGIC);
+        message.putInt(defenderUserId);
+        message.putInt(pet.getPetIdTemplate());
+        message.putsbyte(pet.getPetTemplate().element);
+        message.putUTF(pet.getPetTemplate().frameImg);
+        message.putUTF(pet.getNameWithStar(player));
+        message.putsbyte(pet.getPetTemplate().nclass);
+        message.putInt(pet.lvl);
+        message.putlong(pet.exp);
+        if (GopetManager.PetExp.ContainsKey(pet.lvl))
+        {
+            message.putlong(GopetManager.PetExp.get(pet.lvl));
+        }
+        else
+        {
+            message.putlong(long.MaxValue);
+        }
+        message.putlong(0);
+        message.putInt(pet.getStr());
+        message.putInt(pet.getAgi());
+        message.putInt(pet.getInt());
+        message.putInt(computeArenaAtk(pet));
+        message.putInt(computeArenaDef(pet));
+        message.putInt(pet.hp);
+        message.putInt(pet.mp);
+        message.putInt(pet.maxHp);
+        message.putInt(pet.maxMp);
+        message.putsbyte(pet.skill.Length);
+        for (int i = 0; i < pet.skill.Length; i++)
+        {
+            int skillId = pet.skill[i][0];
+            int skilllvl = pet.skill[i][1];
+            PetSkill petSkill = GopetManager.PETSKILL_HASH_MAP.get(skillId);
+            PetSkillLv petSkillLv = petSkill.skillLv.get(skilllvl - 1);
+            message.putInt(skillId);
+            message.putUTF(petSkill.getName(player) + " " + skilllvl);
+            message.putUTF(petSkill.getDescription(petSkillLv, player));
+            message.putInt(petSkillLv.mpLost);
+        }
+        message.putInt(pet.tiemnang_point);
+        message.putInt(0);
+        message.putsbyte(pet.Template.frameNum);
+        message.cleanup();
+        player.session.sendMessage(message);
+    }
+
+    public void startArenaBattle(int defenderUserId)
+    {
+        if (defenderUserId == player.user.user_id)
+        {
+            player.redDialog("Bạn không thể thách đấu chính mình.");
+            return;
+        }
+        if (getPetBattle() != null)
+        {
+            player.redDialog(player.Language.CannotManipulateWhenFighting);
+            return;
+        }
+        if (player.playerData.petSelected == null || player.playerData.petSelected.hp <= 0)
+        {
+            player.petNotFollow();
+            return;
+        }
+        if (Utilities.CurrentTimeMillis < lastArenaChallengeTime + 10000)
+        {
+            player.redDialog("Bạn thách đấu quá nhanh, vui lòng thử lại sau.");
+            return;
+        }
+        if (!player.checkStar(ARENA_CHALLENGE_ENERGY_COST))
+        {
+            player.notEnoughStar();
+            return;
+        }
+        GopetPlace place = player.getPlace();
+        if (place == null)
+        {
+            return;
+        }
+
+        Pet defensePet = loadArenaDefensePet(defenderUserId);
+        if (defensePet == null)
+        {
+            player.redDialog("Người chơi này chưa chọn pet phòng thủ.");
+            return;
+        }
+
+        lastArenaChallengeTime = Utilities.CurrentTimeMillis;
+        player.MineStar(ARENA_CHALLENGE_ENERGY_COST);
+
+        Mob defenderMob = new Mob();
+        defenderMob.petIdTemplate = defensePet.petIdTemplate;
+        defenderMob.skill = defensePet.skill;
+        defenderMob.maxHp = defensePet.maxHp;
+        defenderMob.hp = defenderMob.maxHp;
+        defenderMob.maxMp = defensePet.maxMp;
+        defenderMob.mp = defenderMob.maxMp;
+        defenderMob.name = defensePet.getNameWithStar(player);
+        defenderMob.setMobId(-1000000 - defenderUserId);
+        MobLvInfo mobLvInfo = new MobLvInfo();
+        mobLvInfo.lvl = defensePet.lvl;
+        mobLvInfo.str = defensePet.getStr();
+        mobLvInfo.agi = defensePet.getAgi();
+        mobLvInfo._int = defensePet.getInt();
+        mobLvInfo.atk = computeArenaAtk(defensePet);
+        mobLvInfo.exp = 0;
+        mobLvInfo.coin = 0;
+        defenderMob.setMobLvInfo(mobLvInfo);
+        defenderMob.setDef(defensePet.getAgi() * 20);
+
+        PetBattle petBattle = new PetBattle(defenderMob, place, player);
+        petBattle.setIsArenaMode(true, defenderUserId);
+        petBattle.setDelaTimeTurn(Utilities.CurrentTimeMillis + 2000);
+        setPetBattle(petBattle);
+        defenderMob.setPetBattle(petBattle, player);
+        place.addPetBattle(petBattle);
+        petBattle.sendStartArenaBattle(defenderMob, player);
     }
 
     private void requestPetImg(sbyte type, String path)

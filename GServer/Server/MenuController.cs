@@ -143,6 +143,8 @@ public partial class MenuController
     public const int MENU_OPTION_KIOSK = 1088;
     public const int MENU_OPTION_KIOSK_CANCEL_ITEM = 1089;
     public const int MENU_OPTION_BUY_KIOSK_ITEM = 1090;
+    public const int MENU_ARENA_MAIN = 1100;
+    public const int MENU_ARENA_OPPONENT_LIST = 1101;
     public static readonly MenuItemInfo[] ADMIN_INFOS = new MenuItemInfo[]{
         new AdminItemInfo("Đặt chỉ số pet đang đi theo", "Đặt chỉ số cho pet đi theo", "items/4000766.png"),
         new AdminItemInfo("Dịch chuyển đến người chơi", "Dịch chuyển đến người chơi chỉ định", "items/4000766.png"),
