@@ -713,7 +713,10 @@ namespace Gopet.Battle
                             }
                         }
                     }
-                    nextTurn();
+                    else
+                    {
+                        nextTurn();
+                    }
                 }
                 if (isPetAttackMob())
                 {
@@ -1406,11 +1409,11 @@ namespace Gopet.Battle
 
         private void mobUseSkill(PetSkill skill, PetSkillLv petSkillLv)
         {
-            bool isStun = ItemInfo.getValueById(activeBattleInfo.getBuff(), ItemInfo.Type.STUN) > 0 || Utilities.NextFloatPer() < ItemInfo.getValueById(activeBattleInfo.getBuff(), ItemInfo.Type.PER_STUN_1_TURN) / 100f;
+            bool isStun = ItemInfo.getValueById(passiveBattleInfo.getBuff(), ItemInfo.Type.STUN) > 0 || Utilities.NextFloatPer() < ItemInfo.getValueById(passiveBattleInfo.getBuff(), ItemInfo.Type.PER_STUN_1_TURN) / 100f;
             if (!isStun)
             {
-                PetBattleInfo nonPetBattleInfo = passiveBattleInfo;
-                PetBattleInfo petBattleInfo = activeBattleInfo;
+                PetBattleInfo nonPetBattleInfo = activeBattleInfo;
+                PetBattleInfo petBattleInfo = passiveBattleInfo;
                 if (mob.mp - petSkillLv.mpLost >= 0)
                 {
                     int mpdelta = 0;
