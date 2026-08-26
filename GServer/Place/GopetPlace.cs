@@ -111,6 +111,15 @@ public class GopetPlace : Place
         mobs.remove(gopetMob);
         long timeGen = Utilities.CurrentTimeMillis + TIME_NEW_MOB;
         newMob.TryAdd(gopetMob.getMobLocation(), timeGen);
+        sendRemoveMob(gopetMob.getMobId());
+    }
+
+    public void sendRemoveMob(int mobId)
+    {
+        Message message = GameController.messagePetService(GopetCMD.REMOVE_MOB);
+        message.putInt(mobId);
+        message.cleanup();
+        sendMessage(message);
     }
 
     public Mob getMob(int mobId)
@@ -414,9 +423,12 @@ public class GopetPlace : Place
         {
             if (player.playerData.petSelected != null)
             {
-                if (!(mob is Boss) && mob.hp <= 0 && mob.getPetBattle(player) == null)
+                if (mob.hp <= 0)
                 {
-                    mobDie(mob);
+                    if (!(mob is Boss) && mob.getPetBattle(player) == null)
+                    {
+                        mobDie(mob);
+                    }
                     return;
                 }
                 if (player.playerData.petSelected.hp > 0)

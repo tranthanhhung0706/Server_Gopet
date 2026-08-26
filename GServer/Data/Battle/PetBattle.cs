@@ -1677,6 +1677,7 @@ namespace Gopet.Battle
                     else
                     {
                         mob.addHp(damagePhandoan, activePlayer);
+                        mob.SetWinnerIfHpZero(activePlayer);
                         turnEffects.add(new TurnEffect(TurnEffect.NONE, activePlayer.playerData.user_id, PetSkill.GetTPhanDonSkill(mob), -damagePhandoan, 0));
                     }
                 }
@@ -1708,6 +1709,7 @@ namespace Gopet.Battle
                     {
                         int damage = (int)Utilities.GetValueFromPercent(PassiveObject.maxHp, damagePer);
                         mob.addHp(damage, activePlayer);
+                        mob.SetWinnerIfHpZero(activePlayer);
                         turnEffects.add(new TurnEffect(TurnEffect.NONE, mob.getMobId(), PetSkill.GetToxicSkill(activePet), -damage, 0));
                     }
                     else
@@ -1735,6 +1737,7 @@ namespace Gopet.Battle
                     {
                         int damage = damageToxic;
                         mob.addHp(damage, activePlayer);
+                        mob.SetWinnerIfHpZero(activePlayer);
                         turnEffects.add(new TurnEffect(TurnEffect.NONE, mob.getMobId(), PetSkill.GetToxicSkill(activePet), -damage, 0));
                     }
                     else
