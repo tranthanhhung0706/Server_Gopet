@@ -23,6 +23,7 @@ namespace Gopet.APIs
 
     [Route("api/server")]
     [ApiController]
+    [RequireApiKey]
     [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
     public class ServerController : ControllerBase
     {
