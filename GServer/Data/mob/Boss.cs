@@ -77,16 +77,23 @@ namespace Gopet.Data.Mob
 
         public override PetBattle getPetBattle(Player player)
         {
-            if (Battle.TryGetValue(player, out var battle))
+            foreach (var kv in Battle)
             {
-                return battle;
+                return kv.Value;
             }
             return null;
         }
 
         public override void setPetBattle(PetBattle petBattle, Player player)
         {
-            Battle[player] = petBattle;
+            if (petBattle == null)
+            {
+                Battle.Remove(player);
+            }
+            else
+            {
+                Battle[player] = petBattle;
+            }
         }
 
         public override bool HasBattle
