@@ -1392,15 +1392,18 @@ public class GameController
         {
             using (var conn = MYSQLManager.create())
             {
-                var myRow = conn.QueryFirstOrDefault("SELECT name, avatarPath, ArenaPoint FROM `player` WHERE user_id = @myId", new { myId = player.user.user_id });
+                int myId = player.user.user_id;
+                var myRow = conn.QueryFirstOrDefault("SELECT name, avatarPath, ArenaPoint FROM `player` WHERE user_id = @myId", new { myId });
                 if (myRow != null)
                 {
-                    int myHigherCount = conn.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM `player` WHERE isAdmin = 0 AND ArenaPoint > @point", new { point = (int)myRow.ArenaPoint });
+                    int myHigherCount = conn.QueryFirstOrDefault<int>(
+                        "SELECT COUNT(*) FROM `player` WHERE isAdmin = 0 AND (ArenaPoint > @point OR (ArenaPoint = @point AND user_id < @myId))",
+                        new { point = (int)myRow.ArenaPoint, myId });
                     menuItemInfos.add(new MenuItemInfo($"Hạng {myHigherCount + 1}. {myRow.name} (Bạn)", $"Điểm: {Utilities.FormatNumber((int)myRow.ArenaPoint)}", (string)myRow.avatarPath, false));
                     menuItemInfos.add(new MenuItemInfo("----------TOP----------", "", "npcs/xephang_Pet.png", false));
                 }
 
-                var rows = conn.Query("SELECT user_id, name, avatarPath, ArenaPoint FROM `player` WHERE isAdmin = 0 ORDER BY ArenaPoint DESC LIMIT 50");
+                var rows = conn.Query("SELECT user_id, name, avatarPath, ArenaPoint FROM `player` WHERE isAdmin = 0 ORDER BY ArenaPoint DESC, user_id ASC LIMIT 50");
                 int rank = 1;
                 foreach (dynamic row in rows)
                 {
@@ -1426,12 +1429,17 @@ public class GameController
         {
             using (var conn = MYSQLManager.create())
             {
+                int myId = player.user.user_id;
                 int totalCount = conn.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM `player` WHERE isAdmin = 0 AND PetDefLeague IS NOT NULL");
-                int? myArenaPoint = conn.QueryFirstOrDefault<int?>("SELECT ArenaPoint FROM `player` WHERE user_id = @myId AND isAdmin = 0 AND PetDefLeague IS NOT NULL", new { myId = player.user.user_id });
+                int? myArenaPoint = conn.QueryFirstOrDefault<int?>("SELECT ArenaPoint FROM `player` WHERE user_id = @myId AND isAdmin = 0 AND PetDefLeague IS NOT NULL", new { myId });
                 int myRank;
                 if (myArenaPoint.HasValue)
                 {
-                    int higherCount = conn.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM `player` WHERE isAdmin = 0 AND PetDefLeague IS NOT NULL AND ArenaPoint > @point", new { point = myArenaPoint.Value });
+                    // Phải dùng đúng tiêu chí sắp xếp (ArenaPoint DESC, user_id ASC) với câu query lấy danh sách bên dưới,
+                    // nếu không khi nhiều người trùng điểm thì hạng tính ra sẽ không khớp với thứ tự thực tế hiển thị.
+                    int higherCount = conn.QueryFirstOrDefault<int>(
+                        "SELECT COUNT(*) FROM `player` WHERE isAdmin = 0 AND PetDefLeague IS NOT NULL AND (ArenaPoint > @point OR (ArenaPoint = @point AND user_id < @myId))",
+                        new { point = myArenaPoint.Value, myId });
                     myRank = higherCount + 1;
                 }
                 else
@@ -1449,7 +1457,7 @@ public class GameController
                     windowStart = Math.Max(1, totalCount - ARENA_OPPONENT_LIST_SIZE + 1);
                 }
 
-                var rows = conn.Query("SELECT user_id, name, ArenaPoint FROM `player` WHERE isAdmin = 0 AND PetDefLeague IS NOT NULL ORDER BY ArenaPoint DESC LIMIT @limit OFFSET @offset",
+                var rows = conn.Query("SELECT user_id, name, ArenaPoint FROM `player` WHERE isAdmin = 0 AND PetDefLeague IS NOT NULL ORDER BY ArenaPoint DESC, user_id ASC LIMIT @limit OFFSET @offset",
                     new { limit = ARENA_OPPONENT_LIST_SIZE, offset = windowStart - 1 });
 
                 int rank = windowStart;
@@ -3261,7 +3269,8 @@ public class GameController
                     else
                     {
                         player.mineCoin(GopetManager.PRICE_ENCHANT[itemEuip.lvl]);
-                        bool isSuccec = (materialCrystal.getTemp().getOptionValue()[0] + (isGem ? GopetManager.PERCENT_OF_ENCHANT_GEM[itemEuip.lvl] : GopetManager.PERCENT_ENCHANT[itemEuip.lvl]) > Utilities.NextFloatPer()) || isBuffEnchent;
+                        float totalEnchantPercent = materialCrystal.getTemp().getOptionValue()[0] + (isGem ? GopetManager.PERCENT_OF_ENCHANT_GEM[itemEuip.lvl] : GopetManager.PERCENT_ENCHANT[itemEuip.lvl]);
+                        bool isSuccec = totalEnchantPercent >= 100f || totalEnchantPercent > Utilities.NextFloatPer() || isBuffEnchent;
                         int levelDrop = 0;
                         bool destroyItem = !isSuccec && isGem ? (itemEuip.lvl > 8) : (itemEuip.lvl == 8 || itemEuip.lvl == 9);
                         if (isSuccec)
