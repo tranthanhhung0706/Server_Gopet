@@ -1457,7 +1457,7 @@ public class GameController
                     windowStart = Math.Max(1, totalCount - ARENA_OPPONENT_LIST_SIZE + 1);
                 }
 
-                var rows = conn.Query("SELECT user_id, name, ArenaPoint FROM `player` WHERE isAdmin = 0 AND PetDefLeague IS NOT NULL ORDER BY ArenaPoint DESC, user_id ASC LIMIT @limit OFFSET @offset",
+                var rows = conn.Query("SELECT user_id, name, avatarPath, ArenaPoint FROM `player` WHERE isAdmin = 0 AND PetDefLeague IS NOT NULL ORDER BY ArenaPoint DESC, user_id ASC LIMIT @limit OFFSET @offset",
                     new { limit = ARENA_OPPONENT_LIST_SIZE, offset = windowStart - 1 });
 
                 int rank = windowStart;
@@ -1465,7 +1465,7 @@ public class GameController
                 {
                     if ((int)row.user_id != player.user.user_id)
                     {
-                        MenuItemInfo info = new MenuItemInfo($"{rank}. {row.name}", $"Điểm: {Utilities.FormatNumber((int)row.ArenaPoint)}", "npcs/fone2.png", true);
+                        MenuItemInfo info = new MenuItemInfo($"{rank}. {row.name}", $"Điểm: {Utilities.FormatNumber((int)row.ArenaPoint)}", (string)row.avatarPath, true);
                         info.setHasId(true);
                         info.setItemId((int)row.user_id);
                         info.setShowDialog(true);

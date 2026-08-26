@@ -532,7 +532,7 @@ public class GopetManager
     /// <summary>
     /// Tỉ lệ cường hoá
     /// </summary>
-    public static readonly float[] PERCENT_ENCHANT = new float[] { 90f, 80f, 70f, 60f, 50f, 30f, 20f, 5f, -10f, -20f };
+    public static readonly float[] PERCENT_ENCHANT = new float[] { 90f, 80f, 70f, 60f, 50f, 40f, 30f, 20f, 5f, 2f };
     /// <summary>
     /// Tỉ lệ cường hoá hiển thị
     /// </summary>
