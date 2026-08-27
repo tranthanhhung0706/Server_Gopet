@@ -50,6 +50,7 @@ public partial class MenuController
                 break;
             case MENU_PET_REINCARNATION:
             case MENU_PET_SACRIFICE:
+            case MENU_PET_ABANDON:
             case MENU_FUSION_MENU_PET:
             case MENU_SELECT_PET_TO_DEF_LEAGUE:
             case MENU_KIOSK_PET_SELECT:

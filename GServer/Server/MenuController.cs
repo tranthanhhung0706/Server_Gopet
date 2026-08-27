@@ -145,6 +145,7 @@ public partial class MenuController
     public const int MENU_OPTION_BUY_KIOSK_ITEM = 1090;
     public const int MENU_ARENA_MAIN = 1100;
     public const int MENU_ARENA_OPPONENT_LIST = 1101;
+    public const int MENU_PET_ABANDON = 1102;
     public static readonly MenuItemInfo[] ADMIN_INFOS = new MenuItemInfo[]{
         new AdminItemInfo("Đặt chỉ số pet đang đi theo", "Đặt chỉ số cho pet đi theo", "items/4000766.png"),
         new AdminItemInfo("Dịch chuyển đến người chơi", "Dịch chuyển đến người chơi chỉ định", "items/4000766.png"),
@@ -407,6 +408,10 @@ public partial class MenuController
     /// Bảng xếp hạng sử dụng hộp quà
     /// </summary>
     public const int OP_TOP_USE_GIFT_BOX_2025 = 97;
+    /// <summary>
+    /// Bỏ rơi thú cưng
+    /// </summary>
+    public const int OP_PET_ABANDON = 98;
     /// <summary>
     /// Option Custom
     /// Trao đổi thưởng bằng 
