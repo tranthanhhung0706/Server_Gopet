@@ -315,8 +315,8 @@ public class Pet : GameObject, IBinaryObject<Pet>
     {
         this.atk = (this.getStr() * 3);
         this.def = (this.getAgi() * 2);
-        this.maxHp = getHpViaPrice() + (this.getInt() * 50);
-        this.maxMp = getMpViaPrice() + (this.getInt() * 50);
+        this.maxHp = getHpViaPrice() + (this.getInt() * 5);
+        this.maxMp = getMpViaPrice() + (this.getInt() * 5);
         IDictionary<int, int> ItemEquipType = new Dictionary<int, int>();
         foreach (var next in equip.ToArray())
         {
