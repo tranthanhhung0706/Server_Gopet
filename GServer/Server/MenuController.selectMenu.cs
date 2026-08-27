@@ -2700,9 +2700,9 @@ public partial class MenuController
                         }
 
                         Pet pet = player.controller.objectPerformed[OBJKEY_PET_REINCARNATION];
-                        if (pet.lvl < 41)
+                        if (pet.lvl < 40)
                         {
-                            player.redDialog("Thú cưng phải cấp 41 trở lên mới có thể trùng sinh");
+                            player.redDialog("Thú cưng phải cấp 40 trở lên mới có thể trùng sinh");
                             return;
                         }
                         if (!GopetManager.Reincarnations.ContainsKey(pet.petIdTemplate))
@@ -2726,6 +2726,21 @@ public partial class MenuController
                         {
                             addMoney((sbyte)index, -GopetManager.ReincarnationPetPrice[index], player);
                             player.controller.subCountItem(cardReincarnation, petReincarnation.NumCard, GopetManager.NORMAL_INVENTORY);
+                            if (petReincarnation.PetId == petReincarnation.PetIdReincarnation)
+                            {
+                                switch (pet.GetEffectiveNClass())
+                                {
+                                    case GopetManager.Fighter:
+                                        pet.nclassOverride = GopetManager.Archer;
+                                        break;
+                                    case GopetManager.Wizard:
+                                        pet.nclassOverride = GopetManager.Angel;
+                                        break;
+                                    case GopetManager.Assassin:
+                                        pet.nclassOverride = GopetManager.Demon;
+                                        break;
+                                }
+                            }
                             pet.petIdTemplate = petReincarnation.PetIdReincarnation;
                             pet.skill = new int[0][];
                             pet.lvl = 1;

@@ -14,6 +14,12 @@ public class Pet : GameObject, IBinaryObject<Pet>
 
     public int petIdTemplate;
 
+    /**
+     * Ghi đè nclass của template, dùng khi trùng sinh tự lên thiên giới
+     * mà PetIdReincarnation trùng petId gốc (không đổi loài, chỉ đổi class)
+     */
+    public sbyte? nclassOverride = null;
+
     public bool petDieByPK = false;
     public long TimeDieZ { get; set; } = Utilities.CurrentTimeMillis;
 
@@ -122,6 +128,11 @@ public class Pet : GameObject, IBinaryObject<Pet>
         {
             return GopetManager.PETTEMPLATE_HASH_MAP[this.petIdTemplate];
         }
+    }
+
+    public override sbyte GetEffectiveNClass()
+    {
+        return nclassOverride ?? base.GetEffectiveNClass();
     }
 
     public bool IsCrit
