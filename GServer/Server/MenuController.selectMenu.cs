@@ -1294,7 +1294,7 @@ public partial class MenuController
                                 Pet pet = player.playerData.petSelected;
                                 if (pet != null)
                                 {
-                                    if (!pet.Template.IsSky)
+                                    if (!pet.IsEffectiveSky())
                                     {
                                         player.redDialog(player.Language.IncorrectPetUseSkillCard);
                                         return;
@@ -2407,7 +2407,7 @@ public partial class MenuController
             case MENU_SELECT_SLOT_USE_SKILL_CARD:
                 {
                     Pet p = player.getPet();
-                    if (p == null || !player.playerData.petSelected.Template.IsSky)
+                    if (p == null || !player.playerData.petSelected.IsEffectiveSky())
                     {
                         player.redDialog(player.Language.IncorrectPetUseSkillCard);
                         return;
@@ -2742,18 +2742,17 @@ public partial class MenuController
                                 }
                             }
                             pet.petIdTemplate = petReincarnation.PetIdReincarnation;
-                            pet.skill = new int[0][];
+                            if (!pet.hasReincarnated)
+                            {
+                                pet.skill = new int[0][];
+                            }
+                            pet.hasReincarnated = true;
                             pet.lvl = 1;
                             pet.exp = 0;
-                            pet.pointTiemNangLvl = pet.Template.gymUpLevel;
+                            pet.pointTiemNangLvl = 50;
                             pet.str = pet.Template.str;
                             pet.agi = pet.Template.agi;
                             pet._int = pet.Template._int;
-                            int maxTatto = Utilities.nextInt(0, 3);
-                            while (maxTatto <= pet.tatto.Count && pet.tatto.Count != 0)
-                            {
-                                pet.tatto.removeAt(Utilities.nextInt(0, pet.tatto.Count));
-                            }
                             player.okDialog("Trùng sinh thành công");
                             player.playerData.isOnSky = true;
                             pet.LoadEffectsFromTemplates(1, 2, 3, 4, 5, 6, 7);
