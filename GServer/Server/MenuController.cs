@@ -818,7 +818,7 @@ public partial class MenuController
         {
             return GopetManager.PET_SKILLS.Where(p => p.nClass == GopetManager.Fighter || p.nClass == GopetManager.Assassin || p.nClass == GopetManager.Wizard).ToArray();
         }
-        JArrayList<PetSkill> petSkills = GopetManager.NCLASS_PETSKILL_HASH_MAP.get(player.playerData.petSelected.getPetTemplate().nclass);
+        JArrayList<PetSkill> petSkills = GopetManager.NCLASS_PETSKILL_HASH_MAP.get(player.playerData.petSelected.GetEffectiveNClass());
         return petSkills.ToArray();
     }
 

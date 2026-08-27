@@ -1294,7 +1294,7 @@ public partial class MenuController
                                 Pet pet = player.playerData.petSelected;
                                 if (pet != null)
                                 {
-                                    if (!pet.Template.IsSky)
+                                    if (!pet.IsEffectiveSky())
                                     {
                                         player.redDialog(player.Language.IncorrectPetUseSkillCard);
                                         return;
@@ -2407,7 +2407,7 @@ public partial class MenuController
             case MENU_SELECT_SLOT_USE_SKILL_CARD:
                 {
                     Pet p = player.getPet();
-                    if (p == null || !player.playerData.petSelected.Template.IsSky)
+                    if (p == null || !player.playerData.petSelected.IsEffectiveSky())
                     {
                         player.redDialog(player.Language.IncorrectPetUseSkillCard);
                         return;
@@ -2700,9 +2700,9 @@ public partial class MenuController
                         }
 
                         Pet pet = player.controller.objectPerformed[OBJKEY_PET_REINCARNATION];
-                        if (pet.lvl < 41)
+                        if (pet.lvl < 40)
                         {
-                            player.redDialog("Thú cưng phải cấp 41 trở lên mới có thể trùng sinh");
+                            player.redDialog("Thú cưng phải cấp 40 trở lên mới có thể trùng sinh");
                             return;
                         }
                         if (!GopetManager.Reincarnations.ContainsKey(pet.petIdTemplate))
@@ -2726,19 +2726,33 @@ public partial class MenuController
                         {
                             addMoney((sbyte)index, -GopetManager.ReincarnationPetPrice[index], player);
                             player.controller.subCountItem(cardReincarnation, petReincarnation.NumCard, GopetManager.NORMAL_INVENTORY);
+                            if (petReincarnation.PetId == petReincarnation.PetIdReincarnation)
+                            {
+                                switch (pet.GetEffectiveNClass())
+                                {
+                                    case GopetManager.Fighter:
+                                        pet.nclassOverride = GopetManager.Archer;
+                                        break;
+                                    case GopetManager.Wizard:
+                                        pet.nclassOverride = GopetManager.Angel;
+                                        break;
+                                    case GopetManager.Assassin:
+                                        pet.nclassOverride = GopetManager.Demon;
+                                        break;
+                                }
+                            }
                             pet.petIdTemplate = petReincarnation.PetIdReincarnation;
-                            pet.skill = new int[0][];
+                            if (!pet.hasReincarnated)
+                            {
+                                pet.skill = new int[0][];
+                            }
+                            pet.hasReincarnated = true;
                             pet.lvl = 1;
                             pet.exp = 0;
-                            pet.pointTiemNangLvl = pet.Template.gymUpLevel;
+                            pet.pointTiemNangLvl = 50;
                             pet.str = pet.Template.str;
                             pet.agi = pet.Template.agi;
                             pet._int = pet.Template._int;
-                            int maxTatto = Utilities.nextInt(0, 3);
-                            while (maxTatto <= pet.tatto.Count && pet.tatto.Count != 0)
-                            {
-                                pet.tatto.removeAt(Utilities.nextInt(0, pet.tatto.Count));
-                            }
                             player.okDialog("Trùng sinh thành công");
                             player.playerData.isOnSky = true;
                             pet.LoadEffectsFromTemplates(1, 2, 3, 4, 5, 6, 7);
