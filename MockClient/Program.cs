@@ -20,12 +20,22 @@ internal static class Program
     private const sbyte LOGIN_FAILED = 4;
     private const sbyte COMMAND_IMAGE = 96;
     private const string ImageOutputDir = "received_images";
-
+    private const string AppVersion = "1.4.3";
+    private static readonly TimeSpan KeepAliveInterval = TimeSpan.FromSeconds(60);
+    // 160.191.214.66
     private static NetworkStream? _stream;
+    private static readonly object _writeLock = new();
 
+    // Gom cac path anh (chuoi ket thuc .png/.jpg/.jpeg/.gif) da thay server nhac toi trong bat ky goi tin
+    // that nao (khong phai do MockClient tu doan) - xem DecodeAndPrint. Day la nguon du lieu 100% chinh xac
+    // voi server dang chay vi chinh server la ben gui chuoi nay, khong can biet truoc repo/DB.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte> _knownImagePaths = new();
+    private static volatile bool _autoHarvestFetch = false;
+
+    // 14.225.198.250
     private static async Task<int> Main(string[] args)
     {
-        string host = args.Length > 0 ? args[0] : "127.0.0.1";
+        string host = args.Length > 0 ? args[0] : "14.225.198.250";
         int port = args.Length > 1 ? int.Parse(args[1]) : 19180;
 
         Console.WriteLine($"[MockClient] Connecting to {host}:{port} ...");
@@ -50,8 +60,30 @@ internal static class Program
         readerThread.Start();
 
         // Server yêu cầu CLIENT_INFO là gói đầu tiên, nếu không sẽ đóng kết nối ngay (Player.cs:96).
-        SendClientInfo(_stream, languageCode: "vi", appVersion: "1.4.2");
+        SendClientInfo(_stream, languageCode: "vi", appVersion: AppVersion);
         Console.WriteLine("[MockClient] Da gui CLIENT_INFO, cho server phan hoi...");
+
+        // Server (Session.cs/MsgReader.cs) khong tu ngat ket noi ranh, nhung ha tang mang (firewall/NAT/
+        // load-balancer) phia truoc server that thuong tu dong dong cac ket noi TCP khong co traffic sau
+        // vai phut. Gui lai CLIENT_INFO dinh ky nhu 1 goi "nhip tim" vo hai (server chi re-ack, khong reset
+        // trang thai dang nhap - xem Player.cs:104-130) de giu ket noi song khi de MockClient chay lau (vd
+        // luc dang bat "harvest on").
+        _ = Task.Run(async () =>
+        {
+            while (true)
+            {
+                await Task.Delay(KeepAliveInterval);
+                try
+                {
+                    if (_stream == null) break;
+                    SendClientInfo(_stream, "vi", AppVersion);
+                }
+                catch
+                {
+                    break; // da mat ket noi, ReadLoop se tu bao loi rieng
+                }
+            }
+        });
 
         PrintHelp();
         while (true)
@@ -74,12 +106,12 @@ internal static class Program
                         PrintHelp();
                         break;
                     case "info":
-                        SendClientInfo(_stream, "vi", "1.4.2");
+                        SendClientInfo(_stream, "vi", AppVersion);
                         break;
                     case "login" when parts.Length >= 3:
                         {
                             var up = parts[2].Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
-                            SendLogin(_stream, parts[1], up.Length > 0 ? up[0] : "", "1.4.2");
+                            SendLogin(_stream, parts[1], up.Length > 0 ? up[0] : "", AppVersion);
                             break;
                         }
                     case "register" when parts.Length >= 3:
@@ -91,6 +123,18 @@ internal static class Program
                             SendImageRequest(_stream, path);
                             break;
                         }
+                    case "imgrange" when parts.Length >= 3:
+                        {
+                            var rangeArgs = parts[2].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                            if (rangeArgs.Length < 2 || !int.TryParse(rangeArgs[0], out int start) || !int.TryParse(rangeArgs[1], out int end))
+                            {
+                                Console.WriteLine("[MockClient] Cu phap: imgrange <template co {n}> <start> <end> [delayMs]");
+                                break;
+                            }
+                            int delayMs = rangeArgs.Length >= 3 && int.TryParse(rangeArgs[2], out int d2) ? d2 : 150;
+                            await RequestImgRangeAsync(_stream, parts[1], start, end, delayMs);
+                            break;
+                        }
                     case "raw" when parts.Length >= 2:
                         {
                             var rawParts = parts[1].Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
@@ -98,6 +142,51 @@ internal static class Program
                             byte[] body = rawParts.Length > 1 ? HexToBytes(rawParts[1]) : Array.Empty<byte>();
                             SendPacket(_stream, opcode, body);
                             Console.WriteLine($"[MockClient] Da gui raw opcode={opcode} body={body.Length} byte");
+                            break;
+                        }
+                    case "frameall":
+                        {
+                            int delayMs = 150;
+                            string? assetsDir = null;
+                            if (parts.Length >= 2 && int.TryParse(parts[1], out int d)) delayMs = d;
+                            if (parts.Length >= 3) assetsDir = parts[2];
+                            await RequestAllAssetImgsAsync(_stream, "petFrame3", assetsDir, delayMs);
+                            break;
+                        }
+                    case "animall":
+                        {
+                            int delayMs = 150;
+                            string? assetsDir = null;
+                            if (parts.Length >= 2 && int.TryParse(parts[1], out int d)) delayMs = d;
+                            if (parts.Length >= 3) assetsDir = parts[2];
+                            await RequestAllAssetImgsAsync(_stream, "anim_characters", assetsDir, delayMs);
+                            break;
+                        }
+                    case "harvest":
+                        {
+                            string sub = parts.Length >= 2 ? parts[1].ToLowerInvariant() : "list";
+                            switch (sub)
+                            {
+                                case "on":
+                                    _autoHarvestFetch = true;
+                                    Console.WriteLine("[MockClient] Harvest ON: moi path anh moi thay tu server se tu dong duoc xin anh that.");
+                                    break;
+                                case "off":
+                                    _autoHarvestFetch = false;
+                                    Console.WriteLine("[MockClient] Harvest OFF.");
+                                    break;
+                                case "save" when parts.Length >= 3:
+                                    File.WriteAllLines(parts[2], _knownImagePaths.Keys.OrderBy(x => x));
+                                    Console.WriteLine($"[MockClient] Da luu {_knownImagePaths.Count} path vao {parts[2]}");
+                                    break;
+                                default:
+                                    Console.WriteLine($"[MockClient] Da gom duoc {_knownImagePaths.Count} path anh tu server (harvest {(_autoHarvestFetch ? "ON" : "OFF")}):");
+                                    foreach (var p in _knownImagePaths.Keys.OrderBy(x => x))
+                                    {
+                                        Console.WriteLine($"    {p}");
+                                    }
+                                    break;
+                            }
                             break;
                         }
                     default:
@@ -121,7 +210,25 @@ internal static class Program
               login <user> <pass>      - gui goi LOGIN
               register <user> <pass>   - gui goi REGISTER
               img <path>               - yeu cau anh that (vd: img npcs/tran_tran.png), luu vao received_images/
+              imgrange <template co {n}> <start> <end> [delayMs]
+                                       - lap gui img tu <start> den <end>, thay {n} bang tung so
+                                         vd: imgrange anim_characters/{n}.png 61 62
+                                         -> gui img anim_characters/61.png roi img anim_characters/62.png
+                                         (delay mac dinh 150ms giua cac lan gui)
               raw <opcode> [hexBytes]  - gui goi tuy y, vi du: raw 1 00047573657200047061737300053"
+              frameall [delayMs] [assetsDir] - quet thu muc petFrame3 cuc bo (mac dinh tu tim GServer/assets/petFrame3
+                                         quanh vi tri chay MockClient, hoac truyen duong dan rieng), gui lan luot
+                                         COMMAND_IMAGE cho tung file tim thay (delay mac dinh 150ms giua cac lan gui
+                                         de tranh flood), anh luu vao received_images/
+              animall [delayMs] [assetsDir] - giong frameall nhung quet thu muc GServer/assets/anim_characters
+                                         (anh animation nhan vat) thay vi petFrame3
+              harvest [on|off|save <file>] - gom cac path anh (.png/.jpg/.jpeg/.gif) server DA THAT SU nhac toi
+                                         trong goi tin that (khong doan mo) - chinh xac 100% voi server dang
+                                         connect vi server tu gui, khong can biet truoc local repo/DB.
+                                         "harvest on": tu dong xin anh that (COMMAND_IMAGE) ngay khi thay path moi
+                                         (can login/di lai/mo man hinh pet de server gui cac goi co path that).
+                                         "harvest" (khong tham so): liet ke path da gom duoc.
+                                         "harvest save <file>": luu danh sach path da gom ra file text.
               help                     - hien lai huong dan
               quit                     - thoat
             """);
@@ -150,7 +257,7 @@ internal static class Program
         var w = new PacketWriter();
         w.WriteSByte(0);                 // CLIENT_TYPE
         w.WriteInt(0);                   // PROVIDER
-        w.WriteUTF(appVersion);          // ApplicationVersion (phải >= 1.4.2, xem GopetManager.VERSION_142)
+        w.WriteUTF(appVersion);          // ApplicationVersion (phải >= 1.4.3, xem GopetManager.VERSION_143)
         w.WriteUTF("MockClient");        // info
         w.WriteInt(240);                 // displayWidth
         w.WriteInt(320);                 // displayHeight
@@ -182,6 +289,27 @@ internal static class Program
         Console.WriteLine($"[MockClient] Da gui yeu cau anh: \"{path}\"");
     }
 
+    // Lap gui SendImageRequest tu start den end (ho tro ca giam dan neu start > end), thay {n} trong
+    // template bang tung so. Vi du template "anim_characters/{n}.png" voi start=61 end=62 se gui lan luot
+    // "anim_characters/61.png" roi "anim_characters/62.png", co delay giua cac lan de khong flood server.
+    private static async Task RequestImgRangeAsync(NetworkStream stream, string template, int start, int end, int delayMs)
+    {
+        int step = start <= end ? 1 : -1;
+        int count = Math.Abs(end - start) + 1;
+        int i = start;
+        int sent = 0;
+        while (true)
+        {
+            string path = template.Replace("{n}", i.ToString());
+            SendImageRequest(stream, path);
+            sent++;
+            Console.WriteLine($"[MockClient] ({sent}/{count}) da gui: {path}");
+            if (i == end) break;
+            i += step;
+            if (delayMs > 0) await Task.Delay(delayMs);
+        }
+    }
+
     private static void SendRegister(NetworkStream stream, string username, string password)
     {
         var w = new PacketWriter();
@@ -191,16 +319,72 @@ internal static class Program
         Console.WriteLine($"[MockClient] Da gui REGISTER user={username}");
     }
 
+    // Khong co opcode "gui 1 lan nhan nhieu anh" trong giao thuc goc (COMMAND_IMAGE / REQUEST_PET_IMG
+    // deu la 1 request <-> 1 anh, xem GameController.requestImg/requestPetImg). Ham nay mo phong hanh vi
+    // "tai het" bang cach quet truc tiep 1 thu muc con trong GServer/assets tren dia (khong can DB/mat khau)
+    // roi gui lan luot tung COMMAND_IMAGE (co delay giua cac lan de khong flood server) - moi phan hoi
+    // da duoc HandleCommandImage tu luu vao received_images/ theo dung path server echo lai.
+    // subDir: ten thu muc con trong GServer/assets (vd "petFrame3", "anim_characters").
+    private static async Task RequestAllAssetImgsAsync(NetworkStream stream, string subDir, string? assetsDirArg, int delayMs)
+    {
+        string? assetsDir = assetsDirArg != null ? Path.GetFullPath(assetsDirArg) : FindAssetsSubDir(subDir);
+        if (assetsDir == null || !Directory.Exists(assetsDir))
+        {
+            Console.WriteLine($"[MockClient] Khong tim thay thu muc {subDir}. Truyen duong dan cu the: " +
+                               $"<lenh> [delayMs] <duong-dan-toi-GServer/assets/{subDir}>");
+            return;
+        }
+
+        string[] files = Directory.GetFiles(assetsDir)
+            .Where(f => ImageExtensions.Any(ext => f.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
+            .ToArray();
+        string[] paths = files.Select(f => $"{subDir}/{Path.GetFileName(f)}").ToArray();
+
+        Console.WriteLine($"[MockClient] Tim thay {paths.Length} file anh trong \"{assetsDir}\". " +
+                           $"Bat dau gui yeu cau anh (delay {delayMs}ms)...");
+        for (int i = 0; i < paths.Length; i++)
+        {
+            SendImageRequest(stream, paths[i]);
+            Console.WriteLine($"[MockClient] ({i + 1}/{paths.Length}) da gui yeu cau: {paths[i]}");
+            if (delayMs > 0) await Task.Delay(delayMs);
+        }
+        Console.WriteLine("[MockClient] Da gui xong tat ca yeu cau. Cho server tra ve anh (xem log [SERVER] COMMAND_IMAGE ben duoi).");
+    }
+
+    // Doan MockClient nam canh GServer trong cung repo (SRCGOPETGOC/MockClient va SRCGOPETGOC/GServer),
+    // nen tu do tim GServer/assets/<subDir> tu vi tri file .exe dang chay hoac thu muc lam viec hien tai.
+    private static string? FindAssetsSubDir(string subDir)
+    {
+        string[] candidates =
+        {
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "GServer", "assets", subDir),
+            Path.Combine(Environment.CurrentDirectory, "GServer", "assets", subDir),
+            Path.Combine(Environment.CurrentDirectory, "..", "GServer", "assets", subDir),
+            Path.Combine(Environment.CurrentDirectory, "..", "..", "GServer", "assets", subDir),
+        };
+        foreach (var candidate in candidates)
+        {
+            string full = Path.GetFullPath(candidate);
+            if (Directory.Exists(full)) return full;
+        }
+        return null;
+    }
+
+    // Co lock vi harvest tu-dong (chay tren ReadLoop thread) va cac lenh nguoi dung go (main thread)
+    // co the cung goi SendPacket/SendImageRequest cung luc - khong lock se bi ghi chong cheo, hong frame.
     private static void SendPacket(NetworkStream stream, sbyte opcode, byte[] body)
     {
         var payload = new byte[1 + body.Length];
         payload[0] = unchecked((byte)opcode);
         Array.Copy(body, 0, payload, 1, body.Length);
 
-        WriteInt32BE(stream, payload.Length + 1);
-        stream.WriteByte(0); // cờ mã hoá = 0 (server hiện không gửi/nhận gói mã hoá TEA)
-        stream.Write(payload, 0, payload.Length);
-        stream.Flush();
+        lock (_writeLock)
+        {
+            WriteInt32BE(stream, payload.Length + 1);
+            stream.WriteByte(0); // cờ mã hoá = 0 (server hiện không gửi/nhận gói mã hoá TEA)
+            stream.Write(payload, 0, payload.Length);
+            stream.Flush();
+        }
     }
 
     private static void WriteInt32BE(Stream s, int value)
@@ -310,6 +494,14 @@ internal static class Program
             bool looksLikeImage = ImageExtensions.Any(ext => s.EndsWith(ext, StringComparison.OrdinalIgnoreCase));
             string tag = looksLikeImage ? "[ANH]" : "[TXT]";
             Console.WriteLine($"    {tag} \"{s}\"");
+            if (looksLikeImage && _knownImagePaths.TryAdd(s, 0))
+            {
+                Console.WriteLine($"    [HARVEST] Path moi tu server: \"{s}\"" + (_autoHarvestFetch ? " -> dang xin anh that..." : ""));
+                if (_autoHarvestFetch && _stream != null)
+                {
+                    SendImageRequest(_stream, s);
+                }
+            }
         }
     }
 
