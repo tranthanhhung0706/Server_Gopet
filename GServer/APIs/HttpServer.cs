@@ -59,7 +59,7 @@ namespace Gopet.APIs
             Application.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "GopetServer API V1");
-                c.RoutePrefix = string.Empty;
+                c.RoutePrefix = "api/Gopet";
             });
         }
 

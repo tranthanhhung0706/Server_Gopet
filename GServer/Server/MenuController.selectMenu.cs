@@ -1407,6 +1407,7 @@ public partial class MenuController
                 break;
             case MENU_PET_REINCARNATION:
             case MENU_PET_SACRIFICE:
+            case MENU_PET_ABANDON:
             case MENU_FUSION_MENU_PET:
             case MENU_KIOSK_PET_SELECT:
                 {
@@ -1420,6 +1421,18 @@ public partial class MenuController
                         }
                         switch (menuId)
                         {
+                            case MENU_PET_ABANDON:
+                                {
+                                    if (pet == player.playerData.petSelected)
+                                    {
+                                        player.redDialog("Không thể bỏ rơi thú cưng đang theo bên bạn, vui lòng đổi thú cưng khác trước.");
+                                        return;
+                                    }
+                                    player.playerData.pets.remove(pet);
+                                    player.okDialog("Bỏ rơi thú cưng thành công");
+                                    HistoryManager.addHistory(new History(player).setLog($"Bỏ rơi thú cưng {pet.getNameWithStar(player)}").setObj(pet));
+                                }
+                                break;
                             case MENU_KIOSK_PET_SELECT:
                                 {
                                     player.controller.objectPerformed.put(OBJKEY_SELECT_SELL_ITEM, pet);
