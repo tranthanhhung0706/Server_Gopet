@@ -720,6 +720,14 @@ public class GopetPlace : Place
             m.putUTF(val.Template.frameImgPath);
             m.putsbyte(val.getTemp().getOptionValue()[0]);
         }
+        // Ghi wingFrameNum SAU cùng, cùng thứ tự với vòng lặp trên (không xen giữa từng entry) để
+        // client cũ (chưa biết đọc phần này) vẫn đọc đúng 3 field đầu như cũ rồi dừng lại — phần dư
+        // ở cuối message tự bị bỏ qua an toàn nhờ message được đóng khung theo độ dài cố định
+        // (xem MsgReader.readMessage: mỗi Message chỉ chứa đúng `length` byte, không lấn sang message kế).
+        foreach (var entry in wingPlayer)
+        {
+            m.putsbyte(entry.Value.Template.wingFrameNum);
+        }
         m.cleanup();
         player.session.sendMessage(m);
 
@@ -736,6 +744,7 @@ public class GopetPlace : Place
             m.putInt(player.user.user_id);
             m.putUTF(wingItem.getTemp().getFrameImgPath());
             m.putsbyte(wingItem.getTemp().getOptionValue()[0]);
+            m.putsbyte(wingItem.getTemp().wingFrameNum);
             m.cleanup();
             sendMessage(m);
         }
@@ -749,6 +758,7 @@ public class GopetPlace : Place
         m.putInt(player.user.user_id);
         m.putUTF("");
         m.putsbyte(0);
+        m.putsbyte(2);
         m.cleanup();
         sendMessage(m);
     }
