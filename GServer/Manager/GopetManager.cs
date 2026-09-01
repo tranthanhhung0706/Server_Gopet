@@ -412,7 +412,7 @@ public class GopetManager
     /**
      * Id các pet trong danh sách nhận pet miễn phí
      */
-    public static readonly int[] petFreeIds = new int[] { 1, 2, 3, 5, 6 };
+    public static readonly int[] petFreeIds = new int[] { 93, 94, 95 };
 
     /**
      * Map mẫu
