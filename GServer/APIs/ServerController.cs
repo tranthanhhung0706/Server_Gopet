@@ -21,9 +21,10 @@ using static Gopet.APIs.GopetApiExtentsion;
 namespace Gopet.APIs
 {
 
-    [Route("api/server")]
+    [Route("v1/gopet/api/server")]
     [ApiController]
     [RequireApiKey]
+    [RequireAdminBearer]
     [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
     public class ServerController : ControllerBase
     {
@@ -154,7 +155,7 @@ namespace Gopet.APIs
         }
 
 
-        [HttpGet("/api/maintenance/{min}")]
+        [HttpGet("/v1/gopet/api/maintenance/{min}")]
         public IActionResult maintenanceStart(int min)
         {
             Maintenance.gI().setMaintenanceTime(min);
@@ -162,28 +163,28 @@ namespace Gopet.APIs
         }
 
 
-        [HttpGet("/api/maintenance/reboot")]
+        [HttpGet("/v1/gopet/api/maintenance/reboot")]
         public IActionResult reboot()
         {
             Maintenance.gI().reboot();
             return Ok(GopetApiExtentsion.CreateOKRepository($"Thành công"));
         }
 
-        [HttpGet("/api/dialog/okDialog/{text}")]
+        [HttpGet("/v1/gopet/api/dialog/okDialog/{text}")]
         public IActionResult okDialog(string text)
         {
             PlayerManager.okDialog(text);
             return Ok(GopetApiExtentsion.CreateOKRepository($"Thành công"));
         }
 
-        [HttpGet("/api/BannerZ/{text}")]
+        [HttpGet("/v1/gopet/api/BannerZ/{text}")]
         public IActionResult BannerZ(string text)
         {
             PlayerManager.showBannerZ(text);
             return Ok(GopetApiExtentsion.CreateOKRepository($"Thành công"));
         }
 
-        [HttpGet("/api/test/set_boss/{mapid}/{place}/{bossId}")]
+        [HttpGet("/v1/gopet/api/test/set_boss/{mapid}/{place}/{bossId}")]
         public IActionResult TestBoss(int mapid, int place, int bossId)
         {
             GopetPlace gopetPlace = (GopetPlace)MapManager.maps[mapid].places[place];
@@ -198,14 +199,14 @@ namespace Gopet.APIs
             return Ok(GopetApiExtentsion.CreateOKRepository($"Thành công"));
         }
 
-        [HttpGet("/api/test/TestBossDaily")]
+        [HttpGet("/v1/gopet/api/test/TestBossDaily")]
         public IActionResult TestBossDaily()
         {
             EventManager.AddEvent(DailyBossEvent.Instance);
             return Ok(GopetApiExtentsion.CreateOKRepository($"Thành công"));
         }
 
-        [HttpGet("/api/addAutoBanner/{Text}/{secondTimeSpan}/{Min}/{Hours}/{Day}/{Month}")]
+        [HttpGet("/v1/gopet/api/addAutoBanner/{Text}/{secondTimeSpan}/{Min}/{Hours}/{Day}/{Month}")]
         public IActionResult addAutoBanner(string Text, int secondTimeSpan, int Min, int Hours, int Day, int Month)
         {
             BannerEvent.Instance.Banners.Add(new Tuple<string, TimeSpan, DateTime>(Text, TimeSpan.FromSeconds(secondTimeSpan), new DateTime(DateTime.Now.Year, Month, Day, Hours, Min, 0)));
@@ -273,51 +274,51 @@ namespace Gopet.APIs
             }
         }
 
-        [HttpGet("/api/BuffItem/{name}/{itemId}/{LevelUpTier}/{MaxTier}/{count}/{MaxOption}/{EndLevel}/{NumFusion}/{EndFusion}")]
+        [HttpGet("/v1/gopet/api/BuffItem/{name}/{itemId}/{LevelUpTier}/{MaxTier}/{count}/{MaxOption}/{EndLevel}/{NumFusion}/{EndFusion}")]
         public IActionResult ApiBuffItem(string name, int itemId, int LevelUpTier, int MaxTier, int count, bool MaxOption, int EndLevel, byte NumFusion)
         {
             BuffItem(name, itemId, LevelUpTier, MaxTier, count, MaxOption, EndLevel, NumFusion);
             return Ok(GopetApiExtentsion.CreateOKRepository($"Thành công"));
         }
-        [HttpGet("/api/ThreadCount")]
+        [HttpGet("/v1/gopet/api/ThreadCount")]
         public int ThreadCount()
         {
             return ThreadPool.ThreadCount;
         }
 
-        [HttpGet("/api/PendingWorkItemCount")]
+        [HttpGet("/v1/gopet/api/PendingWorkItemCount")]
         public long PendingWorkItemCount()
         {
             return ThreadPool.PendingWorkItemCount;
         }
 
-        [HttpGet("/api/CompletedWorkItemCount")]
+        [HttpGet("/v1/gopet/api/CompletedWorkItemCount")]
         public long CompletedWorkItemCount()
         {
             return ThreadPool.CompletedWorkItemCount;
         }
-        [HttpGet("/api/Ipv4Tracker")]
+        [HttpGet("/v1/gopet/api/Ipv4Tracker")]
         public IActionResult Ipv4Tracker()
         {
             return Ok(GopetApiExtentsion.CreateOKRepository(PlayerManager.Ipv4Tracker.Tracks.Select(x => new object[] { x.Key, x.Value.Count })));
         }
-        [HttpPost("/api/SendMail/{to}/{subject}/{body}/{type}")]
+        [HttpPost("/v1/gopet/api/SendMail/{to}/{subject}/{body}/{type}")]
         public IActionResult SendMail(string to, string subject, string body, string type = "html")
         {
             GopetManager.EmailService.SendEmail(to, subject, GopetManager.EmailContent.Replace("{0}", body), type);
             return Ok(GopetApiExtentsion.CreateOKRepository($"Thành công"));
         }
 
-        [HttpGet("/api/Hash/{text}")]
+        [HttpGet("/v1/gopet/api/Hash/{text}")]
         public IActionResult Hash(string text)
         {
             return Ok(GopetHashHelper.ComputeHash(text));
         }
 
-        [HttpGet("/api/NumPlayerOnline")]
+        [HttpGet("/v1/gopet/api/NumPlayerOnline")]
         public IActionResult NumPlayerOnline()
         {
-            return Ok(PlayerManager.players.Count);
+            return Ok(GopetApiExtentsion.CreateOKRepository(PlayerManager.players.Count));
         }
 
 
