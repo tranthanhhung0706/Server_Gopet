@@ -455,6 +455,21 @@ Thread.Sleep(1000);
             playerData = gameconn.QueryFirstOrDefault<PlayerData>("SELECT * FROM `player` where user_id = " + user.user_id);
             if (playerData != null)
             {
+                // Chuẩn hoá null -> rỗng cho các field JSON từng có bug thiếu default value trong
+                // DB (xem PlayerData.create()) — account tạo TRƯỚC lúc bug đó được sửa có thể có
+                // các cột này NULL/rỗng, JsonAdapter parse ra null, gọi .Where()/.Contains()/.Add()
+                // ngay bên dưới sẽ crash login (ArgumentNullException/NullReferenceException).
+                // Chuẩn hoá 1 chỗ duy nhất ở đây thay vì null-check rải rác khắp code dùng các field này.
+                playerData.achievements ??= new();
+                playerData.letters ??= new();
+                playerData.RequestAddFriends ??= new();
+                playerData.BlockFriendLists ??= new();
+                playerData.ListFriends ??= new();
+                playerData.LettersSendTime ??= new();
+                playerData.MoneyDisplays ??= new();
+                playerData.TrashItemBackup ??= new();
+                playerData.ClanTasked ??= new();
+
                 if (playerData.FlowerGold == -1)
                     playerData.FlowerGold = Math.Max(0, playerData.NumGiveFlowerGold);
                 if (playerData.FlowerCoin == -1)
@@ -484,9 +499,17 @@ Thread.Sleep(1000);
                     gameconn.Execute("DELETE FROM `letter` WHERE `letter`.`targetId` = @targetId", new { targetId = playerData.user_id });
                 }
 
-                foreach (var item in playerData.TrashItemBackup.Where(t => t.Key.AddDays(3) < DateTime.Now))
+                // playerData.TrashItemBackup null nếu cột DB tương ứng NULL/rỗng (dữ liệu cũ từ
+                // trước khi PlayerData.create() được sửa để luôn set '{}') — .Where() trên null
+                // ném ArgumentNullException, sập ngay lúc login. Vật chất hoá key trước khi xoá
+                // (ToList()) để tránh "Collection modified" khi Remove() ngay trong lúc duyệt.
+                if (playerData.TrashItemBackup != null)
                 {
-                    playerData.TrashItemBackup.Remove(item.Key);
+                    var expiredKeys = playerData.TrashItemBackup.Where(t => t.Key.AddDays(3) < DateTime.Now).Select(t => t.Key).ToList();
+                    foreach (var key in expiredKeys)
+                    {
+                        playerData.TrashItemBackup.Remove(key);
+                    }
                 }
             }
             var kioskList = gameconn.Query("SELECT * FROM `kiosk_recovery` where user_id = @user_id", new { user_id = this.user.user_id });
