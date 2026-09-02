@@ -1,10 +1,12 @@
 using Dapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Gopet.APIs
 {
@@ -55,6 +57,22 @@ namespace Gopet.APIs
             return trimmed.StartsWith(folder + "/", StringComparison.OrdinalIgnoreCase)
                 ? trimmed
                 : $"{folder}/{trimmed}";
+        }
+
+        /// <summary>Upload ảnh icon pet — trả về path để điền vào field Icon.</summary>
+        [HttpPost("/v1/gopet/api/Pets/upload/icon")]
+        [RequestSizeLimit(AssetUploadHelper.MaxImageUploadBytes)]
+        public Task<IActionResult> UploadIcon(IFormFile? file)
+        {
+            return AssetUploadHelper.SaveUploadedImage(file, IconFolder);
+        }
+
+        /// <summary>Upload ảnh frame — trả về path để điền vào field FrameImg.</summary>
+        [HttpPost("/v1/gopet/api/Pets/upload/frame")]
+        [RequestSizeLimit(AssetUploadHelper.MaxImageUploadBytes)]
+        public Task<IActionResult> UploadFrameImg(IFormFile? file)
+        {
+            return AssetUploadHelper.SaveUploadedImage(file, FrameImgFolder);
         }
 
         /// <summary>
