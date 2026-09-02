@@ -1210,6 +1210,119 @@ public class GopetManager
         //SaveJsonFile(Language["vi"], "/lang/vi.json");
     }
 
+    /// <summary>
+    /// Nạp lại danh mục pet template (bảng gopet_pet) từ DB vào RAM mà KHÔNG cần restart GServer
+    /// — dùng sau khi sửa/thêm/xoá pet qua trang admin. init() chỉ chạy 1 lần lúc khởi động, nên
+    /// nếu không gọi hàm này, GServer vẫn dùng dữ liệu cũ trong RAM cho gameplay cho tới khi
+    /// restart dù DB đã đổi. Nạp lại luôn các cache phái sinh cùng lúc: petEnable,
+    /// typePetTemplate, Language[VI_CODE].PetNameLanguage (tên hiện trong game — khác hẳn cache
+    /// PETTEMPLATE_HASH_MAP chỉ dùng cho chỉ số), ListPetMustntUpTier (pet không được nâng tier).
+    /// </summary>
+    public static void ReloadPetTemplates()
+    {
+        using var conn = MYSQLManager.create();
+        var freshPets = conn.Query<PetTemplate>("SELECT * FROM `gopet_pet`").ToList();
+
+        PET_TEMPLATES.Clear();
+        petEnable.Clear();
+        typePetTemplate.Clear();
+        PETTEMPLATE_HASH_MAP.Clear();
+        ListPetMustntUpTier.Clear();
+
+        PET_TEMPLATES.AddRange(freshPets);
+        PET_TEMPLATES.ForEach(petTemplate =>
+        {
+            petEnable.add(petTemplate);
+            if (!typePetTemplate.ContainsKey(petTemplate.type))
+            {
+                typePetTemplate.put(petTemplate.type, new());
+            }
+            typePetTemplate.get(petTemplate.type).add(petTemplate);
+            PETTEMPLATE_HASH_MAP.put(petTemplate.petId, petTemplate);
+            Language[VI_CODE].PetNameLanguage[petTemplate.petId] = petTemplate.name;
+        });
+
+        foreach (var petTemplate in PET_TEMPLATES)
+        {
+            if (!ListPetMustntUpTier.Contains(petTemplate.petId) && petTier.Where(p => p.Value.petTemplateId2 == petTemplate.petId).Any())
+            {
+                ListPetMustntUpTier.Add(petTemplate.petId);
+            }
+        }
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu thú cưng từ cơ sở dữ liệu OK");
+    }
+
+    /// <summary>
+    /// Nạp lại danh mục item template (bảng item) từ DB vào RAM mà KHÔNG cần restart GServer.
+    /// Nạp lại luôn itemAssetsIcon (icon theo id số), NonAdminItemList,
+    /// Language[VI_CODE].ItemLanguage/ItemDescLanguage (tên/mô tả hiện trong game — khác cache
+    /// itemTemplate chỉ dùng cho chỉ số), và ID_ITEM_PART_PET_AO_ANH (mảnh ghép áo ảnh pet tier,
+    /// tính từ itemTemplates nên phải tính lại theo dữ liệu mới).
+    /// </summary>
+    public static void ReloadItemTemplates()
+    {
+        using var conn = MYSQLManager.create();
+        var freshItems = conn.Query<ItemTemplate>("SELECT * FROM `item`").ToList();
+
+        itemTemplates.Clear();
+        itemTemplate.Clear();
+        NonAdminItemList.Clear();
+        itemAssetsIcon.Clear();
+
+        itemTemplates.AddRange(freshItems);
+        int assetsId = 1;
+        itemTemplates.ForEach(itemTemp =>
+        {
+            itemTemp.setIconId(assetsId);
+            itemAssetsIcon[assetsId] = itemTemp.getIconPath();
+            itemTemplate.put(itemTemp.getItemId(), itemTemp);
+            if (itemTemp.getType() != ITEM_ADMIN)
+            {
+                NonAdminItemList.add(itemTemp);
+            }
+            Language[VI_CODE].ItemLanguage[itemTemp.itemId] = itemTemp.name;
+            Language[VI_CODE].ItemDescLanguage[itemTemp.itemId] = itemTemp.description;
+            assetsId++;
+        });
+
+        ID_ITEM_PART_PET_AO_ANH = petTier.Values.Select(x => itemTemplates.Where(item => item.type == ITEM_PART_PET && item.itemOption.Length > 0 && item.itemOption[0] == 4 && item.itemOptionValue[0] == x.petTemplateIdNeed).Select(m => m.itemId).FirstOrDefault()).ToArray();
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu vật phẩm từ cơ sở dữ liệu OK");
+    }
+
+    /// <summary>
+    /// Nạp lại danh mục shop (bảng shop) từ DB vào RAM mà KHÔNG cần restart GServer. Container
+    /// ShopTemplate theo shopId được tạo sẵn đúng 1 lần lúc init() (khớp các hằng số SHOP_* cố
+    /// định) nên KHÔNG tạo lại ở đây — chỉ xoá rồi nạp lại danh sách item bên trong mỗi
+    /// container. Nếu bảng shop có dòng shopId không nằm trong danh sách SHOP_* đã biết sẽ
+    /// throw UnsupportedOperationException (giống hệt hành vi của init() khi gặp shopId lạ).
+    /// </summary>
+    public static void ReloadShopTemplates()
+    {
+        using var conn = MYSQLManager.create();
+        var freshShopItems = conn.Query<ShopTemplateItem>("SELECT * FROM `shop`").ToList();
+
+        foreach (var container in shopTemplate.Values)
+        {
+            container.getShopTemplateItems().Clear();
+        }
+
+        foreach (var shopTemplate1 in freshShopItems)
+        {
+            if (shopTemplate.ContainsKey(shopTemplate1.shopId))
+            {
+                shopTemplate.get(shopTemplate1.shopId).getShopTemplateItems().add(shopTemplate1);
+            }
+            else
+            {
+                throw new UnsupportedOperationException(" khong ho tro loai shop " + shopTemplate1.shopId);
+            }
+        }
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu cửa hàng từ cơ sở dữ liệu OK");
+    }
+
     public static T ReadJsonFile<T>(string targetPath)
     {
         if (File.Exists(Directory.GetCurrentDirectory() + targetPath))

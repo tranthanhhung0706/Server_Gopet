@@ -151,6 +151,41 @@ namespace Gopet.APIs
                 "SELECT FieldName, Description, Value FROM `field` WHERE FieldName = @fieldName", new { fieldName });
             return Ok(new BaseResponse<ServerFieldDto?>(1, "Cập nhật thành công", updated));
         }
+
+        public record ReloadCatalogResult(int Pets, int Items, int ShopItems);
+
+        /// <summary>
+        /// Nạp lại danh mục Pet/Item/Shop (bảng gopet_pet/item/shop) từ DB vào RAM — dùng sau khi
+        /// sửa/thêm/xoá qua trang admin Pet/Item/Shop để áp dụng ngay cho gameplay, KHÔNG cần
+        /// restart cả GServer. Khác GopetController/ItemController/ShopController (chỉ ghi DB,
+        /// không đụng cache RAM) — GServer chỉ nạp 3 bảng này 1 LẦN lúc khởi động
+        /// (GopetManager.init(), gọi từ Main.cs) nên không có endpoint này thì mọi thay đổi qua
+        /// admin panel sẽ "ẩn" cho tới khi restart. Nạp lại luôn các cache tên hiển thị trong
+        /// game (Language.ItemLanguage/PetNameLanguage) — xem GopetManager.ReloadPetTemplates/
+        /// ReloadItemTemplates/ReloadShopTemplates để biết chính xác những gì được nạp lại.
+        /// </summary>
+        [HttpPost("/v1/gopet/api/server/reload-catalog")]
+        public IActionResult ReloadCatalog()
+        {
+            try
+            {
+                GopetManager.ReloadPetTemplates();
+                GopetManager.ReloadItemTemplates();
+                GopetManager.ReloadShopTemplates();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BaseResponse<object?>(0, $"Lỗi khi nạp lại danh mục: {ex.Message}", null));
+            }
+
+            var result = new ReloadCatalogResult(
+                GopetManager.PETTEMPLATE_HASH_MAP.Count,
+                GopetManager.itemTemplate.Count,
+                GopetManager.shopTemplate.Values.Sum(s => s.getShopTemplateItems().Count));
+
+            return Ok(new BaseResponse<ReloadCatalogResult>(1, "Đã nạp lại danh mục Pet/Item/Shop — áp dụng ngay, không cần restart GServer", result));
+        }
+
         [HttpGet("RefreshField")]
         public IActionResult RefreshField()
         {
