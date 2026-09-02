@@ -118,6 +118,11 @@ namespace Gopet.Data.Map
 
         public void buy(int itemId, Player player)
         {
+            if (player.user.role == UserData.ROLE_NON_ACTIVE)
+            {
+                player.redDialog(player.Language.AccountNonAcitve);
+                return;
+            }
             if (Maintenance.gI().isIsMaintenance())
             {
                 player.redDialog(player.Language.CannotBuyThisItemByMaintenance);
