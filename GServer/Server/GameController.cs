@@ -4852,6 +4852,11 @@ public class GameController
 
     public void requestJoinClan(String clanname)
     {
+        if (player.user.role == UserData.ROLE_NON_ACTIVE)
+        {
+            player.redDialog(player.Language.AccountNonAcitve);
+            return;
+        }
         Clan clan = ClanManager.getClanByName(clanname);
         if (clan != null)
         {

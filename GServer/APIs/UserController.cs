@@ -95,6 +95,37 @@ namespace Gopet.APIs
             return Ok(new BaseResponse<UserDetail>(1, "Thành công", user));
         }
 
+        public record GetUsersByIdsRequest(List<int> Ids);
+
+        /// <summary>
+        /// Lấy nhiều user cùng lúc theo danh sách user_id — vd để hiển thị tên user từ
+        /// gift_code.usersOfUseThis (mảng user_id) thành username thay vì để trần số id.
+        /// Dùng POST (không GET) vì danh sách id có thể dài, tránh giới hạn độ dài query string.
+        /// Response bọc PaginatedData giống hệt GetUsers để Next.js dùng chung 1 type — page luôn
+        /// là 1 (không phân trang thật), limit = số id được yêu cầu, total = số user tìm thấy.
+        /// </summary>
+        [HttpPost("/v1/gopet/api/Users/batch")]
+        public IActionResult GetUsersByIds([FromBody] GetUsersByIdsRequest? req)
+        {
+            if (req?.Ids == null || req.Ids.Count == 0)
+            {
+                return BadRequest(new BaseResponse<object?>(0, "Thiếu danh sách ids", null));
+            }
+            if (req.Ids.Count > 200)
+            {
+                return BadRequest(new BaseResponse<object?>(0, "Tối đa 200 id mỗi lần gọi", null));
+            }
+
+            using var conn = MYSQLManager.createWebMySqlConnection();
+
+            var users = conn.Query<UserListItem>(
+                $"{SelectUserListItemSql} WHERE user_id IN @ids",
+                new { ids = req.Ids }).ToList();
+
+            var paginated = new PaginatedData<UserListItem>(users, users.Count, 1, req.Ids.Count);
+            return Ok(new BaseResponse<PaginatedData<UserListItem>>(1, "Thành công", paginated));
+        }
+
         public record CreateUserRequest(string Username, string Password, string? Email, int Role = 1);
 
         /// <summary>

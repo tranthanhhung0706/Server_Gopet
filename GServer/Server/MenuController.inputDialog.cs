@@ -631,6 +631,11 @@ public partial class MenuController
                     break;
                 case INPUT_DIALOG_CREATE_CLAN:
                     {
+                        if (player.user.role == UserData.ROLE_NON_ACTIVE)
+                        {
+                            player.redDialog(player.Language.AccountNonAcitve);
+                            return;
+                        }
                         String clanName = reader.readString(0);
                         if (player.HaveClan)
                         {
