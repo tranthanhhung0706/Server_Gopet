@@ -3852,6 +3852,11 @@ public class GameController
 
     private void inviteChallenge(int user_id)
     {
+        if (player.user.role == UserData.ROLE_NON_ACTIVE)
+        {
+            player.redDialog(player.Language.AccountNonAcitve);
+            return;
+        }
         Player playerChallenge = PlayerManager.get(user_id);
         if (playerChallenge != player)
         {
@@ -3897,6 +3902,11 @@ public class GameController
 
     private void pk(int user_id)
     {
+        if (player.user.role == UserData.ROLE_NON_ACTIVE)
+        {
+            player.redDialog(player.Language.AccountNonAcitve);
+            return;
+        }
         Place place = player.getPlace();
         GopetMap map = place.map;
         if (map.mapID != 12 && map.mapID != 11 && map.mapID != 22)
