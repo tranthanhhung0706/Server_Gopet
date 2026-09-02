@@ -1,4 +1,5 @@
-﻿using Gopet.App;
+﻿using Dapper;
+using Gopet.App;
 using Gopet.Data.Event;
 using Gopet.Data.GopetItem;
 using Gopet.Data.item;
@@ -98,6 +99,57 @@ namespace Gopet.APIs
         public IActionResult ServerGEMPercent()
         {
             return Ok(GopetApiExtentsion.CreateOKRepository(FieldManager.PERCENT_GEM));
+        }
+
+        public record ServerFieldDto(string FieldName, string Description, string Value);
+
+        /// <summary>
+        /// Danh sách cấu hình server-wide trong bảng `field` (DB game gopettae_tae2) — vd
+        /// "Server.Exp.Percent" (% Exp buff), "Server.GEM.Percent" (% ngọc khi đánh quái). 100 =
+        /// tỉ lệ gốc, &gt;100 = đang buff. FieldManager.PERCENT_EXP/PERCENT_GEM đọc từ đây (cache
+        /// trong RAM, xem FieldManager.cs) — GET này đọc thẳng DB để luôn thấy giá trị mới nhất.
+        /// </summary>
+        [HttpGet("/v1/gopet/api/server/fields")]
+        public IActionResult GetFields()
+        {
+            using var conn = MYSQLManager.create();
+
+            var fields = conn.Query<ServerFieldDto>(
+                "SELECT FieldName, Description, Value FROM `field` ORDER BY FieldName ASC").ToList();
+
+            return Ok(new BaseResponse<List<ServerFieldDto>>(1, "Thành công", fields));
+        }
+
+        public record UpdateFieldRequest(string Value);
+
+        /// <summary>
+        /// Cập nhật giá trị 1 field cấu hình server-wide. Áp dụng NGAY lúc runtime qua
+        /// FieldManager.Update() (nạp lại toàn bộ bảng field vào cache RAM) — không cần restart
+        /// GServer hay gọi riêng API RefreshField.
+        /// </summary>
+        [HttpPatch("/v1/gopet/api/server/fields/{fieldName}")]
+        public IActionResult UpdateField(string fieldName, [FromBody] UpdateFieldRequest? req)
+        {
+            if (req == null || string.IsNullOrWhiteSpace(req.Value))
+            {
+                return BadRequest(new BaseResponse<object?>(0, "Thiếu value", null));
+            }
+
+            using var conn = MYSQLManager.create();
+
+            int existing = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM `field` WHERE FieldName = @fieldName", new { fieldName });
+            if (existing == 0)
+            {
+                return NotFound(new BaseResponse<object?>(0, "Không tìm thấy field", null));
+            }
+
+            conn.Execute("UPDATE `field` SET Value = @value WHERE FieldName = @fieldName", new { value = req.Value.Trim(), fieldName });
+
+            FieldManager.Update();
+
+            var updated = conn.QueryFirstOrDefault<ServerFieldDto>(
+                "SELECT FieldName, Description, Value FROM `field` WHERE FieldName = @fieldName", new { fieldName });
+            return Ok(new BaseResponse<ServerFieldDto?>(1, "Cập nhật thành công", updated));
         }
         [HttpGet("RefreshField")]
         public IActionResult RefreshField()
