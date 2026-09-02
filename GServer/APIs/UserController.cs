@@ -200,6 +200,35 @@ namespace Gopet.APIs
             return Ok(new BaseResponse<UserListItem?>(1, "Tạo tài khoản thành công", created));
         }
 
+        public record UpdateUserRoleRequest(int Role);
+
+        /// <summary>
+        /// Đổi role 1 bước — vd "Kích hoạt tài khoản" (role 0 Chưa kích hoạt -> 1 Người chơi) chỉ
+        /// cần 1 click, không phải mở form sửa đầy đủ. Tách riêng khỏi UpdateUser (PATCH chung
+        /// nhiều field) cho rõ thao tác, dùng chung SelectUserListItemSql/response đã có.
+        /// </summary>
+        [HttpPatch("/v1/gopet/api/Users/{id:int}/role")]
+        public IActionResult UpdateUserRole(int id, [FromBody] UpdateUserRoleRequest? req)
+        {
+            if (req == null || req.Role < 0 || req.Role > 3)
+            {
+                return BadRequest(new BaseResponse<object?>(0, "Role không hợp lệ (0-3)", null));
+            }
+
+            using var conn = MYSQLManager.createWebMySqlConnection();
+
+            int existing = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM `user` WHERE user_id = @id", new { id });
+            if (existing == 0)
+            {
+                return NotFound(new BaseResponse<object?>(0, "Không tìm thấy user", null));
+            }
+
+            conn.Execute("UPDATE `user` SET role = @role WHERE user_id = @id", new { role = req.Role, id });
+
+            var updated = conn.QueryFirstOrDefault<UserListItem>($"{SelectUserListItemSql} WHERE user_id = @id", new { id });
+            return Ok(new BaseResponse<UserListItem?>(1, "Cập nhật role thành công", updated));
+        }
+
         public record UpdateUserRequest(string? Email, int? Role, int? Coin, int? IsBaned,
             string? BanReason, long? BanTime, string? Password);
 
