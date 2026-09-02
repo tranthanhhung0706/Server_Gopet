@@ -39,10 +39,14 @@ namespace Gopet.APIs
                      loginDate AS LoginDate, LastTimeOnline AS LastTimeOnline
               FROM `player`";
 
-        /// <summary>Danh sách player — có phân trang, tìm theo tên, lọc theo user_id/clanId.</summary>
+        /// <summary>
+        /// Danh sách player — có phân trang, tìm theo tên nhân vật, tìm theo username tài khoản,
+        /// lọc theo user_id/clanId.
+        /// </summary>
         [HttpGet("/v1/gopet/api/Players")]
         public IActionResult GetPlayers([FromQuery] int page = 1, [FromQuery] int limit = 20,
-            [FromQuery] string? search = null, [FromQuery] int? userId = null, [FromQuery] int? clanId = null)
+            [FromQuery] string? search = null, [FromQuery] string? username = null,
+            [FromQuery] int? userId = null, [FromQuery] int? clanId = null)
         {
             page = Math.Max(1, page);
             limit = Math.Clamp(limit, 1, 100);
@@ -55,6 +59,30 @@ namespace Gopet.APIs
             {
                 where.Add("name LIKE @search");
                 parameters.Add("search", $"%{search.Trim()}%");
+            }
+            if (!string.IsNullOrWhiteSpace(username))
+            {
+                // username nằm ở DB khác (gopettae_gopet_web) — không JOIN chéo DB (2 connection
+                // tách biệt theo đúng kiến trúc còn lại của code), tra user_id khớp trước rồi lọc
+                // tiếp bên `player`.
+                List<int> matchedUserIds;
+                using (var webConn = MYSQLManager.createWebMySqlConnection())
+                {
+                    matchedUserIds = webConn.Query<int>(
+                        "SELECT user_id FROM `user` WHERE username LIKE @username",
+                        new { username = $"%{username.Trim()}%" }).ToList();
+                }
+
+                if (matchedUserIds.Count == 0)
+                {
+                    // Không tài khoản nào khớp -> chắc chắn không có player nào khớp. Trả rỗng
+                    // luôn, tránh query player với "user_id IN ()" rỗng (lỗi cú pháp SQL).
+                    var empty = new PaginatedData<PlayerListItem>(new List<PlayerListItem>(), 0, page, limit);
+                    return Ok(new BaseResponse<PaginatedData<PlayerListItem>>(1, "Thành công", empty));
+                }
+
+                where.Add("user_id IN @matchedUserIds");
+                parameters.Add("matchedUserIds", matchedUserIds);
             }
             if (userId.HasValue)
             {
@@ -106,6 +134,18 @@ namespace Gopet.APIs
             }
 
             return Ok(new BaseResponse<PlayerDetail>(1, "Thành công", player));
+        }
+
+        /// <summary>
+        /// Trạng thái online THẬT của đúng 1 nhân vật (theo player.ID) — khác
+        /// UserController.GetUserOnlineStatus (chỉ biết "user này có nhân vật nào đó đang online
+        /// không", không biết nhân vật nào). Tra trực tiếp PlayerManager.players (in-memory).
+        /// </summary>
+        [HttpGet("/v1/gopet/api/Players/{id:int}/online")]
+        public IActionResult GetPlayerOnlineStatus(int id)
+        {
+            bool isOnline = PlayerManager.players.Any(p => p?.playerData != null && p.playerData.ID == id);
+            return Ok(new BaseResponse<bool>(1, "Thành công", isOnline));
         }
 
         public record UpdatePlayerRequest(string? Name, int? Gender, long? Gold, long? Coin, long? Lua,

@@ -20,7 +20,6 @@ namespace Gopet.APIs
         public long BanTime { get; set; }
         public string BanReason { get; set; } = "";
         public string? IpCreate { get; set; }
-        public int IsOnline { get; set; }
         public string? Avatar { get; set; }
         public string? TimeOnline { get; set; }
         public string? TimePost { get; set; }

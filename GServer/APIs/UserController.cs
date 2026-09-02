@@ -70,8 +70,10 @@ namespace Gopet.APIs
 
         /// <summary>
         /// Chi tiết đầy đủ 1 user theo user_id — nhiều field hơn GetUsers (list): thêm phone,
-        /// tongnap, banTime/banReason, ipv4Create, isOnline, avatar, time_online/post/cmt,
-        /// updateinfo, update_date. Vẫn không trả password/secretKey/otp (xem UserDetail.cs).
+        /// tongnap, banTime/banReason, ipv4Create, avatar, time_online/post/cmt, updateinfo,
+        /// update_date. Vẫn không trả password/secretKey/otp (xem UserDetail.cs).
+        /// KHÔNG select cột `isOnline` của DB — cột đó GServer không hề ghi (luôn = 0, xem
+        /// GetUserOnlineStatus bên dưới để biết trạng thái online THẬT).
         /// </summary>
         [HttpGet("/v1/gopet/api/Users/{id:int}")]
         public IActionResult GetUserById(int id)
@@ -81,7 +83,7 @@ namespace Gopet.APIs
             var user = conn.QueryFirstOrDefault<UserDetail>(
                 @"SELECT user_id AS Id, username AS Username, email AS Email, phone AS Phone, role AS Role,
                          coin AS Coin, tongnap AS TongNap, isBaned AS IsBaned, banTime AS BanTime, banReason AS BanReason,
-                         ipv4Create AS IpCreate, isOnline AS IsOnline, avatar AS Avatar,
+                         ipv4Create AS IpCreate, avatar AS Avatar,
                          time_online AS TimeOnline, time_post AS TimePost, time_cmt AS TimeCmt, updateinfo AS UpdateInfo,
                          create_date AS CreateDate, update_date AS UpdateDate
                   FROM `user` WHERE user_id = @id",
@@ -93,6 +95,19 @@ namespace Gopet.APIs
             }
 
             return Ok(new BaseResponse<UserDetail>(1, "Thành công", user));
+        }
+
+        /// <summary>
+        /// Trạng thái online THẬT của user — tra trực tiếp PlayerManager.players (in-memory, cập
+        /// nhật ngay lúc login/disconnect ở Player.cs), KHÔNG dùng cột `user.isOnline` (DB, chết,
+        /// GServer không bao giờ ghi). 1 user có thể có nhiều player (nhân vật) — chỉ cần 1 nhân
+        /// vật đang kết nối là coi user đó online.
+        /// </summary>
+        [HttpGet("/v1/gopet/api/Users/{id:int}/online")]
+        public IActionResult GetUserOnlineStatus(int id)
+        {
+            bool isOnline = PlayerManager.players.Any(p => p?.user != null && p.user.user_id == id);
+            return Ok(new BaseResponse<bool>(1, "Thành công", isOnline));
         }
 
         public record GetUsersByIdsRequest(List<int> Ids);
