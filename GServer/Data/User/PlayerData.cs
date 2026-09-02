@@ -168,7 +168,21 @@ public class PlayerData
     {
         using (MySqlConnection conn = MYSQLManager.create())
         {
-            conn.Execute("INSERT INTO `player` (`ID`, `user_id`, `name`, `gender` , `items`) VALUES (NULL, @user_id, @name, @gender , NULL);", new
+            // Cột items để NULL (bình thường, có xử lý null riêng lúc load) nhưng 8 cột JSON
+            // NOT NULL còn lại KHÔNG có default trong DB — nếu không set tay ở đây, MySQL chạy
+            // strict mode sẽ báo lỗi "doesn't have a default value" và tạo nhân vật thất bại
+            // (không đăng ký được tài khoản mới). Giá trị rỗng khớp đúng kiểu C# tương ứng: '[]'
+            // cho các field CopyOnWriteArrayList<T>, '{}' cho các field Dictionary<K,V>.
+            conn.Execute(
+                @"INSERT INTO `player`
+                    (`ID`, `user_id`, `name`, `gender`, `items`,
+                     `achievements`, `letters`, `RequestAddFriends`, `BlockFriendLists`, `ListFriends`,
+                     `LettersSendTime`, `MoneyDisplays`, `TrashItemBackup`, `ClanTasked`)
+                  VALUES
+                    (NULL, @user_id, @name, @gender, NULL,
+                     '[]', '[]', '[]', '[]', '[]',
+                     '{}', '[]', '{}', '[]');",
+                new
             {
                 user_id,
                 name,
