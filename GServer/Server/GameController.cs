@@ -5483,47 +5483,145 @@ public class GameController
     }
 
     /// <summary>
-    /// Nhận quà theo mốc tổng nạp — tổng nạp (user.tongnap) nằm ở bảng `user` DB WEB
-    /// (gopettae_gopet_web), KHÁC DB game (gopettae_tae2) mà danh mục mốc nap_moc_reward nằm ở
-    /// đó, nên phải query 2 DB riêng. Vì tongnap chỉ tăng dần và 1 lần nạp lớn có thể vượt qua
-    /// nhiều mốc cùng lúc, trao TẤT CẢ mốc chưa nhận có threshold &lt;= tongnap trong 1 lần bấm
-    /// (không phải chỉ mốc kế tiếp như noelDaily) — so sánh theo giá trị threshold thật
-    /// (NapMocClaimed) chứ không theo index thứ tự, an toàn khi admin sửa danh sách mốc.
+    /// Mô tả các phần thưởng trong 1 giftData (mốc nạp/gift code) thành text dễ đọc — CHỈ ĐỌC,
+    /// KHÔNG trao/mutate gì cả (khác onReiceiveGift). Dùng cho màn "Xem thông tin mốc nạp" trước
+    /// khi người chơi quyết định nhận. Chỉ diễn giải các type mà GiftDataBuilder (trang admin)
+    /// cho phép chọn — type ngẫu nhiên (4, 9) không thể biết trước kết quả nên chỉ mô tả chung
+    /// chung, không cố mô phỏng lại logic random.
     /// </summary>
-    public void napMocDaily()
+    public string DescribeGiftData(int[][]? giftData)
     {
+        if (giftData == null || giftData.Length == 0)
+        {
+            return "Không có phần thưởng";
+        }
+
+        JArrayList<String> lines = new();
+        foreach (int[] giftInfo in giftData)
+        {
+            switch (giftInfo[0])
+            {
+                case GopetManager.GIFT_GOLD:
+                    lines.add($"{Utilities.FormatNumber(giftInfo[1])} Vàng");
+                    break;
+                case GopetManager.GIFT_COIN:
+                    lines.add($"{Utilities.FormatNumber(giftInfo[1])} Ngọc");
+                    break;
+                case GopetManager.GIFT_ITEM:
+                    {
+                        ItemTemplate temp = GopetManager.itemTemplate.get(giftInfo[1]);
+                        int count = giftInfo.Length >= 3 ? giftInfo[2] : 1;
+                        lines.add($"{(temp != null ? temp.name : $"Item #{giftInfo[1]}")} x{count}");
+                    }
+                    break;
+                case GopetManager.GIFT_ITEM_PERCENT_NO_DROP_MORE:
+                    {
+                        ItemTemplate temp = GopetManager.itemTemplate.get(giftInfo[1]);
+                        int percent = giftInfo.Length >= 3 ? giftInfo[2] : 0;
+                        lines.add($"{percent}% cơ hội nhận {(temp != null ? temp.name : $"Item #{giftInfo[1]}")}");
+                    }
+                    break;
+                case GopetManager.GIFT_EXP:
+                    lines.add($"{Utilities.FormatNumber(giftInfo[1])} Exp cho pet đang theo");
+                    break;
+                case GopetManager.GIFT_ENERGY:
+                    lines.add($"{Utilities.FormatNumber(giftInfo[1])} Sao (năng lượng)");
+                    break;
+                case GopetManager.GIFT_RANDOM_ITEM:
+                    lines.add($"Ngẫu nhiên {giftInfo[1]} phần thưởng từ danh sách vật phẩm đặc biệt");
+                    break;
+                case GopetManager.GIFT_ITEM_MAX_OPTION:
+                    {
+                        ItemTemplate temp = GopetManager.itemTemplate.get(giftInfo[1]);
+                        int count = giftInfo.Length >= 3 ? giftInfo[2] : 1;
+                        lines.add($"{(temp != null ? temp.name : $"Item #{giftInfo[1]}")} (chỉ số tối đa) x{count}");
+                    }
+                    break;
+                case GopetManager.GIFT_EVENT_POINT:
+                    lines.add($"{Utilities.FormatNumber(giftInfo[1])} Điểm Event");
+                    break;
+                case GopetManager.GIFT_FUND_CLAN:
+                    lines.add($"{Utilities.FormatNumber(giftInfo[1])} Quỹ Clan");
+                    break;
+                case GopetManager.GIFT_TITLE:
+                    lines.add("Danh hiệu đặc biệt");
+                    break;
+                case GopetManager.GIFT_SKIN:
+                    {
+                        ItemTemplate temp = GopetManager.itemTemplate.get(giftInfo[1]);
+                        lines.add($"Skin: {(temp != null ? temp.name : $"Item #{giftInfo[1]}")}");
+                    }
+                    break;
+                case GopetManager.GIFT_PET_TRIAL:
+                    {
+                        PetTemplate temp = GopetManager.PETTEMPLATE_HASH_MAP.get(giftInfo[1]);
+                        lines.add($"Pet dùng thử: {(temp != null ? temp.name : $"Pet #{giftInfo[1]}")}");
+                    }
+                    break;
+                default:
+                    lines.add("Phần thưởng đặc biệt");
+                    break;
+            }
+        }
+        return String.Join("\n", lines);
+    }
+
+    /// <summary>
+    /// Nhận ĐÚNG 1 mốc nạp cụ thể (chọn từ MENU_NAP_MOC) — khác napMocDaily() cũ (đã bỏ, từng tự
+    /// động nhận TẤT CẢ mốc theo thứ tự tăng dần). Vì UI mới cho chọn nhận bất kỳ mốc nào không
+    /// theo thứ tự, điều kiện "đã nhận mốc X chưa" PHẢI tra qua usersOfUseThis của ĐÚNG dòng đó
+    /// (không dùng PlayerData.NapMocClaimed nữa — field đó chỉ còn ý nghĩa lịch sử, không đủ để
+    /// biết chính xác đã nhận những mốc nào nếu nhận không theo thứ tự).
+    /// </summary>
+    public void ClaimNapMocReward(int rewardId)
+    {
+        if (player.user.role == UserData.ROLE_NON_ACTIVE)
+        {
+            player.redDialog(player.Language.AccountNonAcitve);
+            return;
+        }
+
+        using var gameConn = MYSQLManager.create();
+
+        NapMocReward reward = gameConn.QueryFirstOrDefault<NapMocReward>(
+            "SELECT id, name, threshold, giftData, usersOfUseThis FROM `nap_moc_reward` WHERE id = @rewardId", new { rewardId });
+        if (reward == null)
+        {
+            player.redDialog(player.Language.ItemWasSell);
+            return;
+        }
+        if (reward.UsersOfUseThis.Contains(player.user.user_id))
+        {
+            player.redDialog("Bạn đã nhận mốc nạp này rồi");
+            return;
+        }
+
         long tongNap;
         using (var webConn = MYSQLManager.createWebMySqlConnection())
         {
             tongNap = webConn.QueryFirstOrDefault<long?>(
                 "SELECT tongnap FROM `user` WHERE user_id = @user_id", new { user_id = player.user.user_id }) ?? 0;
         }
-
-        using var gameConn = MYSQLManager.create();
-
-        List<NapMocReward> rewards = gameConn.Query<NapMocReward>(
-            "SELECT id, name, threshold, giftData, usersOfUseThis FROM `nap_moc_reward` WHERE threshold > @claimed AND threshold <= @tongNap ORDER BY threshold ASC",
-            new { claimed = player.playerData.NapMocClaimed, tongNap }).ToList();
-
-        if (rewards.Count == 0)
+        if (tongNap < reward.Threshold)
         {
             player.redDialog(player.Language.NapMocFail, Utilities.FormatNumber(tongNap));
             return;
         }
 
+        JArrayList<Popup> popups = player.controller.onReiceiveGift(reward.GiftData);
         JArrayList<String> textInfo = new();
-        foreach (NapMocReward reward in rewards)
+        foreach (Popup popup in popups)
         {
-            JArrayList<Popup> popups = player.controller.onReiceiveGift(reward.GiftData);
-            foreach (Popup popup in popups)
-            {
-                textInfo.add(popup.getText());
-            }
-            player.playerData.NapMocClaimed = reward.Threshold;
-            reward.UsersOfUseThis.add(player.user.user_id);
-            gameConn.Execute("UPDATE `nap_moc_reward` SET usersOfUseThis = @UsersOfUseThis WHERE id = @Id", reward);
-            HistoryManager.addHistory(new History(player).setLog($"Nhận quà mốc nạp \"{reward.Name}\" (mốc {reward.Threshold})").setObj(new { reward.Id }));
+            textInfo.add(popup.getText());
         }
+
+        reward.UsersOfUseThis.add(player.user.user_id);
+        gameConn.Execute("UPDATE `nap_moc_reward` SET usersOfUseThis = @UsersOfUseThis WHERE id = @Id", reward);
+        if (player.playerData.NapMocClaimed < reward.Threshold)
+        {
+            player.playerData.NapMocClaimed = reward.Threshold;
+        }
+        HistoryManager.addHistory(new History(player).setLog($"Nhận quà mốc nạp \"{reward.Name}\" (mốc {reward.Threshold})").setObj(new { reward.Id }));
         player.okDialog(string.Format(player.Language.GetGiftCodeOK, String.Join(",", textInfo)));
     }
 

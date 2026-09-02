@@ -484,7 +484,12 @@ public partial class MenuController
                 player.controller.noelDaily();
                 break;
             case OP_NHẬN_QUÀ_MỐC_NẠP:
-                player.controller.napMocDaily();
+                if (player.user.role == UserData.ROLE_NON_ACTIVE)
+                {
+                    player.redDialog(player.Language.AccountNonAcitve);
+                    break;
+                }
+                sendMenu(MENU_NAP_MOC, player);
                 break;
             case OP_HƯỚNG_DẪN_LÊN_THIÊN_ĐÌNH:
                 player.okDialog(player.Language.GuideToHeaven);

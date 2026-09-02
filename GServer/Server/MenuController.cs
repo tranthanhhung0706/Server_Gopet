@@ -146,6 +146,10 @@ public partial class MenuController
     public const int MENU_ARENA_MAIN = 1100;
     public const int MENU_ARENA_OPPONENT_LIST = 1101;
     public const int MENU_PET_ABANDON = 1102;
+    /// <summary>Danh sách mốc nạp (bảng nap_moc_reward) — chọn 1 mốc để mở MENU_OPTION_NAP_MOC.</summary>
+    public const int MENU_NAP_MOC = 1103;
+    /// <summary>Popup 2 lựa chọn sau khi chọn 1 mốc nạp: xem thông tin / nhận mốc.</summary>
+    public const int MENU_OPTION_NAP_MOC = 1104;
     public static readonly MenuItemInfo[] ADMIN_INFOS = new MenuItemInfo[]{
         new AdminItemInfo("Đặt chỉ số pet đang đi theo", "Đặt chỉ số cho pet đi theo", "items/4000766.png"),
         new AdminItemInfo("Dịch chuyển đến người chơi", "Dịch chuyển đến người chơi chỉ định", "items/4000766.png"),
@@ -563,6 +567,8 @@ public partial class MenuController
     public const int OBJKEY_ITEM_KIOSK_CANCEL = 71;
     public const int OBJKEY_BUY_ITEM_KIOSK_ITEM_ID = 72;
     public const int OBJKEY_ID_ITEM_USE_ITEM_COUNT = 73;
+    /// <summary>Khoá để lưu mốc nạp (NapMocReward) đang được chọn từ MENU_NAP_MOC.</summary>
+    public const int OBJKEY_NAP_MOC_REWARD = 74;
     public const int DIALOG_CONFIRM_REMOVE_ITEM_EQUIP = 0;
     public const int DIALOG_CONFIRM_BUY_KIOSK_ITEM = 1;
     public const int DIALOG_ENCHANT = 3;

@@ -1,6 +1,7 @@
 ﻿
 
 using Gopet.Battle;
+using Gopet.Data;
 using Gopet.Data.GopetClan;
 using Gopet.Data.Collections;
 using Gopet.Data.Dialog;
@@ -1030,6 +1031,51 @@ public partial class MenuController
                         new Option(0, "Mua tất cả"),
                         new Option(1, "Mua lẻ"),
                         new Option(2, "Đóng"),
+                    };
+                    player.controller.sendListOption(menuId, "Tuỳ chọn", "", options);
+                }
+                break;
+            case MENU_NAP_MOC:
+                {
+                    List<NapMocReward> rewards;
+                    using (var conn = MYSQLManager.create())
+                    {
+                        rewards = conn.Query<NapMocReward>(
+                            "SELECT id, name, threshold, giftData, usersOfUseThis FROM `nap_moc_reward` ORDER BY threshold ASC").ToList();
+                    }
+
+                    long tongNap;
+                    using (var webConn = MYSQLManager.createWebMySqlConnection())
+                    {
+                        tongNap = webConn.QueryFirstOrDefault<long?>(
+                            "SELECT tongnap FROM `user` WHERE user_id = @user_id", new { user_id = player.user.user_id }) ?? 0;
+                    }
+
+                    JArrayList<MenuItemInfo> menuItemInfos = new();
+                    foreach (NapMocReward reward in rewards)
+                    {
+                        bool claimed = reward.UsersOfUseThis.Contains(player.user.user_id);
+                        string status = claimed ? "Đã nhận" : (tongNap >= reward.Threshold ? "Đủ điều kiện" : "Chưa đủ điều kiện");
+                        MenuItemInfo menuItemInfo = new MenuItemInfo();
+                        menuItemInfo.setCanSelect(true);
+                        menuItemInfo.setTitleMenu(reward.Name);
+                        menuItemInfo.setDesc(string.Format("Mốc tổng nạp: {0} - {1}", Utilities.FormatNumber(reward.Threshold), status));
+                        menuItemInfo.setImgPath("npcs/lixi.png");
+                        menuItemInfo.setCloseScreenAfterClick(true);
+                        menuItemInfo.setLeftCmdText(CMD_CENTER_OK);
+                        menuItemInfo.setHasId(true);
+                        menuItemInfo.setItemId(reward.Id);
+                        menuItemInfos.add(menuItemInfo);
+                    }
+                    player.controller.showMenuItem(menuId, TYPE_MENU_SELECT_ELEMENT, "Mốc nạp", menuItemInfos);
+                }
+                break;
+            case MENU_OPTION_NAP_MOC:
+                {
+                    JArrayList<Option> options = new JArrayList<Option>()
+                    {
+                        new Option(0, "Xem thông tin mốc nạp"),
+                        new Option(1, "Nhận mốc nạp"),
                     };
                     player.controller.sendListOption(menuId, "Tuỳ chọn", "", options);
                 }

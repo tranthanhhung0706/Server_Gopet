@@ -10,10 +10,11 @@ namespace Gopet.APIs
 {
     /// <summary>
     /// Quản lý danh mục "mốc nạp" (bảng `nap_moc_reward`, DB game gopettae_tae2) — mốc tổng nạp
-    /// (user.tongnap, DB web gopettae_gopet_web) người chơi cần đạt để nhận thưởng qua NPC (xem
-    /// GameController.napMocDaily(), OP_NHẬN_QUÀ_MỐC_NẠP trong MenuController.cs). Sửa/thêm/xoá
-    /// mốc ở đây áp dụng NGAY cho lần bấm nhận quà tiếp theo của người chơi — không cần restart
-    /// GServer (napMocDaily() luôn query thẳng DB mỗi lần gọi, không cache).
+    /// (user.tongnap, DB web gopettae_gopet_web) người chơi cần đạt để nhận thưởng qua NPC. Client
+    /// chọn từng mốc từ danh sách (MenuController.cs MENU_NAP_MOC) rồi xem thông tin hoặc nhận
+    /// (GameController.DescribeGiftData/ClaimNapMocReward) — xem OP_NHẬN_QUÀ_MỐC_NẠP trong
+    /// MenuController.cs. Sửa/thêm/xoá mốc ở đây áp dụng NGAY cho lần mở danh sách tiếp theo của
+    /// người chơi — không cần restart GServer (luôn query thẳng DB mỗi lần gọi, không cache).
     ///
     /// Khác gopet_pet/item: `nap_moc_reward` không bị bảng nào khác tham chiếu ngược (không cần
     /// bắt lỗi FK khi xoá).

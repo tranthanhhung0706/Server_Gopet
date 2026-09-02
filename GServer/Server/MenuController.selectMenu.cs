@@ -1,5 +1,6 @@
 ﻿
 using Gopet.Battle;
+using Gopet.Data;
 using Gopet.Data.GopetClan;
 using Gopet.Data.Collections;
 using Gopet.Data.Dialog;
@@ -2885,6 +2886,44 @@ public partial class MenuController
                             return;
                         case 1:
                             player.controller.showInputDialog(INPUT_NUM_BUY_RETAIL_ITEM_KIOSK, "Nhập số lượng", "Số lượng: ");
+                            return;
+                    }
+                }
+                break;
+            case MENU_NAP_MOC:
+                {
+                    // index = itemId đã gán = NapMocReward.Id (xem sendMenu.cs case MENU_NAP_MOC) —
+                    // query lại DB để lấy dữ liệu mới nhất (usersOfUseThis có thể vừa đổi).
+                    NapMocReward reward;
+                    using (var conn = MYSQLManager.create())
+                    {
+                        reward = conn.QueryFirstOrDefault<NapMocReward>(
+                            "SELECT id, name, threshold, giftData, usersOfUseThis FROM `nap_moc_reward` WHERE id = @id", new { id = index });
+                    }
+                    if (reward == null)
+                    {
+                        player.redDialog(player.Language.ItemWasSell);
+                        return;
+                    }
+                    player.controller.objectPerformed.put(OBJKEY_NAP_MOC_REWARD, reward);
+                    sendMenu(MENU_OPTION_NAP_MOC, player);
+                }
+                break;
+            case MENU_OPTION_NAP_MOC:
+                {
+                    if (!player.controller.objectPerformed.ContainsKey(OBJKEY_NAP_MOC_REWARD))
+                    {
+                        return;
+                    }
+                    NapMocReward reward = (NapMocReward)player.controller.objectPerformed.get(OBJKEY_NAP_MOC_REWARD);
+                    switch (index)
+                    {
+                        case 0:
+                            player.okDialog(string.Format("{0}\n{1}", reward.Name, player.controller.DescribeGiftData(reward.GiftData)));
+                            return;
+                        case 1:
+                            player.controller.objectPerformed.Remove(OBJKEY_NAP_MOC_REWARD);
+                            player.controller.ClaimNapMocReward(reward.Id);
                             return;
                     }
                 }
