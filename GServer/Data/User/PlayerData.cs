@@ -144,6 +144,14 @@ public class PlayerData
     /// Trường thuộc sự kiện sinh nhật trò chơi
     /// </summary>
     public int NumUseGiftBox2025 { get; set; } = 0;
+    /// <summary>
+    /// Trường thuộc tính năng "Mốc nạp" — ghi lại mốc tổng nạp (user.tongnap, web DB
+    /// gopettae_gopet_web) CAO NHẤT đã nhận thưởng, để biết mốc nào trong bảng nap_moc_reward
+    /// chưa nhận (threshold > NapMocClaimed). Vì tongnap chỉ tăng dần và admin có thể chỉnh sửa
+    /// danh sách mốc bất kỳ lúc nào, so sánh theo giá trị threshold thật thay vì đếm theo index
+    /// thứ tự (an toàn hơn nếu admin thêm/sửa mốc giữa chừng).
+    /// </summary>
+    public long NapMocClaimed { get; set; } = 0;
     public PlayerData()
     {
         x = 24 * 4;
@@ -240,7 +248,8 @@ public class PlayerData
                             NumEatCylindricalStickyRice = @NumEatCylindricalStickyRice,
                             NumEatCylindricalStickyRiceCoin = @NumEatCylindricalStickyRiceCoin,
                             IndexMilistoneBirthdayEvent = @IndexMilistoneBirthdayEvent,
-                            NumUseGiftBox2025 = @NumUseGiftBox2025
+                            NumUseGiftBox2025 = @NumUseGiftBox2025,
+                            NapMocClaimed = @NapMocClaimed
                             WHERE ID = @ID", playerData);
     }
     /// <summary>

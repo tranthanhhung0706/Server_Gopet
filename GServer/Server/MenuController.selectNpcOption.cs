@@ -483,6 +483,9 @@ public partial class MenuController
             case OP_ĐIỂM_DANH:
                 player.controller.noelDaily();
                 break;
+            case OP_NHẬN_QUÀ_MỐC_NẠP:
+                player.controller.napMocDaily();
+                break;
             case OP_HƯỚNG_DẪN_LÊN_THIÊN_ĐÌNH:
                 player.okDialog(player.Language.GuideToHeaven);
                 break;

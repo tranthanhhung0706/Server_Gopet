@@ -25,7 +25,7 @@ namespace Gopet.APIs
         // Hình chiếu an toàn dùng chung cho GET/POST/PATCH — không select password/secretKey/otp.
         private const string SelectUserListItemSql =
             @"SELECT user_id AS Id, username AS Username, email AS Email, role AS Role,
-                     coin AS Coin, isBaned AS IsBaned, create_date AS CreateDate
+                     coin AS Coin, tongnap AS TongNap, isBaned AS IsBaned, create_date AS CreateDate
               FROM `user`";
 
         /// <summary>
@@ -229,7 +229,7 @@ namespace Gopet.APIs
             return Ok(new BaseResponse<UserListItem?>(1, "Cập nhật role thành công", updated));
         }
 
-        public record UpdateUserRequest(string? Email, int? Role, int? Coin, int? IsBaned,
+        public record UpdateUserRequest(string? Email, int? Role, int? Coin, int? TongNap, int? IsBaned,
             string? BanReason, long? BanTime, string? Password);
 
         /// <summary>
@@ -266,6 +266,11 @@ namespace Gopet.APIs
             {
                 setClauses.Add("coin = @coin");
                 parameters.Add("coin", coin);
+            }
+            if (req?.TongNap is int tongNap)
+            {
+                setClauses.Add("tongnap = @tongNap");
+                parameters.Add("tongNap", tongNap);
             }
             if (req?.IsBaned is int isBaned)
             {

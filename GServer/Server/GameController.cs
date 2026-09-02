@@ -1,6 +1,7 @@
 
 using Gopet.App;
 using Gopet.Battle;
+using Gopet.Data;
 using Gopet.Data.GopetClan;
 using Gopet.Data.Collections;
 using Gopet.Data.Dialog;
@@ -5469,6 +5470,51 @@ public class GameController
             else player.redDialog(player.Language.DailyNoelMax, GopetManager.NOEL_DAILYS.Length);
         }
         else player.redDialog(player.Language.DailyNoelFail);
+    }
+
+    /// <summary>
+    /// Nhận quà theo mốc tổng nạp — tổng nạp (user.tongnap) nằm ở bảng `user` DB WEB
+    /// (gopettae_gopet_web), KHÁC DB game (gopettae_tae2) mà danh mục mốc nap_moc_reward nằm ở
+    /// đó, nên phải query 2 DB riêng. Vì tongnap chỉ tăng dần và 1 lần nạp lớn có thể vượt qua
+    /// nhiều mốc cùng lúc, trao TẤT CẢ mốc chưa nhận có threshold &lt;= tongnap trong 1 lần bấm
+    /// (không phải chỉ mốc kế tiếp như noelDaily) — so sánh theo giá trị threshold thật
+    /// (NapMocClaimed) chứ không theo index thứ tự, an toàn khi admin sửa danh sách mốc.
+    /// </summary>
+    public void napMocDaily()
+    {
+        long tongNap;
+        using (var webConn = MYSQLManager.createWebMySqlConnection())
+        {
+            tongNap = webConn.QueryFirstOrDefault<long?>(
+                "SELECT tongnap FROM `user` WHERE user_id = @user_id", new { user_id = player.user.user_id }) ?? 0;
+        }
+
+        using var gameConn = MYSQLManager.create();
+
+        List<NapMocReward> rewards = gameConn.Query<NapMocReward>(
+            "SELECT id, name, threshold, giftData, usersOfUseThis FROM `nap_moc_reward` WHERE threshold > @claimed AND threshold <= @tongNap ORDER BY threshold ASC",
+            new { claimed = player.playerData.NapMocClaimed, tongNap }).ToList();
+
+        if (rewards.Count == 0)
+        {
+            player.redDialog(player.Language.NapMocFail, Utilities.FormatNumber(tongNap));
+            return;
+        }
+
+        JArrayList<String> textInfo = new();
+        foreach (NapMocReward reward in rewards)
+        {
+            JArrayList<Popup> popups = player.controller.onReiceiveGift(reward.GiftData);
+            foreach (Popup popup in popups)
+            {
+                textInfo.add(popup.getText());
+            }
+            player.playerData.NapMocClaimed = reward.Threshold;
+            reward.UsersOfUseThis.add(player.user.user_id);
+            gameConn.Execute("UPDATE `nap_moc_reward` SET usersOfUseThis = @UsersOfUseThis WHERE id = @Id", reward);
+            HistoryManager.addHistory(new History(player).setLog($"Nhận quà mốc nạp \"{reward.Name}\" (mốc {reward.Threshold})").setObj(new { reward.Id }));
+        }
+        player.okDialog(string.Format(player.Language.GetGiftCodeOK, String.Join(",", textInfo)));
     }
 
     public bool TryUseCardSkill(int skillId, int indexSlot, out Pet myPet)

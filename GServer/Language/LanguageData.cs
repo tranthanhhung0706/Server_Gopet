@@ -572,6 +572,7 @@ namespace Gopet.Language
         public string NotEnoughtFlowerGem { get; set; } = "Không đủ điểm hoa ngọc";
         public string DailyNoelFail { get; set; } = "Đã điểm danh hôm nay rồi";
         public string DailyNoelMax { get; set; } = "Đã điểm danh hết {0} ngày rồi";
+        public string NapMocFail { get; set; } = "Chưa đạt mốc nạp tiếp theo. Tổng nạp hiện tại: {0}";
 
         public string CountUseFlower { get; set; } = "Số lượng";
         public string SetCountUseBoHoa { get; set; } = "Đặt số lượng thao tác thành công: {0}";

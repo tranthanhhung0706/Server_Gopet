@@ -12,6 +12,7 @@ namespace Gopet.APIs
         public string Email { get; set; } = "";
         public int Role { get; set; }
         public int Coin { get; set; }
+        public int TongNap { get; set; }
         public int IsBaned { get; set; }
         public DateTime CreateDate { get; set; }
     }

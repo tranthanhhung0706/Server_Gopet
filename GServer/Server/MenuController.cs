@@ -413,8 +413,13 @@ public partial class MenuController
     /// </summary>
     public const int OP_PET_ABANDON = 98;
     /// <summary>
+    /// Nhận quà theo mốc tổng nạp (user.tongnap, web DB gopettae_gopet_web) — xem bảng
+    /// nap_moc_reward (DB game gopettae_tae2), quản lý qua trang admin NapMoc.
+    /// </summary>
+    public const int OP_NHẬN_QUÀ_MỐC_NẠP = 99;
+    /// <summary>
     /// Option Custom
-    /// Trao đổi thưởng bằng 
+    /// Trao đổi thưởng bằng
     /// </summary>
     public const int OP_TRADE_GIFT_COIN = 1000000000;
     public const int OP_TRADE_GIFT_GOLD = 1000000001;
