@@ -422,6 +422,11 @@ public partial class MenuController
     /// </summary>
     public const int OP_NHẬN_QUÀ_MỐC_NẠP = 99;
     /// <summary>
+    /// Xếp hạng theo tổng tiền thật đã nạp (user.tongnap, web DB) — khác OP_TOP_SPEND_GOLD (xếp
+    /// theo spendGold, DB game). Xem TopTongNap.
+    /// </summary>
+    public const int OP_TOP_TONG_NAP = 100;
+    /// <summary>
     /// Option Custom
     /// Trao đổi thưởng bằng
     /// </summary>

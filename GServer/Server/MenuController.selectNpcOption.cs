@@ -90,6 +90,9 @@ public partial class MenuController
                     showTop(TopSpendGold.Instance, player);
                 }
                 break;
+            case OP_TOP_TONG_NAP:
+                showTop(TopTongNap.Instance, player);
+                break;
             case OP_CHALLENGE:
                 {
                     if (player.checkStar(GopetManager.STAR_JOIN_CHALLENGE))
