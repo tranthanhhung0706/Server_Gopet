@@ -730,11 +730,19 @@ public class GameController
                     return;
                 }
 
+                PlayerData.create(player.user.user_id, name, gender);
             }
-            PlayerData.create(player.user.user_id, name, gender);
-            UserData user = player.user;
-            player.user = null;
-            player.session.Close();
+
+            // Vào game NGAY sau khi tạo nhân vật thành công — KHÔNG đóng session/set player.user =
+            // null như code cũ (bắt người chơi phải kết nối lại và đăng nhập lại từ đầu).
+            // ProcessingUser() tự query lại bảng `player` (giờ đã có dòng vừa tạo) nên đi đúng
+            // nhánh "playerData != null", tự gọi loginOK()+LoadMap() để vào thẳng game. Cần dùng
+            // connection DB WEB (khác DB game mà PlayerData.create()/check trùng tên ở trên dùng)
+            // vì ProcessingUser thao tác trên bảng `user`.
+            using (var webConn = MYSQLManager.createWebMySqlConnection())
+            {
+                player.ProcessingUser(webConn);
+            }
         }
     }
 
