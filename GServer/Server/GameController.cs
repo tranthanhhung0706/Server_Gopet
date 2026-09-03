@@ -3865,6 +3865,13 @@ public class GameController
             player.redDialog(player.Language.AccountNonAcitve);
             return;
         }
+        // Khớp check đã dùng cho thách đấu Đấu trường (xem ArenaEvent challenge :1611) — pet đang
+        // theo hết HP thì không cho khởi tạo thách đấu người chơi.
+        if (player.playerData.petSelected == null || player.playerData.petSelected.hp <= 0)
+        {
+            player.petNotFollow();
+            return;
+        }
         Player playerChallenge = PlayerManager.get(user_id);
         if (playerChallenge != player)
         {
@@ -3913,6 +3920,12 @@ public class GameController
         if (player.user.role == UserData.ROLE_NON_ACTIVE)
         {
             player.redDialog(player.Language.AccountNonAcitve);
+            return;
+        }
+        // Khớp check đã dùng cho thách đấu Đấu trường — pet đang theo hết HP thì không cho PK.
+        if (player.playerData.petSelected == null || player.playerData.petSelected.hp <= 0)
+        {
+            player.petNotFollow();
             return;
         }
         Place place = player.getPlace();
