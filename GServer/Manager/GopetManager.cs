@@ -1338,6 +1338,26 @@ public class GopetManager
         ServerMonitor.LogInfo("Nạp lại dữ liệu trao đổi thưởng từ cơ sở dữ liệu OK");
     }
 
+    /// <summary>
+    /// Nạp lại danh mục Boss (bảng boss) từ DB vào RAM mà KHÔNG cần restart GServer — dùng sau khi
+    /// sửa/thêm/xoá qua trang admin Boss. Nạp lại luôn HourDailyBoss (boss loại 4, triệu hồi theo
+    /// giờ) tính lại từ dữ liệu mới, giống hệt logic gốc trong init().
+    /// </summary>
+    public static void ReloadBoss()
+    {
+        using var conn = MYSQLManager.create();
+        var bossTemArr = conn.Query<BossTemplate>("SELECT * FROM `boss`").ToArray();
+
+        boss.Clear();
+        foreach (var bossTemplate in bossTemArr)
+        {
+            boss[bossTemplate.bossId] = bossTemplate;
+        }
+        HourDailyBoss = bossTemArr.Where(x => x.typeBoss == 4).ToArray();
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu boss từ cơ sở dữ liệu OK");
+    }
+
     public static T ReadJsonFile<T>(string targetPath)
     {
         if (File.Exists(Directory.GetCurrentDirectory() + targetPath))
