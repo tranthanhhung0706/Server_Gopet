@@ -411,13 +411,16 @@ public partial class MenuController
                 break;
             case MENU_SELECT_TYPE_CHANGE_GIFT:
                 {
-                    Option[] changeList = new Option[GopetManager.TradeGiftPrice.Count];
+                    List<Option> changeList = new();
                     for (sbyte i = 0; i < GopetManager.TradeGiftPrice.Count; i++)
                     {
                         var tradeGiftTemplate = GopetManager.TradeGiftPrice[i];
-                        changeList[i] = new Option(tradeGiftTemplate.Item3, string.Format(player.Language.OptionTradeGift, getMoneyText((sbyte)tradeGiftTemplate.Item1[0], tradeGiftTemplate.Item2[0], player), getMoneyText((sbyte)tradeGiftTemplate.Item1[1], tradeGiftTemplate.Item2[1], player)));
+                        changeList.Add(new Option(tradeGiftTemplate.Item3, string.Format(player.Language.OptionTradeGift, getMoneyText((sbyte)tradeGiftTemplate.Item1[0], tradeGiftTemplate.Item2[0], player), getMoneyText((sbyte)tradeGiftTemplate.Item1[1], tradeGiftTemplate.Item2[1], player))));
                     }
-                    showNpcOption(GopetManager.NPC_TIEN_NU, player, changeList);
+                    // 2 option xem trước — KHÔNG tốn thỏi, chỉ để xem pool vật phẩm có thể nhận.
+                    changeList.Add(new Option(OP_VIEW_TRADE_GIFT_SILVER, "Xem vật phẩm đổi Thỏi Bạc"));
+                    changeList.Add(new Option(OP_VIEW_TRADE_GIFT_GOLD, "Xem vật phẩm đổi Thỏi Vàng"));
+                    showNpcOption(GopetManager.NPC_TIEN_NU, player, changeList.ToArray());
                 }
                 break;
             case MENU_ITEM_MONEY_INVENTORY:

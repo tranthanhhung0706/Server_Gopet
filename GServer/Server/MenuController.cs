@@ -434,6 +434,12 @@ public partial class MenuController
     public const int OP_TRADE_GIFT_GOLD = 1000000001;
     public const int OP_TRADE_GIFT_LUA = 1000000002;
     /// <summary>
+    /// Xem trước danh sách vật phẩm có thể nhận (không tốn thỏi) — xem MenuController.Trade() để
+    /// biết đúng pool tương ứng (TradeGift[TYPE_COIN]/[TYPE_GOLD]).
+    /// </summary>
+    public const int OP_VIEW_TRADE_GIFT_SILVER = 1000000003;
+    public const int OP_VIEW_TRADE_GIFT_GOLD = 1000000004;
+    /// <summary>
     /// Văn bản khi hiện center dialog
     /// </summary>
     public const String CMD_CENTER_OK = "OK";
@@ -701,6 +707,34 @@ public partial class MenuController
             join += ($"{GopetManager.itemTemplate[item.Key].name} x{item.Value},");
         }
         player.okDialog($"{player.Language.TradeOKMessage} {join}");
+    }
+
+    /// <summary>
+    /// Xem trước toàn bộ vật phẩm có thể nhận khi đổi thỏi — KHÔNG trừ tiền/thỏi, chỉ hiển thị
+    /// (giống hệt pool thật Trade() dùng, sắp theo tỉ lệ giảm dần cho dễ nhìn).
+    /// </summary>
+    static void ShowTradeGiftPool(sbyte type, Player player)
+    {
+        JArrayList<MenuItemInfo> menuItemInfos = new();
+        if (GopetManager.TradeGift.ContainsKey(type))
+        {
+            foreach (var tradeGift in GopetManager.TradeGift[type].OrderByDescending(t => t.Percent))
+            {
+                ItemTemplate itemTemplate = GopetManager.itemTemplate.get(tradeGift.ItemTemplateId);
+                if (itemTemplate == null)
+                {
+                    continue;
+                }
+                MenuItemInfo menuItemInfo = new MenuItemInfo(
+                    Utilities.Format("%s x%s", itemTemplate.name, tradeGift.Count),
+                    "",
+                    itemTemplate.getIconPath(),
+                    false);
+                menuItemInfos.add(menuItemInfo);
+            }
+        }
+        String title = type == TradeGiftTemplate.TYPE_GOLD ? "Vật phẩm đổi Thỏi Vàng" : "Vật phẩm đổi Thỏi Bạc";
+        player.controller.showMenuItem(-1, TYPE_MENU_NONE, title, menuItemInfos);
     }
 
     public static JArrayList<int> typeSelectItemMaterial(int menuId, Player player)
