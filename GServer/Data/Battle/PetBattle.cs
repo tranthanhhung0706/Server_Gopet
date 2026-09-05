@@ -1702,7 +1702,11 @@ namespace Gopet.Battle
             Pet nonPet = getNonPet();
             JArrayList<TurnEffect> turnEffects = new();
             float damagePer = ItemInfo.getValueById(getNonUserPetBattleInfo().getBuff(), ItemInfo.Type.DAMGE_TOXIC_IN_3_TURN_PER) / 100f;
-            int damageToxic = ItemInfo.getValueById(getNonUserPetBattleInfo().getBuff(), ItemInfo.Type.DAMGE_TOXIC_IN_999999_TURN);
+            // Trước đây damageToxic là số sát thương thẳng (vd 50, 100, 200...) — giờ đổi sang %
+            // maxHp kẻ địch, cùng công thức với DAMGE_TOXIC_IN_3_TURN_PER ở trên. value trong DB
+            // (skilllv của skillID 107/119) vẫn đang lưu ở dạng số nguyên cũ (50-2500), cần đổi lại
+            // thành số % hợp lý (vd 1-10) để không vỡ cân bằng — xem ghi chú cuối hàm.
+            float damageToxicPer = ItemInfo.getValueById(getNonUserPetBattleInfo().getBuff(), ItemInfo.Type.DAMGE_TOXIC_IN_999999_TURN) / 100f;
 
             if (damagePer > 0)
             {
@@ -1732,20 +1736,20 @@ namespace Gopet.Battle
                     }
                 }
             }
-            if (damageToxic > 0)
+            if (damageToxicPer > 0)
             {
                 if (petAttackMob)
                 {
                     if (pet != null)
                     {
-                        int damage = damageToxic;
+                        int damage = (int)Utilities.GetValueFromPercent(PassiveObject.maxHp, damageToxicPer);
                         mob.addHp(damage, activePlayer);
                         mob.SetWinnerIfHpZero(activePlayer);
                         turnEffects.add(new TurnEffect(TurnEffect.NONE, mob.getMobId(), PetSkill.GetToxicSkill(activePet), -damage, 0));
                     }
                     else
                     {
-                        int damage = damageToxic;
+                        int damage = (int)Utilities.GetValueFromPercent(ActiveObject.maxHp, damageToxicPer);
                         activePet.addHpPet(damage);
                         turnEffects.add(new TurnEffect(TurnEffect.NONE, activePlayer.playerData.user_id, PetSkill.GetToxicSkill(mob), -damage, 0));
                     }
@@ -1754,7 +1758,7 @@ namespace Gopet.Battle
                 {
                     if (pet != null)
                     {
-                        int damage = damageToxic;
+                        int damage = (int)Utilities.GetValueFromPercent(ActiveObject.maxHp, damageToxicPer);
                         getNonPet().subHp(damage);
                         turnEffects.add(new TurnEffect(TurnEffect.NONE, getFocus(), PetSkill.GetToxicSkill(getNonPet()), -damage, 0));
                     }
