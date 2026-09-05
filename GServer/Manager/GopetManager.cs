@@ -1358,6 +1358,24 @@ public class GopetManager
         ServerMonitor.LogInfo("Nạp lại dữ liệu boss từ cơ sở dữ liệu OK");
     }
 
+    /// <summary>
+    /// Nạp lại công thức trùng sinh pet (bảng reincarnation) từ DB vào RAM mà KHÔNG cần restart
+    /// GServer — dùng sau khi sửa/thêm/xoá qua trang admin Reincarnation.
+    /// </summary>
+    public static void ReloadReincarnation()
+    {
+        using var conn = MYSQLManager.create();
+        var reincarnations = conn.Query<PetReincarnation>("SELECT * FROM `reincarnation`");
+
+        Reincarnations.Clear();
+        foreach (var reincarnation in reincarnations)
+        {
+            Reincarnations[reincarnation.PetId] = reincarnation;
+        }
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu trùng sinh từ cơ sở dữ liệu OK");
+    }
+
     public static T ReadJsonFile<T>(string targetPath)
     {
         if (File.Exists(Directory.GetCurrentDirectory() + targetPath))
