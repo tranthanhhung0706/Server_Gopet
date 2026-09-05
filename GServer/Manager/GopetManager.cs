@@ -1323,6 +1323,21 @@ public class GopetManager
         ServerMonitor.LogInfo("Nạp lại dữ liệu cửa hàng từ cơ sở dữ liệu OK");
     }
 
+    /// <summary>
+    /// Nạp lại pool "đổi thỏi" (bảng trade_gift) từ DB vào RAM mà KHÔNG cần restart GServer —
+    /// dùng sau khi sửa/thêm/xoá qua trang admin Roll. TYPE_LUA không có dữ liệu riêng trong DB,
+    /// luôn dùng chung pool TYPE_COIN (giống hệt logic gốc trong init()).
+    /// </summary>
+    public static void ReloadTradeGift()
+    {
+        using var conn = MYSQLManager.create();
+        TradeGift[TradeGiftTemplate.TYPE_COIN] = conn.Query<TradeGiftTemplate>("SELECT * FROM `trade_gift` where Type = " + TradeGiftTemplate.TYPE_COIN).ToArray();
+        TradeGift[TradeGiftTemplate.TYPE_GOLD] = conn.Query<TradeGiftTemplate>("SELECT * FROM `trade_gift` where Type = " + TradeGiftTemplate.TYPE_GOLD).ToArray();
+        TradeGift[TradeGiftTemplate.TYPE_LUA] = TradeGift[TradeGiftTemplate.TYPE_COIN];
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu trao đổi thưởng từ cơ sở dữ liệu OK");
+    }
+
     public static T ReadJsonFile<T>(string targetPath)
     {
         if (File.Exists(Directory.GetCurrentDirectory() + targetPath))
