@@ -1394,6 +1394,36 @@ public class GopetManager
         ServerMonitor.LogInfo("Nạp lại dữ liệu tiến hoá pet từ cơ sở dữ liệu OK");
     }
 
+    /// <summary>
+    /// Nạp lại điểm mọc quái (bảng gopet_mob_location) từ DB vào RAM mà KHÔNG cần restart GServer
+    /// — dùng sau khi sửa/thêm/xoá qua trang admin Location Mob. Map đang có người chơi/quái sẵn
+    /// không bị đụng tới — chỉ ảnh hưởng lần mọc/hồi sinh quái TIẾP THEO trên map đó.
+    /// </summary>
+    public static void ReloadMobLocation()
+    {
+        using var conn = MYSQLManager.create();
+        var mobLocationList = conn.Query("SELECT * FROM `gopet_mob_location`");
+
+        HashMap<int, JArrayList<MobLocation>> mobLoc = new();
+        foreach (var item in mobLocationList)
+        {
+            MobLocation mobLocation1 = new MobLocation(item.mapID, item.x, item.y);
+            if (!mobLoc.ContainsKey(mobLocation1.getMapId()))
+            {
+                mobLoc.put(mobLocation1.getMapId(), new());
+            }
+            mobLoc.get(mobLocation1.getMapId()).add(mobLocation1);
+        }
+
+        mobLocation.Clear();
+        foreach (var entry in mobLoc)
+        {
+            mobLocation.put(entry.Key, entry.Value.ToArray());
+        }
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu điểm mọc quái từ cơ sở dữ liệu OK");
+    }
+
     public static T ReadJsonFile<T>(string targetPath)
     {
         if (File.Exists(Directory.GetCurrentDirectory() + targetPath))
