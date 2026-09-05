@@ -2074,12 +2074,18 @@ public class GameController
             {
                 if (pet.tiemnang_point > 0)
                 {
-                    pet.tiemnang_point--;
-                    pet.tiemnang[index]++;
+                    // num = số lượng điểm muốn cộng 1 lần (client cho nhập thay vì bấm từng cái) —
+                    // giới hạn tối thiểu 1, tối đa số điểm tiềm năng hiện có, tránh cộng âm/vượt quá.
+                    int count = Math.Clamp(num, 1, pet.tiemnang_point);
+                    pet.tiemnang_point -= count;
+                    pet.tiemnang[index] += count;
                     pet.applyInfo(player);
                     updateTiemnang();
-                    getTaskCalculator().onPlusGymPoint();
-                    HistoryManager.addHistory(new History(player).setLog(Utilities.Format("Cộng tìm năng cho pet %s [num =%s,index=%s]", pet.Template.name, num, index)).setObj(pet));
+                    for (int i = 0; i < count; i++)
+                    {
+                        getTaskCalculator().onPlusGymPoint();
+                    }
+                    HistoryManager.addHistory(new History(player).setLog(Utilities.Format("Cộng tìm năng cho pet %s [num =%s,index=%s]", pet.Template.name, count, index)).setObj(pet));
                 }
                 else
                 {
@@ -2107,6 +2113,9 @@ public class GameController
                 message.putUTF("");
                 message.putsbyte(1);
             }
+            // Số điểm tiềm năng còn lại thật sự (server tính) — để client SET thẳng thay vì tự
+            // đoán trừ 1 mỗi lần, vì giờ 1 lần bấm có thể cộng nhiều điểm cùng lúc.
+            message.putInt(pet.tiemnang_point);
             message.cleanup();
             player.session.sendMessage(message);
         }

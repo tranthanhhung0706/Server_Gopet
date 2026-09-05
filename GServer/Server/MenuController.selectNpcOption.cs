@@ -487,11 +487,8 @@ public partial class MenuController
                 player.controller.noelDaily();
                 break;
             case OP_NHẬN_QUÀ_MỐC_NẠP:
-                if (player.user.role == UserData.ROLE_NON_ACTIVE)
-                {
-                    player.redDialog(player.Language.AccountNonAcitve);
-                    break;
-                }
+                // Cho xem danh sách/xem thông tin mốc nạp dù tài khoản chưa kích hoạt — chỉ chặn
+                // lúc NHẬN thật (xem ClaimNapMocReward, vẫn tự check ROLE_NON_ACTIVE riêng).
                 sendMenu(MENU_NAP_MOC, player);
                 break;
             case OP_HƯỚNG_DẪN_LÊN_THIÊN_ĐÌNH:
