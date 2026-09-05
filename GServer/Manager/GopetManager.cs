@@ -1376,6 +1376,24 @@ public class GopetManager
         ServerMonitor.LogInfo("Nạp lại dữ liệu trùng sinh từ cơ sở dữ liệu OK");
     }
 
+    /// <summary>
+    /// Nạp lại công thức tiến hoá pet (bảng pet_tier) từ DB vào RAM mà KHÔNG cần restart GServer —
+    /// dùng sau khi sửa/thêm/xoá qua trang admin Evolution.
+    /// </summary>
+    public static void ReloadPetTier()
+    {
+        using var conn = MYSQLManager.create();
+        var petTierList = conn.Query<PetTier>("SELECT * FROM `pet_tier`");
+
+        petTier.Clear();
+        foreach (var petTier1 in petTierList)
+        {
+            petTier.put(petTier1.getPetTemplateId1(), petTier1);
+        }
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu tiến hoá pet từ cơ sở dữ liệu OK");
+    }
+
     public static T ReadJsonFile<T>(string targetPath)
     {
         if (File.Exists(Directory.GetCurrentDirectory() + targetPath))
