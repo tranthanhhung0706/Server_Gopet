@@ -1603,6 +1603,11 @@ public class GameController
             player.redDialog("Bạn không thể thách đấu chính mình.");
             return;
         }
+        if (player.playerData.PetDefLeague == null)
+        {
+            player.redDialog("Bạn phải chọn pet phòng thủ trước khi thách đấu.");
+            return;
+        }
         if (getPetBattle() != null)
         {
             player.redDialog(player.Language.CannotManipulateWhenFighting);
