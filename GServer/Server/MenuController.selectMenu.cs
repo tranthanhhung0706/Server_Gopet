@@ -725,6 +725,24 @@ public partial class MenuController
                         player.redDialog(player.Language.ItemWasSell);
                         return;
                     }
+                    // Item thường (không phải pet, không phải dòng đặc biệt execute() riêng, không
+                    // phải hàng giới hạn tự gỡ sau 1 lần mua) thì cho nhập số lượng muốn mua 1 lần,
+                    // giống cơ chế nhập số lượng của luyện tiềm năng (xem upTiemNang). Loại trừ shop
+                    // Clan vì TimeNeedReset/NeedFund là giới hạn "1 lần/slot" theo thời gian, không
+                    // hợp với việc mua gộp nhiều lần trong 1 lượt.
+                    if (menuId != SHOP_CLAN && shopTemplateItem.isSellItem && !shopTemplateItem.isSpceial && !shopTemplateItem.isNeedRemove())
+                    {
+                        sbyte[] typeMoneyCheck = shopTemplateItem.getMoneyType();
+                        if (paymentIndex < 0 || paymentIndex >= typeMoneyCheck.Length)
+                        {
+                            return;
+                        }
+                        player.controller.objectPerformed[OBJKEY_BUY_SHOP_ITEM_MENU_ID] = menuId;
+                        player.controller.objectPerformed[OBJKEY_BUY_SHOP_ITEM_INDEX] = index;
+                        player.controller.objectPerformed[OBJKEY_BUY_SHOP_ITEM_PAYMENT_INDEX] = paymentIndex;
+                        player.controller.showInputDialog(INPUT_TYPE_BUY_SHOP_ITEM_QUANTITY, "Nhập số lượng", "Số lượng: ");
+                        return;
+                    }
                     sbyte[] typeMoney = shopTemplateItem.getMoneyType();
                     int[] price = shopTemplateItem.getPrice();
                     if (paymentIndex >= 0 && paymentIndex < typeMoney.Length)
@@ -2943,6 +2961,60 @@ public partial class MenuController
                     Thread.Sleep(1000);
                 }
                 break;
+        }
+    }
+
+    /// <summary>
+    /// Mua item thường ở shop NPC theo số lượng nhập tự do — hoàn tất bước "chọn item + chọn loại
+    /// tiền" đã lưu tạm ở OBJKEY_BUY_SHOP_ITEM_* (xem case SHOP_* ở trên) sau khi người chơi nhập số
+    /// lượng qua INPUT_TYPE_BUY_SHOP_ITEM_QUANTITY. Không dùng cho shop Clan/pet/item đặc biệt.
+    /// </summary>
+    private static void buyShopItemQuantity(int menuId, int index, int paymentIndex, int count, Player player)
+    {
+        count = Math.Max(1, count);
+        ShopTemplate shopTemplate = getShop((sbyte)menuId, player);
+        if (shopTemplate == null || index < 0 || index >= shopTemplate.getShopTemplateItems().Count)
+        {
+            player.redDialog(player.Language.ItemWasSell);
+            return;
+        }
+        ShopTemplateItem shopTemplateItem = shopTemplate.getShopTemplateItems().get(index);
+        sbyte[] typeMoney = shopTemplateItem.getMoneyType();
+        int[] price = shopTemplateItem.getPrice();
+        if (paymentIndex < 0 || paymentIndex >= typeMoney.Length)
+        {
+            return;
+        }
+        long totalPrice = (long)price[paymentIndex] * count;
+        if (!checkMoney(typeMoney[paymentIndex], totalPrice, player))
+        {
+            NotEngouhMoney(typeMoney[paymentIndex], totalPrice, player);
+            return;
+        }
+        addMoney(typeMoney[paymentIndex], -totalPrice, player);
+        Item item = new Item(shopTemplateItem.getItemTempalteId())
+        {
+            canTrade = !shopTemplateItem.isLock && (shopTemplateItem.itemTemTempleId != 240009 || shopTemplateItem.itemTemTempleId != 240010)
+        };
+        item.SourcesItem.Add(ItemSource.MUA_ĐỒ_SHOP_NPC);
+        item.count = shopTemplateItem.getCount() * count;
+        if (item.getTemp().expire > 0)
+        {
+            item.expire = Utilities.CurrentTimeMillis + item.Template.expire;
+        }
+        player.addItemToInventory(item);
+        HistoryManager.addHistory(new History(player).setLog($"Mua vật phẩm {item.Template.name} x{count} với menuId = {menuId} và tổng giá là {totalPrice}").setObj(new { Item = item, MenuId = menuId, Price = totalPrice, Count = count }));
+        player.okDialog(string.Format(player.Language.YouBuyItemOK, item.getTemp().getName(player)));
+        if (shopTemplateItem.isCloseScreenAfterClick())
+        {
+            sendMenu(menuId, player);
+        }
+        if (menuId == SHOP_WEAPON)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                player.controller.getTaskCalculator().onBuyRandomWeapon();
+            }
         }
     }
 }

@@ -816,6 +816,20 @@ public partial class MenuController
                         objENtry.Key.buyRetail(objENtry.Value.itemId, player, count);
                     }
                     break;
+                case INPUT_TYPE_BUY_SHOP_ITEM_QUANTITY:
+                    {
+                        if (!player.controller.objectPerformed.ContainsKey(OBJKEY_BUY_SHOP_ITEM_MENU_ID))
+                            return;
+                        int menuId = player.controller.objectPerformed.get(OBJKEY_BUY_SHOP_ITEM_MENU_ID);
+                        int index = player.controller.objectPerformed.get(OBJKEY_BUY_SHOP_ITEM_INDEX);
+                        int paymentIndex = player.controller.objectPerformed.get(OBJKEY_BUY_SHOP_ITEM_PAYMENT_INDEX);
+                        player.controller.objectPerformed.Remove(OBJKEY_BUY_SHOP_ITEM_MENU_ID);
+                        player.controller.objectPerformed.Remove(OBJKEY_BUY_SHOP_ITEM_INDEX);
+                        player.controller.objectPerformed.Remove(OBJKEY_BUY_SHOP_ITEM_PAYMENT_INDEX);
+                        int count = Math.Abs(reader.readInt(0));
+                        buyShopItemQuantity(menuId, index, paymentIndex, count, player);
+                    }
+                    break;
                 case INPUT_DIALOG_SET_PET_SELECTED_INFo:
                     {
                         if (player.checkIsAdmin())

@@ -580,6 +580,10 @@ public partial class MenuController
     public const int OBJKEY_ID_ITEM_USE_ITEM_COUNT = 73;
     /// <summary>Khoá để lưu mốc nạp (NapMocReward) đang được chọn từ MENU_NAP_MOC.</summary>
     public const int OBJKEY_NAP_MOC_REWARD = 74;
+    /// <summary>menuId/index/paymentIndex của item shop NPC đang chờ nhập số lượng mua.</summary>
+    public const int OBJKEY_BUY_SHOP_ITEM_MENU_ID = 75;
+    public const int OBJKEY_BUY_SHOP_ITEM_INDEX = 76;
+    public const int OBJKEY_BUY_SHOP_ITEM_PAYMENT_INDEX = 77;
     public const int DIALOG_CONFIRM_REMOVE_ITEM_EQUIP = 0;
     public const int DIALOG_CONFIRM_BUY_KIOSK_ITEM = 1;
     public const int DIALOG_ENCHANT = 3;
@@ -637,6 +641,7 @@ public partial class MenuController
     public const int INPUT_ASSIGNED_CHANGE_NAME_KIOSK = 37;
     public const int INPUT_NUM_BUY_RETAIL_ITEM_KIOSK = 38;
     public const int INPUT_USE_NUM_ITEM = 39;
+    public const int INPUT_TYPE_BUY_SHOP_ITEM_QUANTITY = 40;
     public const int IMGDIALOG_CAPTCHA = 0;
     #endregion
     public static JArrayList<MenuItemInfo> getPetFreeLst(Player player)
@@ -1178,6 +1183,7 @@ public partial class MenuController
                 return new sbyte[] { InputReader.FIELD_STRING, InputReader.FIELD_STRING, InputReader.FIELD_STRING };
             case INPUT_USE_NUM_ITEM:
             case INPUT_NUM_BUY_RETAIL_ITEM_KIOSK:
+            case INPUT_TYPE_BUY_SHOP_ITEM_QUANTITY:
             case INPUT_NUM_DUNG_HỢP:
             case INPUT_TYPE_COUNT_USE_BÓ_HOA:
             case INPUT_TYPE_COUNT_ADMIN_GIVE:
