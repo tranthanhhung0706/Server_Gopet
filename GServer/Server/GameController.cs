@@ -1500,9 +1500,10 @@ public class GameController
     private long lastArenaChallengeTime = 0;
     private const int ARENA_CHALLENGE_ENERGY_COST = 1;
 
-    // atk/def lưu trong DB chỉ được tính lại mỗi khi applyInfo() chạy (lúc chọn pet phòng thủ),
-    // nên nếu người chơi luyện thêm tiềm năng sau đó, field atk/def sẽ bị cũ so với str/agi hiện tại.
-    // Hai hàm dưới tự tính lại atk/def "sạch" (không tính trang bị/xăm) từ chỉ số hiện tại, dùng chung
+    // Phần atk/def tính từ str/agi lưu trong DB chỉ được tính lại mỗi khi applyInfo() chạy (lúc chọn
+    // pet phòng thủ), nên nếu người chơi luyện thêm tiềm năng sau đó, phần này sẽ bị cũ so với str/agi
+    // hiện tại. Hai hàm dưới tự tính lại phần đó "tươi" từ chỉ số hiện tại, rồi cộng thêm atkBonus/
+    // defBonus (trang bị + xăm + skin + cánh + thành tựu, đã tách riêng trong applyInfo()) — dùng chung
     // cho cả màn xem thông tin lẫn lúc thực chiến để đảm bảo nhất quán.
     private static int computeArenaAtk(Pet pet)
     {
@@ -1511,20 +1512,20 @@ public class GameController
         {
             case GopetManager.Archer:
             case GopetManager.Fighter:
-                return baseAtk + (pet.getStr() / 3) + 5;
+                return baseAtk + (pet.getStr() / 3) + 5 + pet.atkBonus;
             case GopetManager.Demon:
             case GopetManager.Assassin:
-                return baseAtk + (pet.getAgi() / 3) + 5;
+                return baseAtk + (pet.getAgi() / 3) + 5 + pet.atkBonus;
             case GopetManager.Angel:
             case GopetManager.Wizard:
-                return baseAtk + (pet.getInt() / 3) + 5;
+                return baseAtk + (pet.getInt() / 3) + 5 + pet.atkBonus;
         }
         return 0;
     }
 
     private static int computeArenaDef(Pet pet)
     {
-        return (pet.getAgi() * 20) + (pet.getAgi() / 3);
+        return (pet.getAgi() * 20) + (pet.getAgi() / 3) + pet.defBonus;
     }
 
     private Pet loadArenaDefensePet(int defenderUserId)
@@ -1662,7 +1663,7 @@ public class GameController
         mobLvInfo.exp = 0;
         mobLvInfo.coin = 0;
         defenderMob.setMobLvInfo(mobLvInfo);
-        defenderMob.setDef(defensePet.getAgi() * 20);
+        defenderMob.setDef(defensePet.getAgi() * 20 + defensePet.defBonus);
 
         PetBattle petBattle = new PetBattle(defenderMob, place, player);
         petBattle.setIsArenaMode(true, defenderUserId);

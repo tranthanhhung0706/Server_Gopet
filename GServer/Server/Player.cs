@@ -541,6 +541,7 @@ Thread.Sleep(1000);
                 controller.updateUserInfo();
                 showBanner(Language.WarningPlayerWhenLogin);
                 getPet()?.applyInfo(this);
+                playerData.PetDefLeague?.applyInfo(this);
                 if (ServerSetting.instance.isOnlyAdminLogin)
                 {
                     if (!playerData.isAdmin)

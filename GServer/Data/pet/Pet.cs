@@ -41,6 +41,14 @@ public class Pet : GameObject, IBinaryObject<Pet>
 
     public int str, agi, _int;
 
+    /// <summary>
+    /// Phần atk/def cộng thêm từ trang bị + xăm + skin + cánh + thành tựu, tách riêng khỏi phần
+    /// atk/def tính từ str/agi gốc (xem applyInfo()) — dùng để Arena tính lại atk/def "tươi" theo
+    /// str/agi hiện tại (tránh field atk/def bị cũ khi luyện thêm tiềm năng) mà vẫn không mất bonus
+    /// trang bị/skin/cánh.
+    /// </summary>
+    public int atkBonus = 0, defBonus = 0;
+
     /**
      * Điểm tiềm năng
      */
@@ -343,8 +351,10 @@ public class Pet : GameObject, IBinaryObject<Pet>
     /// <param name="player"></param>
     public void applyInfo(Player player)
     {
-        this.atk = (this.getStr() * 10);
-        this.def = (this.getAgi() * 10);
+        int baseAtk = this.getStr() * 10;
+        int baseDef = this.getAgi() * 10;
+        this.atk = baseAtk;
+        this.def = baseDef;
         this.maxHp = getHpViaPrice() + (this.getInt() * 20);
         this.maxMp = getMpViaPrice() + (this.getInt() * 20);
         IDictionary<int, int> ItemEquipType = new Dictionary<int, int>();
@@ -463,6 +473,8 @@ public class Pet : GameObject, IBinaryObject<Pet>
                 }
             }
         }
+        this.atkBonus = this.atk - baseAtk;
+        this.defBonus = this.def - baseDef;
         this.HiddenStats.Clear();
         this.HiddenStats.AddRange(GopetManager.HiddentStatItemTemplates.Where(x =>
         (!x.IdWeapon.HasValue || (ItemEquipType.ContainsKey(GopetManager.PET_EQUIP_WEAPON) && ItemEquipType[GopetManager.PET_EQUIP_WEAPON] == x.IdWeapon)) &&

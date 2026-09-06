@@ -420,18 +420,31 @@ public partial class MenuController
                 }
                 break;
             case MENU_SELECT_PET_TO_DEF_LEAGUE:
+                // Pet phòng thủ Arena chỉ là 1 snapshot chỉ số dùng để đấu hộ lúc offline, không phải
+                // "mang ra trận" như pet chiến đấu chính, nên không tháo pet khỏi kho khi chọn.
+                if (index >= 0 && index < player.playerData.pets.Count)
+                {
+                    Pet pet = player.playerData.pets.get(index);
+                    if (pet.TimeDieZ > Utilities.CurrentTimeMillis)
+                    {
+                        player.redDialog(player.Language.YourPetIsDie);
+                        return;
+                    }
+                    player.playerData.PetDefLeague = pet;
+                    pet.applyInfo(player);
+                    player.okDialog(string.Format(player.Language.SelectPetDefOK, pet.getNameWithStar(player)));
+                }
+                break;
             case MENU_PET_INVENTORY:
-                if (index == -1 && menuId == MENU_PET_INVENTORY)
+                if (index == -1)
                 {
                     sendMenu(MENU_UNEQUIP_PET, player);
                     return;
                 }
 
-
-
                 if (index >= 0 && index < player.playerData.pets.Count)
                 {
-                    Pet oldPet = menuId == MENU_PET_INVENTORY ? player.playerData.petSelected : player.playerData.PetDefLeague;
+                    Pet oldPet = player.playerData.petSelected;
                     if (oldPet != null)
                     {
                         if (oldPet.TimeDieZ > Utilities.CurrentTimeMillis)
@@ -446,18 +459,9 @@ public partial class MenuController
                     {
                         player.playerData.addPet(oldPet, player);
                     }
-                    if (menuId == MENU_PET_INVENTORY)
-                    {
-                        player.playerData.petSelected = pet;
-                        pet.applyInfo(player);
-                        player.controller.updatePetSelected(false);
-                    }
-                    else
-                    {
-                        player.playerData.PetDefLeague = pet;
-                        pet.applyInfo(player);
-                        player.okDialog(string.Format(player.Language.SelectPetDefOK, pet.getNameWithStar(player)));
-                    }
+                    player.playerData.petSelected = pet;
+                    pet.applyInfo(player);
+                    player.controller.updatePetSelected(false);
                 }
                 break;
             case MENU_ARENA_MAIN:
@@ -1418,6 +1422,11 @@ public partial class MenuController
                         if (pet.Expire != null)
                         {
                             player.redDialog(player.Language.YouCannotSellPetTry);
+                            return;
+                        }
+                        if (pet == player.playerData.PetDefLeague)
+                        {
+                            player.redDialog("Pet này đang làm pet phòng thủ đấu trường, vui lòng đổi pet phòng thủ khác trước.");
                             return;
                         }
                         switch (menuId)
