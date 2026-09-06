@@ -275,6 +275,8 @@ namespace Gopet.Language
         public string GiftCodeEmptyGift { get; set; } = "Mã quà tặng này chả tặng bạn được cái gì :)";
         public string GetGiftCodeOK { get; set; } = "Chức mừng bạn nhận được: {0}";
         public string NotHaveGiftCode { get; set; } = "Không có mã quà tặng này";
+        public string GiftCodeOnlyForNonActiveUser { get; set; } = "Mã quà tặng này chỉ dành cho tài khoản chưa kích hoạt";
+        public string GiftCodeOnlyForActiveUser { get; set; } = "Mã quà tặng này chỉ dành cho tài khoản đã kích hoạt";
         public string GiftCodeError { get; set; } = "Xảy ra sự cố mà ông trời cũng cả biết";
         public string EmptyField { get; set; } = "Vui lòng không bỏ trống";
         public string WrongNumOfItem { get; set; } = "Số lượng không hợp lệ";

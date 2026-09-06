@@ -20,6 +20,12 @@ public class GiftCodeData
 
     public bool isClanCode { get; private set; } = false;
 
+    /// <summary>
+    /// true = code chỉ dành cho tài khoản CHƯA kích hoạt (role == UserData.ROLE_NON_ACTIVE, vd code
+    /// tân thủ phát ngay lúc đăng ký); false (mặc định) = chỉ dành cho tài khoản ĐÃ kích hoạt.
+    /// </summary>
+    public bool isForNonActiveUser { get; private set; } = false;
+
     public int getCurUser()
     {
         return this.currentUser;

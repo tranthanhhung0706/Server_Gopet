@@ -18,5 +18,6 @@ namespace Gopet.APIs
         public DateTime Expire { get; set; }
         public string UsersOfUseThis { get; set; } = "[]";
         public bool IsClanCode { get; set; }
+        public bool IsForNonActiveUser { get; set; }
     }
 }

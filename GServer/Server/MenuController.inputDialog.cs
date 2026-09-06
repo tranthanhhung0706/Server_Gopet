@@ -99,6 +99,17 @@ public partial class MenuController
                                                 GiftCodeData giftCodeData = MySqlConnection.QuerySingleOrDefault<GiftCodeData>("SELECT * FROM `gift_code` WHERE `gift_code`.`code` = @code;", new { code = code });
                                                 if (giftCodeData != null)
                                                 {
+                                                    bool isActive = player.user.role != UserData.ROLE_NON_ACTIVE;
+                                                    if (giftCodeData.isForNonActiveUser && isActive)
+                                                    {
+                                                        player.redDialog(player.Language.GiftCodeOnlyForNonActiveUser);
+                                                        goto EndGiftCode;
+                                                    }
+                                                    if (!giftCodeData.isForNonActiveUser && !isActive)
+                                                    {
+                                                        player.redDialog(player.Language.GiftCodeOnlyForActiveUser);
+                                                        goto EndGiftCode;
+                                                    }
                                                     if (clanMember == null && giftCodeData.isClanCode)
                                                     {
                                                         player.controller.notClan();

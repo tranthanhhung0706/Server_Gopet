@@ -25,6 +25,10 @@ namespace Gopet.APIs
     /// `currentUser`/`usersOfUseThis` do gameplay tự quản lý khi người chơi redeem (xem
     /// MenuController.inputDialog.cs) — API này chỉ đọc để hiển thị, KHÔNG cho sửa qua create/update.
     ///
+    /// `isForNonActiveUser` (mặc định false): false = code chỉ dùng được cho tài khoản ĐÃ kích hoạt
+    /// (role != UserData.ROLE_NON_ACTIVE), true = ngược lại chỉ dùng được cho tài khoản CHƯA kích
+    /// hoạt (vd code tân thủ) — 2 nhóm loại trừ nhau, xem check trong MenuController.inputDialog.cs.
+    ///
     /// Bảo mật giống UserController: [RequireApiKey] + [RequireAdminBearer].
     /// </summary>
     [Route("v1/gopet/api/gift")]
@@ -36,7 +40,8 @@ namespace Gopet.APIs
     {
         private const string SelectGiftCodeSql =
             @"SELECT id AS Id, code AS Code, currentUser AS CurrentUser, maxUser AS MaxUser,
-                     gift_data AS GiftData, expire AS Expire, usersOfUseThis AS UsersOfUseThis, isClanCode AS IsClanCode
+                     gift_data AS GiftData, expire AS Expire, usersOfUseThis AS UsersOfUseThis, isClanCode AS IsClanCode,
+                     isForNonActiveUser AS IsForNonActiveUser
               FROM `gift_code`";
 
         /// <summary>gift_data phải là JSON hợp lệ dạng mảng lồng số nguyên (int[][]), không rỗng.</summary>
@@ -73,7 +78,7 @@ namespace Gopet.APIs
         /// </summary>
         [HttpGet("/v1/gopet/api/GiftCodes")]
         public IActionResult GetGiftCodes([FromQuery] int page = 1, [FromQuery] int limit = 20,
-            [FromQuery] string? search = null, [FromQuery] bool? isClanCode = null)
+            [FromQuery] string? search = null, [FromQuery] bool? isClanCode = null, [FromQuery] bool? isForNonActiveUser = null)
         {
             page = Math.Max(1, page);
             limit = Math.Clamp(limit, 1, 100);
@@ -91,6 +96,11 @@ namespace Gopet.APIs
             {
                 where.Add("isClanCode = @isClanCode");
                 parameters.Add("isClanCode", isClanCode.Value);
+            }
+            if (isForNonActiveUser.HasValue)
+            {
+                where.Add("isForNonActiveUser = @isForNonActiveUser");
+                parameters.Add("isForNonActiveUser", isForNonActiveUser.Value);
             }
             string whereSql = where.Count > 0 ? "WHERE " + string.Join(" AND ", where) : "";
 
@@ -123,7 +133,7 @@ namespace Gopet.APIs
             return Ok(new BaseResponse<GiftCodeDto>(1, "Thành công", code));
         }
 
-        public record CreateGiftCodeRequest(string Code, string GiftData, DateTime Expire, int MaxUser = 1, bool IsClanCode = false);
+        public record CreateGiftCodeRequest(string Code, string GiftData, DateTime Expire, int MaxUser = 1, bool IsClanCode = false, bool IsForNonActiveUser = false);
 
         /// <summary>Tạo gift code mới. currentUser=0, usersOfUseThis=[] mặc định (gameplay tự cập nhật).</summary>
         [HttpPost("/v1/gopet/api/GiftCodes")]
@@ -157,16 +167,16 @@ namespace Gopet.APIs
             }
 
             int newId = conn.ExecuteScalar<int>(
-                @"INSERT INTO `gift_code` (code, currentUser, maxUser, gift_data, expire, usersOfUseThis, isClanCode)
-                  VALUES (@code, 0, @maxUser, @giftData, @expire, '[]', @isClanCode);
+                @"INSERT INTO `gift_code` (code, currentUser, maxUser, gift_data, expire, usersOfUseThis, isClanCode, isForNonActiveUser)
+                  VALUES (@code, 0, @maxUser, @giftData, @expire, '[]', @isClanCode, @isForNonActiveUser);
                   SELECT LAST_INSERT_ID();",
-                new { code, maxUser = req.MaxUser, giftData = req.GiftData, expire = req.Expire, isClanCode = req.IsClanCode });
+                new { code, maxUser = req.MaxUser, giftData = req.GiftData, expire = req.Expire, isClanCode = req.IsClanCode, isForNonActiveUser = req.IsForNonActiveUser });
 
             var created = conn.QueryFirstOrDefault<GiftCodeDto>($"{SelectGiftCodeSql} WHERE id = @id", new { id = newId });
             return Ok(new BaseResponse<GiftCodeDto?>(1, "Tạo gift code thành công", created));
         }
 
-        public record UpdateGiftCodeRequest(string? GiftData, int? MaxUser, DateTime? Expire, bool? IsClanCode);
+        public record UpdateGiftCodeRequest(string? GiftData, int? MaxUser, DateTime? Expire, bool? IsClanCode, bool? IsForNonActiveUser);
 
         /// <summary>Cập nhật 1 phần gift code. Không cho đổi `code` (định danh mà người chơi đã biết/dùng).</summary>
         [HttpPatch("/v1/gopet/api/GiftCodes/{id:int}")]
@@ -211,6 +221,11 @@ namespace Gopet.APIs
             {
                 setClauses.Add("isClanCode = @isClanCode");
                 parameters.Add("isClanCode", isClanCode);
+            }
+            if (req?.IsForNonActiveUser is bool isForNonActiveUser)
+            {
+                setClauses.Add("isForNonActiveUser = @isForNonActiveUser");
+                parameters.Add("isForNonActiveUser", isForNonActiveUser);
             }
 
             if (setClauses.Count == 0)
