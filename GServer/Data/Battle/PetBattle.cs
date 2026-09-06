@@ -52,6 +52,8 @@ namespace Gopet.Battle
             if (place == null) throw new ArgumentNullException(nameof(place));
             ApplyHiddenStat(activePet, activeBattleInfo);
             ApplyHiddenStat(passivePet, passiveBattleInfo);
+            AddTattoBattleBuff(activePet, activeBattleInfo, passiveBattleInfo);
+            AddTattoBattleBuff(passivePet, passiveBattleInfo, activeBattleInfo);
         }
 
         public PetBattle(Mob mob, GopetPlace place, Player activePlayer)
@@ -70,6 +72,7 @@ namespace Gopet.Battle
             addWingBuff(activePlayer, activeBattleInfo, passiveBattleInfo);
             if (place == null) throw new ArgumentNullException(nameof(place));
             ApplyHiddenStat(activePet, activeBattleInfo);
+            AddTattoBattleBuff(activePet, activeBattleInfo, passiveBattleInfo);
         }
 
         private void ApplyHiddenStat(Pet pet, PetBattleInfo petBattleInfo)
@@ -115,6 +118,25 @@ namespace Gopet.Battle
             {
                 var wingBuffData = wing.ExtractBattleOptions();
                 foreach (var buff in wingBuffData)
+                {
+                    (buff.IsActive ? petBattleInfo : nonpetBattleInfo).addBuff(new Buff(new ItemInfo[] { new ItemInfo(buff.OptionId, buff.OptionValue) }, buff.Turn));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Áp hiệu ứng combat đặc biệt của xăm (vd hoả kì lân phản đòn/hút máu/định thân) — cùng cơ
+        /// chế ItemInfo dùng cho cánh (addWingBuff), đọc từ PetTatto.ExtractBattleOptions().
+        /// </summary>
+        private void AddTattoBattleBuff(Pet pet, PetBattleInfo petBattleInfo, PetBattleInfo nonpetBattleInfo)
+        {
+            if (pet == null)
+            {
+                return;
+            }
+            foreach (PetTatto tatto in pet.tatto)
+            {
+                foreach (var buff in tatto.ExtractBattleOptions())
                 {
                     (buff.IsActive ? petBattleInfo : nonpetBattleInfo).addBuff(new Buff(new ItemInfo[] { new ItemInfo(buff.OptionId, buff.OptionValue) }, buff.Turn));
                 }

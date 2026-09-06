@@ -1380,6 +1380,26 @@ public class GopetManager
     /// Nạp lại công thức tiến hoá pet (bảng pet_tier) từ DB vào RAM mà KHÔNG cần restart GServer —
     /// dùng sau khi sửa/thêm/xoá qua trang admin Evolution.
     /// </summary>
+    /// <summary>
+    /// Nạp lại danh mục xăm (bảng tattoo) từ DB vào RAM mà KHÔNG cần restart GServer — dùng sau khi
+    /// sửa/thêm/xoá qua trang admin Tattoo. Xăm pet đang mang (PetTatto) chỉ lưu tattooTemplateId,
+    /// tra Template qua tattos mỗi lần dùng nên tự động lấy dữ liệu mới không cần đụng gì thêm.
+    /// </summary>
+    public static void ReloadTattoo()
+    {
+        using var conn = MYSQLManager.create();
+        var tattoList = conn.Query<PetTattoTemplate>("SELECT * FROM `tattoo`");
+
+        tattos.Clear();
+        foreach (var petTattoTemplate in tattoList)
+        {
+            tattos.put(petTattoTemplate.tattooId, petTattoTemplate);
+            Language[VI_CODE].TattoLanguage[petTattoTemplate.tattooId] = petTattoTemplate.name;
+        }
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu xăm từ cơ sở dữ liệu OK");
+    }
+
     public static void ReloadPetTier()
     {
         using var conn = MYSQLManager.create();
