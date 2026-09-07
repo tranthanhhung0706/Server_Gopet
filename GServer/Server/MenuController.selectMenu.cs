@@ -2992,17 +2992,35 @@ public partial class MenuController
             return;
         }
         addMoney(typeMoney[paymentIndex], -totalPrice, player);
-        Item item = new Item(shopTemplateItem.getItemTempalteId())
+        bool canTrade = !shopTemplateItem.isLock && (shopTemplateItem.itemTemTempleId != 240009 || shopTemplateItem.itemTemTempleId != 240010);
+        int totalUnitCount = shopTemplateItem.getCount() * count;
+        Item item = new Item(shopTemplateItem.getItemTempalteId()) { canTrade = canTrade };
+        if (item.getTemp().isStackable)
         {
-            canTrade = !shopTemplateItem.isLock && (shopTemplateItem.itemTemTempleId != 240009 || shopTemplateItem.itemTemTempleId != 240010)
-        };
-        item.SourcesItem.Add(ItemSource.MUA_ĐỒ_SHOP_NPC);
-        item.count = shopTemplateItem.getCount() * count;
-        if (item.getTemp().expire > 0)
-        {
-            item.expire = Utilities.CurrentTimeMillis + item.Template.expire;
+            // Item stack được: 1 Item, cộng dồn count — addItemToInventory tự gộp vào slot cùng loại.
+            item.SourcesItem.Add(ItemSource.MUA_ĐỒ_SHOP_NPC);
+            item.count = totalUnitCount;
+            if (item.getTemp().expire > 0)
+            {
+                item.expire = Utilities.CurrentTimeMillis + item.Template.expire;
+            }
+            player.addItemToInventory(item);
         }
-        player.addItemToInventory(item);
+        else
+        {
+            // Item KHÔNG stack được (vd trang bị): addItemToInventory bỏ qua field count, mỗi lần
+            // chỉ thêm đúng 1 item — phải tạo riêng từng Item và gọi addItemToInventory N lần.
+            for (int i = 0; i < totalUnitCount; i++)
+            {
+                Item unit = i == 0 ? item : new Item(shopTemplateItem.getItemTempalteId()) { canTrade = canTrade };
+                unit.SourcesItem.Add(ItemSource.MUA_ĐỒ_SHOP_NPC);
+                if (unit.getTemp().expire > 0)
+                {
+                    unit.expire = Utilities.CurrentTimeMillis + unit.Template.expire;
+                }
+                player.addItemToInventory(unit);
+            }
+        }
         HistoryManager.addHistory(new History(player).setLog($"Mua vật phẩm {item.Template.name} x{count} với menuId = {menuId} và tổng giá là {totalPrice}").setObj(new { Item = item, MenuId = menuId, Price = totalPrice, Count = count }));
         player.okDialog(string.Format(player.Language.YouBuyItemOK, item.getTemp().getName(player)));
         if (shopTemplateItem.isCloseScreenAfterClick())

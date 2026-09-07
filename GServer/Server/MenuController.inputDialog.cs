@@ -826,7 +826,10 @@ public partial class MenuController
                         player.controller.objectPerformed.Remove(OBJKEY_BUY_SHOP_ITEM_MENU_ID);
                         player.controller.objectPerformed.Remove(OBJKEY_BUY_SHOP_ITEM_INDEX);
                         player.controller.objectPerformed.Remove(OBJKEY_BUY_SHOP_ITEM_PAYMENT_INDEX);
-                        int count = Math.Abs(reader.readInt(0));
+                        // Chặn số lượng khổng lồ — item không stack được sẽ loop tạo từng Item một
+                        // (xem buyShopItemQuantity), nhập số quá lớn có thể treo luồng xử lý/làm
+                        // phình kho đồ bất thường.
+                        int count = Math.Clamp(Math.Abs(reader.readInt(0)), 1, 999);
                         buyShopItemQuantity(menuId, index, paymentIndex, count, player);
                     }
                     break;
