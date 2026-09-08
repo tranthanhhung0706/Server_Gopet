@@ -1,6 +1,7 @@
 
 using Gopet.App;
 using Gopet.Battle;
+using Gopet.Data;
 using Gopet.Data.GopetClan;
 using Gopet.Data.Collections;
 using Gopet.Data.Dialog;
@@ -21,6 +22,7 @@ using Gopet.Data.user;
 using static System.Net.Mime.MediaTypeNames;
 using System.Numerics;
 using Gopet.Data.pet;
+using Gopet.Data.Mob;
 
 [NonController]
 public class GameController
@@ -728,11 +730,19 @@ public class GameController
                     return;
                 }
 
+                PlayerData.create(player.user.user_id, name, gender);
             }
-            PlayerData.create(player.user.user_id, name, gender);
-            UserData user = player.user;
-            player.user = null;
-            player.session.Close();
+
+            // Vào game NGAY sau khi tạo nhân vật thành công — KHÔNG đóng session/set player.user =
+            // null như code cũ (bắt người chơi phải kết nối lại và đăng nhập lại từ đầu).
+            // ProcessingUser() tự query lại bảng `player` (giờ đã có dòng vừa tạo) nên đi đúng
+            // nhánh "playerData != null", tự gọi loginOK()+LoadMap() để vào thẳng game. Cần dùng
+            // connection DB WEB (khác DB game mà PlayerData.create()/check trùng tên ở trên dùng)
+            // vì ProcessingUser thao tác trên bảng `user`.
+            using (var webConn = MYSQLManager.createWebMySqlConnection())
+            {
+                player.ProcessingUser(webConn);
+            }
         }
     }
 
@@ -995,6 +1005,10 @@ public class GameController
                 break;
             case GopetCMD.MAGIC:
                 magic(player.user.user_id, true);
+                break;
+            case GopetCMD.ARENA_MENU:
+                message.reader().readsbyte();
+                showArenaMenu();
                 break;
             case GopetCMD.MAGIC_LEARN_SKILL:
                 int skillId = message.readInt();
@@ -1368,6 +1382,296 @@ public class GameController
             message.cleanup();
             player.session.sendMessage(message);
         }
+    }
+
+    public void showArenaMenu()
+    {
+        JArrayList<MenuItemInfo> menuItemInfos = new();
+        string defPetName = player.playerData.PetDefLeague != null ? player.playerData.PetDefLeague.getNameWithStar(player) : "Chưa chọn";
+        menuItemInfos.add(new MenuItemInfo("Chọn pet phòng thủ", $"Hiện tại: {defPetName}", "npcs/ky-tien.png", true));
+        menuItemInfos.add(new MenuItemInfo("Danh sách đối thủ", $"Điểm đấu trường của bạn: {Utilities.FormatNumber(player.playerData.ArenaPoint)}", "npcs/information.png", true));
+        menuItemInfos.add(new MenuItemInfo("Bảng xếp hạng", "Xem hạng của tất cả người chơi", "npcs/xephang_Pet.png", true));
+        showMenuItem(MENU_ARENA_MAIN, TYPE_MENU_NONE, "Đấu trường", menuItemInfos);
+    }
+
+    public void showArenaLeaderboard()
+    {
+        JArrayList<MenuItemInfo> menuItemInfos = new();
+        try
+        {
+            using (var conn = MYSQLManager.create())
+            {
+                int myId = player.user.user_id;
+                var myRow = conn.QueryFirstOrDefault("SELECT name, avatarPath, ArenaPoint FROM `player` WHERE user_id = @myId", new { myId });
+                if (myRow != null)
+                {
+                    int myHigherCount = conn.QueryFirstOrDefault<int>(
+                        "SELECT COUNT(*) FROM `player` WHERE isAdmin = 0 AND (ArenaPoint > @point OR (ArenaPoint = @point AND user_id < @myId))",
+                        new { point = (int)myRow.ArenaPoint, myId });
+                    menuItemInfos.add(new MenuItemInfo($"Hạng {myHigherCount + 1}. {myRow.name} (Bạn)", $"Điểm: {Utilities.FormatNumber((int)myRow.ArenaPoint)}", (string)myRow.avatarPath, false));
+                    menuItemInfos.add(new MenuItemInfo("----------TOP----------", "", "npcs/xephang_Pet.png", false));
+                }
+
+                var rows = conn.Query("SELECT user_id, name, avatarPath, ArenaPoint FROM `player` WHERE isAdmin = 0 ORDER BY ArenaPoint DESC, user_id ASC LIMIT 50");
+                int rank = 1;
+                foreach (dynamic row in rows)
+                {
+                    menuItemInfos.add(new MenuItemInfo($"Hạng {rank}. {row.name}", $"Điểm: {Utilities.FormatNumber((int)row.ArenaPoint)}", (string)row.avatarPath, false));
+                    rank++;
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        showMenuItem(-1, TYPE_MENU_NONE, "Bảng xếp hạng đấu trường", menuItemInfos);
+    }
+
+    private const int ARENA_OPPONENT_LIST_SIZE = 10;
+    private const int ARENA_OPPONENT_LIST_HALF = ARENA_OPPONENT_LIST_SIZE / 2;
+
+    public void showArenaOpponentList()
+    {
+        JArrayList<MenuItemInfo> menuItemInfos = new();
+        try
+        {
+            using (var conn = MYSQLManager.create())
+            {
+                int myId = player.user.user_id;
+                int totalCount = conn.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM `player` WHERE isAdmin = 0 AND PetDefLeague IS NOT NULL");
+                int? myArenaPoint = conn.QueryFirstOrDefault<int?>("SELECT ArenaPoint FROM `player` WHERE user_id = @myId AND isAdmin = 0 AND PetDefLeague IS NOT NULL", new { myId });
+                int myRank;
+                if (myArenaPoint.HasValue)
+                {
+                    // Phải dùng đúng tiêu chí sắp xếp (ArenaPoint DESC, user_id ASC) với câu query lấy danh sách bên dưới,
+                    // nếu không khi nhiều người trùng điểm thì hạng tính ra sẽ không khớp với thứ tự thực tế hiển thị.
+                    int higherCount = conn.QueryFirstOrDefault<int>(
+                        "SELECT COUNT(*) FROM `player` WHERE isAdmin = 0 AND PetDefLeague IS NOT NULL AND (ArenaPoint > @point OR (ArenaPoint = @point AND user_id < @myId))",
+                        new { point = myArenaPoint.Value, myId });
+                    myRank = higherCount + 1;
+                }
+                else
+                {
+                    myRank = 1;
+                }
+
+                int windowStart = myRank - ARENA_OPPONENT_LIST_HALF;
+                if (windowStart < 1)
+                {
+                    windowStart = 1;
+                }
+                if (windowStart + ARENA_OPPONENT_LIST_SIZE - 1 > totalCount)
+                {
+                    windowStart = Math.Max(1, totalCount - ARENA_OPPONENT_LIST_SIZE + 1);
+                }
+
+                var rows = conn.Query("SELECT user_id, name, avatarPath, ArenaPoint FROM `player` WHERE isAdmin = 0 AND PetDefLeague IS NOT NULL ORDER BY ArenaPoint DESC, user_id ASC LIMIT @limit OFFSET @offset",
+                    new { limit = ARENA_OPPONENT_LIST_SIZE, offset = windowStart - 1 });
+
+                int rank = windowStart;
+                foreach (dynamic row in rows)
+                {
+                    if ((int)row.user_id != player.user.user_id)
+                    {
+                        MenuItemInfo info = new MenuItemInfo($"{rank}. {row.name}", $"Điểm: {Utilities.FormatNumber((int)row.ArenaPoint)}", (string)row.avatarPath, true);
+                        info.setHasId(true);
+                        info.setItemId((int)row.user_id);
+                        info.setShowDialog(true);
+                        info.setDialogText($"Chọn thao tác với {row.name}:");
+                        info.setLeftCmdText("Chọn");
+                        info.setPaymentOptions(new MenuItemInfo.PaymentOption[] {
+                            new MenuItemInfo.PaymentOption(0, "Xem thông tin pet", 1),
+                            new MenuItemInfo.PaymentOption(1, "Thách đấu", 1)
+                        });
+                        menuItemInfos.add(info);
+                    }
+                    rank++;
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        showMenuItem(MENU_ARENA_OPPONENT_LIST, TYPE_MENU_PAYMENT, "Danh sách đối thủ", menuItemInfos);
+    }
+
+    private long lastArenaChallengeTime = 0;
+    private const int ARENA_CHALLENGE_ENERGY_COST = 1;
+
+    // Phần atk/def tính từ str/agi lưu trong DB chỉ được tính lại mỗi khi applyInfo() chạy (lúc chọn
+    // pet phòng thủ), nên nếu người chơi luyện thêm tiềm năng sau đó, phần này sẽ bị cũ so với str/agi
+    // hiện tại. Hai hàm dưới tự tính lại phần đó "tươi" từ chỉ số hiện tại, rồi cộng thêm atkBonus/
+    // defBonus (trang bị + xăm + skin + cánh + thành tựu, đã tách riêng trong applyInfo()) — dùng chung
+    // cho cả màn xem thông tin lẫn lúc thực chiến để đảm bảo nhất quán.
+    private static int computeArenaAtk(Pet pet)
+    {
+        int baseAtk = pet.getStr() * 30;
+        switch (pet.Template.nclass)
+        {
+            case GopetManager.Archer:
+            case GopetManager.Fighter:
+                return baseAtk + (pet.getStr() / 3) + 5 + pet.atkBonus;
+            case GopetManager.Demon:
+            case GopetManager.Assassin:
+                return baseAtk + (pet.getAgi() / 3) + 5 + pet.atkBonus;
+            case GopetManager.Angel:
+            case GopetManager.Wizard:
+                return baseAtk + (pet.getInt() / 3) + 5 + pet.atkBonus;
+        }
+        return 0;
+    }
+
+    private static int computeArenaDef(Pet pet)
+    {
+        return (pet.getAgi() * 20) + (pet.getAgi() / 3) + pet.defBonus;
+    }
+
+    private Pet loadArenaDefensePet(int defenderUserId)
+    {
+        Player defenderOnline = PlayerManager.get(defenderUserId);
+        if (defenderOnline != null)
+        {
+            return defenderOnline.playerData.PetDefLeague;
+        }
+        using (var conn = MYSQLManager.create())
+        {
+            string petDefLeagueJson = conn.QueryFirstOrDefault<string>("SELECT PetDefLeague FROM `player` WHERE user_id = @id", new { id = defenderUserId });
+            return petDefLeagueJson != null ? Newtonsoft.Json.JsonConvert.DeserializeObject<Pet>(petDefLeagueJson, Gopet.Adapter.JsonAdapter<Pet>.SerializerSettings) : null;
+        }
+    }
+
+    public void showArenaOpponentPetInfo(int defenderUserId)
+    {
+        Pet pet = loadArenaDefensePet(defenderUserId);
+        if (pet == null)
+        {
+            player.redDialog("Người chơi này chưa chọn pet phòng thủ.");
+            return;
+        }
+        Message message = new Message(GopetCMD.PET_SERVICE);
+        message.putsbyte(GopetCMD.MAGIC);
+        message.putInt(defenderUserId);
+        message.putInt(pet.getPetIdTemplate());
+        message.putsbyte(pet.getPetTemplate().element);
+        message.putUTF(pet.getPetTemplate().frameImg);
+        message.putUTF(pet.getNameWithStar(player));
+        message.putsbyte(pet.getPetTemplate().nclass);
+        message.putInt(pet.lvl);
+        message.putlong(pet.exp);
+        if (GopetManager.PetExp.ContainsKey(pet.lvl))
+        {
+            message.putlong(GopetManager.PetExp.get(pet.lvl));
+        }
+        else
+        {
+            message.putlong(long.MaxValue);
+        }
+        message.putlong(0);
+        message.putInt(pet.getStr());
+        message.putInt(pet.getAgi());
+        message.putInt(pet.getInt());
+        message.putInt(computeArenaAtk(pet));
+        message.putInt(computeArenaDef(pet));
+        message.putInt(pet.hp);
+        message.putInt(pet.mp);
+        message.putInt(pet.maxHp);
+        message.putInt(pet.maxMp);
+        message.putsbyte(pet.skill.Length);
+        for (int i = 0; i < pet.skill.Length; i++)
+        {
+            int skillId = pet.skill[i][0];
+            int skilllvl = pet.skill[i][1];
+            PetSkill petSkill = GopetManager.PETSKILL_HASH_MAP.get(skillId);
+            PetSkillLv petSkillLv = petSkill.skillLv.get(skilllvl - 1);
+            message.putInt(skillId);
+            message.putUTF(petSkill.getName(player) + " " + skilllvl);
+            message.putUTF(petSkill.getDescription(petSkillLv, player));
+            message.putInt(petSkillLv.mpLost);
+        }
+        message.putInt(pet.tiemnang_point);
+        message.putInt(0);
+        message.putsbyte(pet.Template.frameNum);
+        message.cleanup();
+        player.session.sendMessage(message);
+    }
+
+    public void startArenaBattle(int defenderUserId)
+    {
+        if (defenderUserId == player.user.user_id)
+        {
+            player.redDialog("Bạn không thể thách đấu chính mình.");
+            return;
+        }
+        if (player.playerData.PetDefLeague == null)
+        {
+            player.redDialog("Bạn phải chọn pet phòng thủ trước khi thách đấu.");
+            return;
+        }
+        if (getPetBattle() != null)
+        {
+            player.redDialog(player.Language.CannotManipulateWhenFighting);
+            return;
+        }
+        if (player.playerData.petSelected == null || player.playerData.petSelected.hp <= 0)
+        {
+            player.petNotFollow();
+            return;
+        }
+        if (Utilities.CurrentTimeMillis < lastArenaChallengeTime + 10000)
+        {
+            player.redDialog("Bạn thách đấu quá nhanh, vui lòng thử lại sau.");
+            return;
+        }
+        if (!player.checkStar(ARENA_CHALLENGE_ENERGY_COST))
+        {
+            player.notEnoughStar();
+            return;
+        }
+        GopetPlace place = player.getPlace();
+        if (place == null)
+        {
+            return;
+        }
+
+        Pet defensePet = loadArenaDefensePet(defenderUserId);
+        if (defensePet == null)
+        {
+            player.redDialog("Người chơi này chưa chọn pet phòng thủ.");
+            return;
+        }
+
+        lastArenaChallengeTime = Utilities.CurrentTimeMillis;
+        player.MineStar(ARENA_CHALLENGE_ENERGY_COST);
+
+        Mob defenderMob = new Mob();
+        defenderMob.petIdTemplate = defensePet.petIdTemplate;
+        defenderMob.skill = defensePet.skill;
+        defenderMob.maxHp = defensePet.maxHp;
+        defenderMob.hp = defenderMob.maxHp;
+        defenderMob.maxMp = defensePet.maxMp;
+        defenderMob.mp = defenderMob.maxMp;
+        defenderMob.name = defensePet.getNameWithStar(player);
+        defenderMob.setMobId(-1000000 - defenderUserId);
+        MobLvInfo mobLvInfo = new MobLvInfo();
+        mobLvInfo.lvl = defensePet.lvl;
+        mobLvInfo.str = defensePet.getStr();
+        mobLvInfo.agi = defensePet.getAgi();
+        mobLvInfo._int = defensePet.getInt();
+        mobLvInfo.atk = computeArenaAtk(defensePet);
+        mobLvInfo.exp = 0;
+        mobLvInfo.coin = 0;
+        defenderMob.setMobLvInfo(mobLvInfo);
+        defenderMob.setDef(defensePet.getAgi() * 20 + defensePet.defBonus);
+
+        PetBattle petBattle = new PetBattle(defenderMob, place, player);
+        petBattle.setIsArenaMode(true, defenderUserId);
+        petBattle.setDelaTimeTurn(Utilities.CurrentTimeMillis + 2000);
+        setPetBattle(petBattle);
+        defenderMob.setPetBattle(petBattle, player);
+        place.addPetBattle(petBattle);
+        petBattle.sendStartArenaBattle(defenderMob, player);
     }
 
     private void requestPetImg(sbyte type, String path)
@@ -1776,12 +2080,18 @@ public class GameController
             {
                 if (pet.tiemnang_point > 0)
                 {
-                    pet.tiemnang_point--;
-                    pet.tiemnang[index]++;
+                    // num = số lượng điểm muốn cộng 1 lần (client cho nhập thay vì bấm từng cái) —
+                    // giới hạn tối thiểu 1, tối đa số điểm tiềm năng hiện có, tránh cộng âm/vượt quá.
+                    int count = Math.Clamp(num, 1, pet.tiemnang_point);
+                    pet.tiemnang_point -= count;
+                    pet.tiemnang[index] += count;
                     pet.applyInfo(player);
                     updateTiemnang();
-                    getTaskCalculator().onPlusGymPoint();
-                    HistoryManager.addHistory(new History(player).setLog(Utilities.Format("Cộng tìm năng cho pet %s [num =%s,index=%s]", pet.Template.name, num, index)).setObj(pet));
+                    for (int i = 0; i < count; i++)
+                    {
+                        getTaskCalculator().onPlusGymPoint();
+                    }
+                    HistoryManager.addHistory(new History(player).setLog(Utilities.Format("Cộng tìm năng cho pet %s [num =%s,index=%s]", pet.Template.name, count, index)).setObj(pet));
                 }
                 else
                 {
@@ -1809,6 +2119,9 @@ public class GameController
                 message.putUTF("");
                 message.putsbyte(1);
             }
+            // Số điểm tiềm năng còn lại thật sự (server tính) — để client SET thẳng thay vì tự
+            // đoán trừ 1 mỗi lần, vì giờ 1 lần bấm có thể cộng nhiều điểm cùng lúc.
+            message.putInt(pet.tiemnang_point);
             message.cleanup();
             player.session.sendMessage(message);
         }
@@ -2980,7 +3293,8 @@ public class GameController
                     else
                     {
                         player.mineCoin(GopetManager.PRICE_ENCHANT[itemEuip.lvl]);
-                        bool isSuccec = (materialCrystal.getTemp().getOptionValue()[0] + (isGem ? GopetManager.PERCENT_OF_ENCHANT_GEM[itemEuip.lvl] : GopetManager.PERCENT_ENCHANT[itemEuip.lvl]) > Utilities.NextFloatPer()) || isBuffEnchent;
+                        float totalEnchantPercent = materialCrystal.getTemp().getOptionValue()[0] + (isGem ? GopetManager.PERCENT_OF_ENCHANT_GEM[itemEuip.lvl] : GopetManager.PERCENT_ENCHANT[itemEuip.lvl]);
+                        bool isSuccec = totalEnchantPercent >= 100f || totalEnchantPercent > Utilities.NextFloatPer() || isBuffEnchent;
                         int levelDrop = 0;
                         bool destroyItem = !isSuccec && isGem ? (itemEuip.lvl > 8) : (itemEuip.lvl == 8 || itemEuip.lvl == 9);
                         if (isSuccec)
@@ -3561,6 +3875,18 @@ public class GameController
 
     private void inviteChallenge(int user_id)
     {
+        if (player.user.role == UserData.ROLE_NON_ACTIVE)
+        {
+            player.redDialog(player.Language.AccountNonAcitve);
+            return;
+        }
+        // Khớp check đã dùng cho thách đấu Đấu trường (xem ArenaEvent challenge :1611) — pet đang
+        // theo hết HP thì không cho khởi tạo thách đấu người chơi.
+        if (player.playerData.petSelected == null || player.playerData.petSelected.hp <= 0)
+        {
+            player.petNotFollow();
+            return;
+        }
         Player playerChallenge = PlayerManager.get(user_id);
         if (playerChallenge != player)
         {
@@ -3606,6 +3932,17 @@ public class GameController
 
     private void pk(int user_id)
     {
+        if (player.user.role == UserData.ROLE_NON_ACTIVE)
+        {
+            player.redDialog(player.Language.AccountNonAcitve);
+            return;
+        }
+        // Khớp check đã dùng cho thách đấu Đấu trường — pet đang theo hết HP thì không cho PK.
+        if (player.playerData.petSelected == null || player.playerData.petSelected.hp <= 0)
+        {
+            player.petNotFollow();
+            return;
+        }
         Place place = player.getPlace();
         GopetMap map = place.map;
         if (map.mapID != 12 && map.mapID != 11 && map.mapID != 22)
@@ -4562,6 +4899,11 @@ public class GameController
 
     public void requestJoinClan(String clanname)
     {
+        if (player.user.role == UserData.ROLE_NON_ACTIVE)
+        {
+            player.redDialog(player.Language.AccountNonAcitve);
+            return;
+        }
         Clan clan = ClanManager.getClanByName(clanname);
         if (clan != null)
         {
@@ -5176,6 +5518,149 @@ public class GameController
         else player.redDialog(player.Language.DailyNoelFail);
     }
 
+    /// <summary>
+    /// Mô tả các phần thưởng trong 1 giftData (mốc nạp/gift code) thành text dễ đọc — CHỈ ĐỌC,
+    /// KHÔNG trao/mutate gì cả (khác onReiceiveGift). Dùng cho màn "Xem thông tin mốc nạp" trước
+    /// khi người chơi quyết định nhận. Chỉ diễn giải các type mà GiftDataBuilder (trang admin)
+    /// cho phép chọn — type ngẫu nhiên (4, 9) không thể biết trước kết quả nên chỉ mô tả chung
+    /// chung, không cố mô phỏng lại logic random.
+    /// </summary>
+    public string DescribeGiftData(int[][]? giftData)
+    {
+        if (giftData == null || giftData.Length == 0)
+        {
+            return "Không có phần thưởng";
+        }
+
+        JArrayList<String> lines = new();
+        foreach (int[] giftInfo in giftData)
+        {
+            switch (giftInfo[0])
+            {
+                case GopetManager.GIFT_GOLD:
+                    lines.add($"{Utilities.FormatNumber(giftInfo[1])} Vàng");
+                    break;
+                case GopetManager.GIFT_COIN:
+                    lines.add($"{Utilities.FormatNumber(giftInfo[1])} Ngọc");
+                    break;
+                case GopetManager.GIFT_ITEM:
+                    {
+                        ItemTemplate temp = GopetManager.itemTemplate.get(giftInfo[1]);
+                        int count = giftInfo.Length >= 3 ? giftInfo[2] : 1;
+                        lines.add($"{(temp != null ? temp.name : $"Item #{giftInfo[1]}")} x{count}");
+                    }
+                    break;
+                case GopetManager.GIFT_ITEM_PERCENT_NO_DROP_MORE:
+                    {
+                        ItemTemplate temp = GopetManager.itemTemplate.get(giftInfo[1]);
+                        int percent = giftInfo.Length >= 3 ? giftInfo[2] : 0;
+                        lines.add($"{percent}% cơ hội nhận {(temp != null ? temp.name : $"Item #{giftInfo[1]}")}");
+                    }
+                    break;
+                case GopetManager.GIFT_EXP:
+                    lines.add($"{Utilities.FormatNumber(giftInfo[1])} Exp cho pet đang theo");
+                    break;
+                case GopetManager.GIFT_ENERGY:
+                    lines.add($"{Utilities.FormatNumber(giftInfo[1])} Sao (năng lượng)");
+                    break;
+                case GopetManager.GIFT_RANDOM_ITEM:
+                    lines.add($"Ngẫu nhiên {giftInfo[1]} phần thưởng từ danh sách vật phẩm đặc biệt");
+                    break;
+                case GopetManager.GIFT_ITEM_MAX_OPTION:
+                    {
+                        ItemTemplate temp = GopetManager.itemTemplate.get(giftInfo[1]);
+                        int count = giftInfo.Length >= 3 ? giftInfo[2] : 1;
+                        lines.add($"{(temp != null ? temp.name : $"Item #{giftInfo[1]}")} (chỉ số tối đa) x{count}");
+                    }
+                    break;
+                case GopetManager.GIFT_EVENT_POINT:
+                    lines.add($"{Utilities.FormatNumber(giftInfo[1])} Điểm Event");
+                    break;
+                case GopetManager.GIFT_FUND_CLAN:
+                    lines.add($"{Utilities.FormatNumber(giftInfo[1])} Quỹ Clan");
+                    break;
+                case GopetManager.GIFT_TITLE:
+                    lines.add("Danh hiệu đặc biệt");
+                    break;
+                case GopetManager.GIFT_SKIN:
+                    {
+                        ItemTemplate temp = GopetManager.itemTemplate.get(giftInfo[1]);
+                        lines.add($"Skin: {(temp != null ? temp.name : $"Item #{giftInfo[1]}")}");
+                    }
+                    break;
+                case GopetManager.GIFT_PET_TRIAL:
+                    {
+                        PetTemplate temp = GopetManager.PETTEMPLATE_HASH_MAP.get(giftInfo[1]);
+                        lines.add($"Pet dùng thử: {(temp != null ? temp.name : $"Pet #{giftInfo[1]}")}");
+                    }
+                    break;
+                default:
+                    lines.add("Phần thưởng đặc biệt");
+                    break;
+            }
+        }
+        return String.Join("\n", lines);
+    }
+
+    /// <summary>
+    /// Nhận ĐÚNG 1 mốc nạp cụ thể (chọn từ MENU_NAP_MOC) — khác napMocDaily() cũ (đã bỏ, từng tự
+    /// động nhận TẤT CẢ mốc theo thứ tự tăng dần). Vì UI mới cho chọn nhận bất kỳ mốc nào không
+    /// theo thứ tự, điều kiện "đã nhận mốc X chưa" PHẢI tra qua usersOfUseThis của ĐÚNG dòng đó
+    /// (không dùng PlayerData.NapMocClaimed nữa — field đó chỉ còn ý nghĩa lịch sử, không đủ để
+    /// biết chính xác đã nhận những mốc nào nếu nhận không theo thứ tự).
+    /// </summary>
+    public void ClaimNapMocReward(int rewardId)
+    {
+        if (player.user.role == UserData.ROLE_NON_ACTIVE)
+        {
+            player.redDialog(player.Language.AccountNonAcitve);
+            return;
+        }
+
+        using var gameConn = MYSQLManager.create();
+
+        NapMocReward reward = gameConn.QueryFirstOrDefault<NapMocReward>(
+            "SELECT id, name, threshold, giftData, usersOfUseThis FROM `nap_moc_reward` WHERE id = @rewardId", new { rewardId });
+        if (reward == null)
+        {
+            player.redDialog(player.Language.ItemWasSell);
+            return;
+        }
+        if (reward.UsersOfUseThis.Contains(player.user.user_id))
+        {
+            player.redDialog("Bạn đã nhận mốc nạp này rồi");
+            return;
+        }
+
+        long tongNap;
+        using (var webConn = MYSQLManager.createWebMySqlConnection())
+        {
+            tongNap = webConn.QueryFirstOrDefault<long?>(
+                "SELECT tongnap FROM `user` WHERE user_id = @user_id", new { user_id = player.user.user_id }) ?? 0;
+        }
+        if (tongNap < reward.Threshold)
+        {
+            player.redDialog(player.Language.NapMocFail, Utilities.FormatNumber(tongNap));
+            return;
+        }
+
+        JArrayList<Popup> popups = player.controller.onReiceiveGift(reward.GiftData);
+        JArrayList<String> textInfo = new();
+        foreach (Popup popup in popups)
+        {
+            textInfo.add(popup.getText());
+        }
+
+        reward.UsersOfUseThis.add(player.user.user_id);
+        gameConn.Execute("UPDATE `nap_moc_reward` SET usersOfUseThis = @UsersOfUseThis WHERE id = @Id", reward);
+        if (player.playerData.NapMocClaimed < reward.Threshold)
+        {
+            player.playerData.NapMocClaimed = reward.Threshold;
+        }
+        HistoryManager.addHistory(new History(player).setLog($"Nhận quà mốc nạp \"{reward.Name}\" (mốc {reward.Threshold})").setObj(new { reward.Id }));
+        player.okDialog(string.Format(player.Language.GetGiftCodeOK, String.Join(",", textInfo)));
+    }
+
     public bool TryUseCardSkill(int skillId, int indexSlot, out Pet myPet)
     {
         myPet = player.playerData.petSelected;
@@ -5208,6 +5693,8 @@ public class GameController
 
     public static void WritePetEffect(Message message, IEnumerable<PetEffectTemplate> petEffects)
     {
+        if (petEffects == null)
+            petEffects = Enumerable.Empty<PetEffectTemplate>();
         message.putInt(petEffects.Count());
         foreach (var petEffect in petEffects)
         {

@@ -5,6 +5,16 @@ public class PetTattoTemplate {
     public int atk, def, hp, mp;
     public float percent;
 
+    /// <summary>
+    /// Hiệu ứng combat đặc biệt (phản đòn/hút máu/định thân...) — cùng định dạng ItemInfo dùng cho
+    /// cánh (xem Item.ExtractBattleOptions()): mỗi hiệu ứng là 1 nhóm 4 phần tử liên tiếp trong
+    /// itemOption bắt đầu bằng ItemInfo.OptionType.OPTION_BATTLE (13), giá trị tương ứng trong
+    /// itemOptionValue là [effectTypeId, turn, percentValue, isActiveOnWearer(1/0)]. Không có hiệu
+    /// ứng đặc biệt thì để null/rỗng.
+    /// </summary>
+    public int[] itemOption { get; set; } = new int[0];
+    public int[] itemOptionValue { get; set; } = new int[0];
+
     public void setTattooId(int tattooId)
     {
         this.tattooId = tattooId;

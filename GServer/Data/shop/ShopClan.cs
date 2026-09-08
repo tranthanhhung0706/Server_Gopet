@@ -19,7 +19,7 @@ public class ShopClan : ShopTemplate
     {
         timeRefresh = Utilities.CurrentTimeMillis;
         this.shopTemplateItems.Clear();
-        foreach (int item in clan.Options)
+        foreach (int item in clan.Options ?? Array.Empty<int>())
         {
             switch (item)
             {

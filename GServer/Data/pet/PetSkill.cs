@@ -31,13 +31,13 @@ public class PetSkill {
 
     public static int GetToxicSkill(GameObject gameObject)
     {
-        if(gameObject.Template.nclass <= 2) return TOXIC; 
+        if(gameObject.GetEffectiveNClass() <= 2) return TOXIC;
         else return TOXIC_SKY;
     }
 
     public static int GetTPhanDonSkill(GameObject gameObject)
     {
-        if (gameObject.Template.nclass <= 2) return PHANDOAN;
+        if (gameObject.GetEffectiveNClass() <= 2) return PHANDOAN;
         else return PHANDON_SKY;
     }
 

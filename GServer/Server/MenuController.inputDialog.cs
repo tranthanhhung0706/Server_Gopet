@@ -47,6 +47,11 @@ public partial class MenuController
                     break;
                 case INPUT_DIALOG_KIOSK:
                     {
+                        if (player.user.role == UserData.ROLE_NON_ACTIVE)
+                        {
+                            player.redDialog(player.Language.AccountNonAcitve);
+                            return;
+                        }
                         int priceItem = reader.readInt(0);
                         if (priceItem <= 0)
                         {
@@ -94,6 +99,17 @@ public partial class MenuController
                                                 GiftCodeData giftCodeData = MySqlConnection.QuerySingleOrDefault<GiftCodeData>("SELECT * FROM `gift_code` WHERE `gift_code`.`code` = @code;", new { code = code });
                                                 if (giftCodeData != null)
                                                 {
+                                                    bool isActive = player.user.role != UserData.ROLE_NON_ACTIVE;
+                                                    if (giftCodeData.isForNonActiveUser && isActive)
+                                                    {
+                                                        player.redDialog(player.Language.GiftCodeOnlyForNonActiveUser);
+                                                        goto EndGiftCode;
+                                                    }
+                                                    if (!giftCodeData.isForNonActiveUser && !isActive)
+                                                    {
+                                                        player.redDialog(player.Language.GiftCodeOnlyForActiveUser);
+                                                        goto EndGiftCode;
+                                                    }
                                                     if (clanMember == null && giftCodeData.isClanCode)
                                                     {
                                                         player.controller.notClan();
@@ -626,6 +642,11 @@ public partial class MenuController
                     break;
                 case INPUT_DIALOG_CREATE_CLAN:
                     {
+                        if (player.user.role == UserData.ROLE_NON_ACTIVE)
+                        {
+                            player.redDialog(player.Language.AccountNonAcitve);
+                            return;
+                        }
                         String clanName = reader.readString(0);
                         if (player.HaveClan)
                         {
@@ -701,8 +722,8 @@ public partial class MenuController
                                 IPEndPoint iPEndPoint = (IPEndPoint)player.session.CSocket.RemoteEndPoint;
                                 PlayerManager.EmailTracker.Add(player.user.username + player.user.email);
                                 GopetManager.SendHtmlMailAsync(
-                                    player.user.email, 
-                                    "Gopet - Thông báo đăng nhập 2 lớp OTP", 
+                                    player.user.email,
+                                    "Gopet - Thông báo đăng nhập 2 lớp OTP",
                                     $"Có vẻ ai đó có mật khẩu của bạn! Nếu không phải là bạn hãy nhanh chóng đổi mật khẩu. Otp đã được thử 10 lần không thành công. <br> Địa chỉ IP thử OTP là: <b>{iPEndPoint.Address.ToString()}</b>");
                             }
                             player.redDialog("Bạn đã thử OTP nhiều lần. Vui lòng thử lại sau 30 phút.");
@@ -793,6 +814,23 @@ public partial class MenuController
                         var obj = player.controller.objectPerformed.get(OBJKEY_KIOSK_ITEM);
                         var objENtry = (KeyValuePair<Kiosk, SellItem>)obj;
                         objENtry.Key.buyRetail(objENtry.Value.itemId, player, count);
+                    }
+                    break;
+                case INPUT_TYPE_BUY_SHOP_ITEM_QUANTITY:
+                    {
+                        if (!player.controller.objectPerformed.ContainsKey(OBJKEY_BUY_SHOP_ITEM_MENU_ID))
+                            return;
+                        int menuId = player.controller.objectPerformed.get(OBJKEY_BUY_SHOP_ITEM_MENU_ID);
+                        int index = player.controller.objectPerformed.get(OBJKEY_BUY_SHOP_ITEM_INDEX);
+                        int paymentIndex = player.controller.objectPerformed.get(OBJKEY_BUY_SHOP_ITEM_PAYMENT_INDEX);
+                        player.controller.objectPerformed.Remove(OBJKEY_BUY_SHOP_ITEM_MENU_ID);
+                        player.controller.objectPerformed.Remove(OBJKEY_BUY_SHOP_ITEM_INDEX);
+                        player.controller.objectPerformed.Remove(OBJKEY_BUY_SHOP_ITEM_PAYMENT_INDEX);
+                        // Chặn số lượng khổng lồ — item không stack được sẽ loop tạo từng Item một
+                        // (xem buyShopItemQuantity), nhập số quá lớn có thể treo luồng xử lý/làm
+                        // phình kho đồ bất thường.
+                        int count = Math.Clamp(Math.Abs(reader.readInt(0)), 1, 999);
+                        buyShopItemQuantity(menuId, index, paymentIndex, count, player);
                     }
                     break;
                 case INPUT_DIALOG_SET_PET_SELECTED_INFo:

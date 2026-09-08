@@ -1,5 +1,6 @@
 ﻿
 using Gopet.Battle;
+using Gopet.Data;
 using Gopet.Data.GopetClan;
 using Gopet.Data.Collections;
 using Gopet.Data.Dialog;
@@ -419,18 +420,31 @@ public partial class MenuController
                 }
                 break;
             case MENU_SELECT_PET_TO_DEF_LEAGUE:
+                // Pet phòng thủ Arena chỉ là 1 snapshot chỉ số dùng để đấu hộ lúc offline, không phải
+                // "mang ra trận" như pet chiến đấu chính, nên không tháo pet khỏi kho khi chọn.
+                if (index >= 0 && index < player.playerData.pets.Count)
+                {
+                    Pet pet = player.playerData.pets.get(index);
+                    if (pet.TimeDieZ > Utilities.CurrentTimeMillis)
+                    {
+                        player.redDialog(player.Language.YourPetIsDie);
+                        return;
+                    }
+                    player.playerData.PetDefLeague = pet;
+                    pet.applyInfo(player);
+                    player.okDialog(string.Format(player.Language.SelectPetDefOK, pet.getNameWithStar(player)));
+                }
+                break;
             case MENU_PET_INVENTORY:
-                if (index == -1 && menuId == MENU_PET_INVENTORY)
+                if (index == -1)
                 {
                     sendMenu(MENU_UNEQUIP_PET, player);
                     return;
                 }
 
-
-
                 if (index >= 0 && index < player.playerData.pets.Count)
                 {
-                    Pet oldPet = menuId == MENU_PET_INVENTORY ? player.playerData.petSelected : player.playerData.PetDefLeague;
+                    Pet oldPet = player.playerData.petSelected;
                     if (oldPet != null)
                     {
                         if (oldPet.TimeDieZ > Utilities.CurrentTimeMillis)
@@ -445,18 +459,33 @@ public partial class MenuController
                     {
                         player.playerData.addPet(oldPet, player);
                     }
-                    if (menuId == MENU_PET_INVENTORY)
-                    {
-                        player.playerData.petSelected = pet;
-                        pet.applyInfo(player);
-                        player.controller.updatePetSelected(false);
-                    }
-                    else
-                    {
-                        player.playerData.PetDefLeague = pet;
-                        pet.applyInfo(player);
-                        player.okDialog(string.Format(player.Language.SelectPetDefOK, pet.getNameWithStar(player)));
-                    }
+                    player.playerData.petSelected = pet;
+                    pet.applyInfo(player);
+                    player.controller.updatePetSelected(false);
+                }
+                break;
+            case MENU_ARENA_MAIN:
+                if (index == 0)
+                {
+                    sendMenu(MENU_SELECT_PET_TO_DEF_LEAGUE, player);
+                }
+                else if (index == 1)
+                {
+                    player.controller.showArenaOpponentList();
+                }
+                else if (index == 2)
+                {
+                    player.controller.showArenaLeaderboard();
+                }
+                break;
+            case MENU_ARENA_OPPONENT_LIST:
+                if (paymentIndex == 0)
+                {
+                    player.controller.showArenaOpponentPetInfo(index);
+                }
+                else if (paymentIndex == 1)
+                {
+                    player.controller.startArenaBattle(index);
                 }
                 break;
             case MENU_SKIN_INVENTORY:
@@ -694,6 +723,24 @@ public partial class MenuController
                     if (shopTemplateItem == null)
                     {
                         player.redDialog(player.Language.ItemWasSell);
+                        return;
+                    }
+                    // Item thường (không phải pet, không phải dòng đặc biệt execute() riêng, không
+                    // phải hàng giới hạn tự gỡ sau 1 lần mua) thì cho nhập số lượng muốn mua 1 lần,
+                    // giống cơ chế nhập số lượng của luyện tiềm năng (xem upTiemNang). Loại trừ shop
+                    // Clan vì TimeNeedReset/NeedFund là giới hạn "1 lần/slot" theo thời gian, không
+                    // hợp với việc mua gộp nhiều lần trong 1 lượt.
+                    if (menuId != SHOP_CLAN && shopTemplateItem.isSellItem && !shopTemplateItem.isSpceial && !shopTemplateItem.isNeedRemove())
+                    {
+                        sbyte[] typeMoneyCheck = shopTemplateItem.getMoneyType();
+                        if (paymentIndex < 0 || paymentIndex >= typeMoneyCheck.Length)
+                        {
+                            return;
+                        }
+                        player.controller.objectPerformed[OBJKEY_BUY_SHOP_ITEM_MENU_ID] = menuId;
+                        player.controller.objectPerformed[OBJKEY_BUY_SHOP_ITEM_INDEX] = index;
+                        player.controller.objectPerformed[OBJKEY_BUY_SHOP_ITEM_PAYMENT_INDEX] = paymentIndex;
+                        player.controller.showInputDialog(INPUT_TYPE_BUY_SHOP_ITEM_QUANTITY, "Nhập số lượng", "Số lượng: ");
                         return;
                     }
                     sbyte[] typeMoney = shopTemplateItem.getMoneyType();
@@ -1270,7 +1317,7 @@ public partial class MenuController
                                 Pet pet = player.playerData.petSelected;
                                 if (pet != null)
                                 {
-                                    if (!pet.Template.IsSky)
+                                    if (!pet.IsEffectiveSky())
                                     {
                                         player.redDialog(player.Language.IncorrectPetUseSkillCard);
                                         return;
@@ -1383,6 +1430,7 @@ public partial class MenuController
                 break;
             case MENU_PET_REINCARNATION:
             case MENU_PET_SACRIFICE:
+            case MENU_PET_ABANDON:
             case MENU_FUSION_MENU_PET:
             case MENU_KIOSK_PET_SELECT:
                 {
@@ -1394,8 +1442,25 @@ public partial class MenuController
                             player.redDialog(player.Language.YouCannotSellPetTry);
                             return;
                         }
+                        if (pet == player.playerData.PetDefLeague)
+                        {
+                            player.redDialog("Pet này đang làm pet phòng thủ đấu trường, vui lòng đổi pet phòng thủ khác trước.");
+                            return;
+                        }
                         switch (menuId)
                         {
+                            case MENU_PET_ABANDON:
+                                {
+                                    if (pet == player.playerData.petSelected)
+                                    {
+                                        player.redDialog("Không thể bỏ rơi thú cưng đang theo bên bạn, vui lòng đổi thú cưng khác trước.");
+                                        return;
+                                    }
+                                    player.playerData.pets.remove(pet);
+                                    player.okDialog("Bỏ rơi thú cưng thành công");
+                                    HistoryManager.addHistory(new History(player).setLog($"Bỏ rơi thú cưng {pet.getNameWithStar(player)}").setObj(pet));
+                                }
+                                break;
                             case MENU_KIOSK_PET_SELECT:
                                 {
                                     player.controller.objectPerformed.put(OBJKEY_SELECT_SELL_ITEM, pet);
@@ -2383,7 +2448,7 @@ public partial class MenuController
             case MENU_SELECT_SLOT_USE_SKILL_CARD:
                 {
                     Pet p = player.getPet();
-                    if (p == null || !player.playerData.petSelected.Template.IsSky)
+                    if (p == null || !player.playerData.petSelected.IsEffectiveSky())
                     {
                         player.redDialog(player.Language.IncorrectPetUseSkillCard);
                         return;
@@ -2662,11 +2727,11 @@ public partial class MenuController
                 break;
             case MENU_OPTION_PET_REINCARNATION:
                 {
-                    if (!player.checkIsAdmin())
-                    {
-                        player.redDialog("Tính năng này cho admin kiểm thử");
-                        return;
-                    }
+                    // if (!player.checkIsAdmin())
+                    // {
+                    //     player.redDialog("Tính năng này cho admin kiểm thử");
+                    //     return;
+                    // }
                     if (index >= 0 && index < 2)
                     {
                         if (!player.controller.objectPerformed.ContainsKey(OBJKEY_PET_REINCARNATION))
@@ -2676,9 +2741,9 @@ public partial class MenuController
                         }
 
                         Pet pet = player.controller.objectPerformed[OBJKEY_PET_REINCARNATION];
-                        if (pet.lvl < 41)
+                        if (pet.lvl < 40)
                         {
-                            player.redDialog("Thú cưng phải cấp 41 trở lên mới có thể trùng sinh");
+                            player.redDialog("Thú cưng phải cấp 40 trở lên mới có thể trùng sinh");
                             return;
                         }
                         if (!GopetManager.Reincarnations.ContainsKey(pet.petIdTemplate))
@@ -2690,7 +2755,7 @@ public partial class MenuController
                         Item cardReincarnation = player.controller.selectItemsbytemp(GopetManager.ID_ITEM_CARD_REINCARNATION, GopetManager.NORMAL_INVENTORY);
                         if (cardReincarnation == null)
                         {
-                            player.redDialog("Không có thẻ trùng sinh");
+                            player.redDialog("Không có thẻ trùng sinh nha cu");
                             return;
                         }
                         if (!GameController.checkCount(cardReincarnation, petReincarnation.NumCard))
@@ -2702,22 +2767,55 @@ public partial class MenuController
                         {
                             addMoney((sbyte)index, -GopetManager.ReincarnationPetPrice[index], player);
                             player.controller.subCountItem(cardReincarnation, petReincarnation.NumCard, GopetManager.NORMAL_INVENTORY);
+                            if (petReincarnation.PetId == petReincarnation.PetIdReincarnation)
+                            {
+                                switch (pet.GetEffectiveNClass())
+                                {
+                                    case GopetManager.Fighter:
+                                        pet.nclassOverride = GopetManager.Archer;
+                                        break;
+                                    case GopetManager.Wizard:
+                                        pet.nclassOverride = GopetManager.Angel;
+                                        break;
+                                    case GopetManager.Assassin:
+                                        pet.nclassOverride = GopetManager.Demon;
+                                        break;
+                                }
+                            }
                             pet.petIdTemplate = petReincarnation.PetIdReincarnation;
-                            pet.skill = new int[0][];
+                            if (!pet.hasReincarnated)
+                            {
+                                pet.skill = new int[0][];
+                            }
+                            pet.hasReincarnated = true;
                             pet.lvl = 1;
                             pet.exp = 0;
-                            pet.pointTiemNangLvl = pet.Template.gymUpLevel;
-                            pet.tiemnang_point = 0;
+                            pet.pointTiemNangLvl = 50;
                             pet.str = pet.Template.str;
                             pet.agi = pet.Template.agi;
                             pet._int = pet.Template._int;
-                            Array.Fill(pet.tiemnang, 0);
-                            int maxTatto = Utilities.nextInt(0, 3);
-                            while (maxTatto <= pet.tatto.Count && pet.tatto.Count != 0)
-                            {
-                                pet.tatto.removeAt(Utilities.nextInt(0, pet.tatto.Count));
-                            }
                             player.okDialog("Trùng sinh thành công");
+                            player.playerData.isOnSky = true;
+                            pet.LoadEffectsFromTemplates(1, 2, 3, 4, 5, 6, 7);
+                            foreach (var effect1 in pet.PetEffectss)
+                            {
+                                if (pet.Template.element == effect1.IdTemplate)
+                                {
+                                    pet.EffectTemplates = new List<PetEffectTemplate>()
+                            {
+                                new PetEffectTemplate()
+                                {
+                                    Id=effect1.IdTemplate,
+                                    FramePath = effect1.Template.FramePath,
+                                    FrameNum = effect1.Template.FrameNum,
+                                    IsDrawBefore = true,
+                                    FrameTime =effect1.Template.FrameTime,
+                                    vY = effect1.Template.vY,
+                                    vX=effect1.Template.vX
+                                },
+                            };
+                                }
+                            }
                         }
                         else
                         {
@@ -2819,12 +2917,122 @@ public partial class MenuController
                     }
                 }
                 break;
+            case MENU_NAP_MOC:
+                {
+                    // index = itemId đã gán = NapMocReward.Id (xem sendMenu.cs case MENU_NAP_MOC) —
+                    // query lại DB để lấy dữ liệu mới nhất (usersOfUseThis có thể vừa đổi).
+                    NapMocReward reward;
+                    using (var conn = MYSQLManager.create())
+                    {
+                        reward = conn.QueryFirstOrDefault<NapMocReward>(
+                            "SELECT id, name, threshold, giftData, usersOfUseThis FROM `nap_moc_reward` WHERE id = @id", new { id = index });
+                    }
+                    if (reward == null)
+                    {
+                        player.redDialog(player.Language.ItemWasSell);
+                        return;
+                    }
+                    player.controller.objectPerformed.put(OBJKEY_NAP_MOC_REWARD, reward);
+                    sendMenu(MENU_OPTION_NAP_MOC, player);
+                }
+                break;
+            case MENU_OPTION_NAP_MOC:
+                {
+                    if (!player.controller.objectPerformed.ContainsKey(OBJKEY_NAP_MOC_REWARD))
+                    {
+                        return;
+                    }
+                    NapMocReward reward = (NapMocReward)player.controller.objectPerformed.get(OBJKEY_NAP_MOC_REWARD);
+                    switch (index)
+                    {
+                        case 0:
+                            player.okDialog(string.Format("{0}\n{1}", reward.Name, player.controller.DescribeGiftData(reward.GiftData)));
+                            return;
+                        case 1:
+                            player.controller.objectPerformed.Remove(OBJKEY_NAP_MOC_REWARD);
+                            player.controller.ClaimNapMocReward(reward.Id);
+                            return;
+                    }
+                }
+                break;
             default:
                 {
                     player.redDialog(player.Language.CannotFindMenu, menuId);
                     Thread.Sleep(1000);
                 }
                 break;
+        }
+    }
+
+    /// <summary>
+    /// Mua item thường ở shop NPC theo số lượng nhập tự do — hoàn tất bước "chọn item + chọn loại
+    /// tiền" đã lưu tạm ở OBJKEY_BUY_SHOP_ITEM_* (xem case SHOP_* ở trên) sau khi người chơi nhập số
+    /// lượng qua INPUT_TYPE_BUY_SHOP_ITEM_QUANTITY. Không dùng cho shop Clan/pet/item đặc biệt.
+    /// </summary>
+    private static void buyShopItemQuantity(int menuId, int index, int paymentIndex, int count, Player player)
+    {
+        count = Math.Max(1, count);
+        ShopTemplate shopTemplate = getShop((sbyte)menuId, player);
+        if (shopTemplate == null || index < 0 || index >= shopTemplate.getShopTemplateItems().Count)
+        {
+            player.redDialog(player.Language.ItemWasSell);
+            return;
+        }
+        ShopTemplateItem shopTemplateItem = shopTemplate.getShopTemplateItems().get(index);
+        sbyte[] typeMoney = shopTemplateItem.getMoneyType();
+        int[] price = shopTemplateItem.getPrice();
+        if (paymentIndex < 0 || paymentIndex >= typeMoney.Length)
+        {
+            return;
+        }
+        long totalPrice = (long)price[paymentIndex] * count;
+        if (!checkMoney(typeMoney[paymentIndex], totalPrice, player))
+        {
+            NotEngouhMoney(typeMoney[paymentIndex], totalPrice, player);
+            return;
+        }
+        addMoney(typeMoney[paymentIndex], -totalPrice, player);
+        bool canTrade = !shopTemplateItem.isLock && (shopTemplateItem.itemTemTempleId != 240009 || shopTemplateItem.itemTemTempleId != 240010);
+        int totalUnitCount = shopTemplateItem.getCount() * count;
+        Item item = new Item(shopTemplateItem.getItemTempalteId()) { canTrade = canTrade };
+        if (item.getTemp().isStackable)
+        {
+            // Item stack được: 1 Item, cộng dồn count — addItemToInventory tự gộp vào slot cùng loại.
+            item.SourcesItem.Add(ItemSource.MUA_ĐỒ_SHOP_NPC);
+            item.count = totalUnitCount;
+            if (item.getTemp().expire > 0)
+            {
+                item.expire = Utilities.CurrentTimeMillis + item.Template.expire;
+            }
+            player.addItemToInventory(item);
+        }
+        else
+        {
+            // Item KHÔNG stack được (vd trang bị): addItemToInventory bỏ qua field count, mỗi lần
+            // chỉ thêm đúng 1 item — phải tạo riêng từng Item và gọi addItemToInventory N lần.
+            for (int i = 0; i < totalUnitCount; i++)
+            {
+                Item unit = i == 0 ? item : new Item(shopTemplateItem.getItemTempalteId()) { canTrade = canTrade };
+                unit.SourcesItem.Add(ItemSource.MUA_ĐỒ_SHOP_NPC);
+                if (unit.getTemp().expire > 0)
+                {
+                    unit.expire = Utilities.CurrentTimeMillis + unit.Template.expire;
+                }
+                player.addItemToInventory(unit);
+            }
+        }
+        HistoryManager.addHistory(new History(player).setLog($"Mua vật phẩm {item.Template.name} x{count} với menuId = {menuId} và tổng giá là {totalPrice}").setObj(new { Item = item, MenuId = menuId, Price = totalPrice, Count = count }));
+        player.okDialog(string.Format(player.Language.YouBuyItemOK, item.getTemp().getName(player)));
+        if (shopTemplateItem.isCloseScreenAfterClick())
+        {
+            sendMenu(menuId, player);
+        }
+        if (menuId == SHOP_WEAPON)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                player.controller.getTaskCalculator().onBuyRandomWeapon();
+            }
         }
     }
 }

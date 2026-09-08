@@ -2466,6 +2466,8 @@
   "GiftCodeEmptyGift": "This gift code doesn't give you anything :)",
   "GetGiftCodeOK": "Congratulations you received: {0}",
   "NotHaveGiftCode": "This gift code is not available",
+  "GiftCodeOnlyForNonActiveUser": "This gift code is only for non-activated accounts",
+  "GiftCodeOnlyForActiveUser": "This gift code is only for activated accounts",
   "GiftCodeError": "Something happened that even God knows about",
   "EmptyField": "Please do not leave it blank",
   "WrongNumOfItem": "Invalid quantity",

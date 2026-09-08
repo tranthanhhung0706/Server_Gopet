@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using static Gopet.APIs.GopetApiExtentsion;
 namespace Gopet.APIs
 {
-    [Route("api/data")]
+    [Route("v1/gopet/api/data")]
     [ApiController]
     [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
     public class DataController : ControllerBase

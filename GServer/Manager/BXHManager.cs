@@ -66,5 +66,6 @@ public class BXHManager
         listTop.Add(TopAccumulatedPoint.Instance);
         listTop.Add(TopEvent.Instance);
         listTop.Add(TopChallenge.Instance);
+        listTop.Add(TopTongNap.Instance);
     }
 }

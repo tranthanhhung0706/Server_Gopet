@@ -1,4 +1,5 @@
-﻿using Gopet.App;
+﻿using Dapper;
+using Gopet.App;
 using Gopet.Data.Event;
 using Gopet.Data.GopetItem;
 using Gopet.Data.item;
@@ -21,8 +22,10 @@ using static Gopet.APIs.GopetApiExtentsion;
 namespace Gopet.APIs
 {
 
-    [Route("api/server")]
+    [Route("v1/gopet/api/server")]
     [ApiController]
+    [RequireApiKey]
+    [RequireAdminBearer]
     [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
     public class ServerController : ControllerBase
     {
@@ -97,6 +100,104 @@ namespace Gopet.APIs
         {
             return Ok(GopetApiExtentsion.CreateOKRepository(FieldManager.PERCENT_GEM));
         }
+
+        public record ServerFieldDto(string FieldName, string Description, string Value);
+
+        /// <summary>
+        /// Danh sách cấu hình server-wide trong bảng `field` (DB game gopettae_tae2) — vd
+        /// "Server.Exp.Percent" (% Exp buff), "Server.GEM.Percent" (% ngọc khi đánh quái). 100 =
+        /// tỉ lệ gốc, &gt;100 = đang buff. FieldManager.PERCENT_EXP/PERCENT_GEM đọc từ đây (cache
+        /// trong RAM, xem FieldManager.cs) — GET này đọc thẳng DB để luôn thấy giá trị mới nhất.
+        /// </summary>
+        [HttpGet("/v1/gopet/api/server/fields")]
+        public IActionResult GetFields()
+        {
+            using var conn = MYSQLManager.create();
+
+            var fields = conn.Query<ServerFieldDto>(
+                "SELECT FieldName, Description, Value FROM `field` ORDER BY FieldName ASC").ToList();
+
+            return Ok(new BaseResponse<List<ServerFieldDto>>(1, "Thành công", fields));
+        }
+
+        public record UpdateFieldRequest(string Value);
+
+        /// <summary>
+        /// Cập nhật giá trị 1 field cấu hình server-wide. Áp dụng NGAY lúc runtime qua
+        /// FieldManager.Update() (nạp lại toàn bộ bảng field vào cache RAM) — không cần restart
+        /// GServer hay gọi riêng API RefreshField.
+        /// </summary>
+        [HttpPatch("/v1/gopet/api/server/fields/{fieldName}")]
+        public IActionResult UpdateField(string fieldName, [FromBody] UpdateFieldRequest? req)
+        {
+            if (req == null || string.IsNullOrWhiteSpace(req.Value))
+            {
+                return BadRequest(new BaseResponse<object?>(0, "Thiếu value", null));
+            }
+
+            using var conn = MYSQLManager.create();
+
+            int existing = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM `field` WHERE FieldName = @fieldName", new { fieldName });
+            if (existing == 0)
+            {
+                return NotFound(new BaseResponse<object?>(0, "Không tìm thấy field", null));
+            }
+
+            conn.Execute("UPDATE `field` SET Value = @value WHERE FieldName = @fieldName", new { value = req.Value.Trim(), fieldName });
+
+            FieldManager.Update();
+
+            var updated = conn.QueryFirstOrDefault<ServerFieldDto>(
+                "SELECT FieldName, Description, Value FROM `field` WHERE FieldName = @fieldName", new { fieldName });
+            return Ok(new BaseResponse<ServerFieldDto?>(1, "Cập nhật thành công", updated));
+        }
+
+        public record ReloadCatalogResult(int Pets, int Items, int ShopItems, int TradeGifts, int Bosses, int Reincarnations, int PetTiers, int MobLocations, int Tattoos);
+
+        /// <summary>
+        /// Nạp lại danh mục Pet/Item/Shop (bảng gopet_pet/item/shop) từ DB vào RAM — dùng sau khi
+        /// sửa/thêm/xoá qua trang admin Pet/Item/Shop để áp dụng ngay cho gameplay, KHÔNG cần
+        /// restart cả GServer. Khác GopetController/ItemController/ShopController (chỉ ghi DB,
+        /// không đụng cache RAM) — GServer chỉ nạp 3 bảng này 1 LẦN lúc khởi động
+        /// (GopetManager.init(), gọi từ Main.cs) nên không có endpoint này thì mọi thay đổi qua
+        /// admin panel sẽ "ẩn" cho tới khi restart. Nạp lại luôn các cache tên hiển thị trong
+        /// game (Language.ItemLanguage/PetNameLanguage) — xem GopetManager.ReloadPetTemplates/
+        /// ReloadItemTemplates/ReloadShopTemplates để biết chính xác những gì được nạp lại.
+        /// </summary>
+        [HttpPost("/v1/gopet/api/server/reload-catalog")]
+        public IActionResult ReloadCatalog()
+        {
+            try
+            {
+                GopetManager.ReloadPetTemplates();
+                GopetManager.ReloadItemTemplates();
+                GopetManager.ReloadShopTemplates();
+                GopetManager.ReloadTradeGift();
+                GopetManager.ReloadBoss();
+                GopetManager.ReloadReincarnation();
+                GopetManager.ReloadPetTier();
+                GopetManager.ReloadMobLocation();
+                GopetManager.ReloadTattoo();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new BaseResponse<object?>(0, $"Lỗi khi nạp lại danh mục: {ex.Message}", null));
+            }
+
+            var result = new ReloadCatalogResult(
+                GopetManager.PETTEMPLATE_HASH_MAP.Count,
+                GopetManager.itemTemplate.Count,
+                GopetManager.shopTemplate.Values.Sum(s => s.getShopTemplateItems().Count),
+                GopetManager.TradeGift[Gopet.Data.item.TradeGiftTemplate.TYPE_COIN].Length + GopetManager.TradeGift[Gopet.Data.item.TradeGiftTemplate.TYPE_GOLD].Length,
+                GopetManager.boss.Count,
+                GopetManager.Reincarnations.Count,
+                GopetManager.petTier.Count,
+                GopetManager.mobLocation.Values.Sum(v => v.Length),
+                GopetManager.tattos.Count);
+
+            return Ok(new BaseResponse<ReloadCatalogResult>(1, "Đã nạp lại danh mục Pet/Item/Shop — áp dụng ngay, không cần restart GServer", result));
+        }
+
         [HttpGet("RefreshField")]
         public IActionResult RefreshField()
         {
@@ -153,7 +254,7 @@ namespace Gopet.APIs
         }
 
 
-        [HttpGet("/api/maintenance/{min}")]
+        [HttpGet("/v1/gopet/api/maintenance/{min}")]
         public IActionResult maintenanceStart(int min)
         {
             Maintenance.gI().setMaintenanceTime(min);
@@ -161,28 +262,28 @@ namespace Gopet.APIs
         }
 
 
-        [HttpGet("/api/maintenance/reboot")]
+        [HttpGet("/v1/gopet/api/maintenance/reboot")]
         public IActionResult reboot()
         {
             Maintenance.gI().reboot();
             return Ok(GopetApiExtentsion.CreateOKRepository($"Thành công"));
         }
 
-        [HttpGet("/api/dialog/okDialog/{text}")]
+        [HttpGet("/v1/gopet/api/dialog/okDialog/{text}")]
         public IActionResult okDialog(string text)
         {
             PlayerManager.okDialog(text);
             return Ok(GopetApiExtentsion.CreateOKRepository($"Thành công"));
         }
 
-        [HttpGet("/api/BannerZ/{text}")]
+        [HttpGet("/v1/gopet/api/BannerZ/{text}")]
         public IActionResult BannerZ(string text)
         {
             PlayerManager.showBannerZ(text);
             return Ok(GopetApiExtentsion.CreateOKRepository($"Thành công"));
         }
 
-        [HttpGet("/api/test/set_boss/{mapid}/{place}/{bossId}")]
+        [HttpGet("/v1/gopet/api/test/set_boss/{mapid}/{place}/{bossId}")]
         public IActionResult TestBoss(int mapid, int place, int bossId)
         {
             GopetPlace gopetPlace = (GopetPlace)MapManager.maps[mapid].places[place];
@@ -197,14 +298,14 @@ namespace Gopet.APIs
             return Ok(GopetApiExtentsion.CreateOKRepository($"Thành công"));
         }
 
-        [HttpGet("/api/test/TestBossDaily")]
+        [HttpGet("/v1/gopet/api/test/TestBossDaily")]
         public IActionResult TestBossDaily()
         {
             EventManager.AddEvent(DailyBossEvent.Instance);
             return Ok(GopetApiExtentsion.CreateOKRepository($"Thành công"));
         }
 
-        [HttpGet("/api/addAutoBanner/{Text}/{secondTimeSpan}/{Min}/{Hours}/{Day}/{Month}")]
+        [HttpGet("/v1/gopet/api/addAutoBanner/{Text}/{secondTimeSpan}/{Min}/{Hours}/{Day}/{Month}")]
         public IActionResult addAutoBanner(string Text, int secondTimeSpan, int Min, int Hours, int Day, int Month)
         {
             BannerEvent.Instance.Banners.Add(new Tuple<string, TimeSpan, DateTime>(Text, TimeSpan.FromSeconds(secondTimeSpan), new DateTime(DateTime.Now.Year, Month, Day, Hours, Min, 0)));
@@ -272,51 +373,51 @@ namespace Gopet.APIs
             }
         }
 
-        [HttpGet("/api/BuffItem/{name}/{itemId}/{LevelUpTier}/{MaxTier}/{count}/{MaxOption}/{EndLevel}/{NumFusion}/{EndFusion}")]
+        [HttpGet("/v1/gopet/api/BuffItem/{name}/{itemId}/{LevelUpTier}/{MaxTier}/{count}/{MaxOption}/{EndLevel}/{NumFusion}/{EndFusion}")]
         public IActionResult ApiBuffItem(string name, int itemId, int LevelUpTier, int MaxTier, int count, bool MaxOption, int EndLevel, byte NumFusion)
         {
             BuffItem(name, itemId, LevelUpTier, MaxTier, count, MaxOption, EndLevel, NumFusion);
             return Ok(GopetApiExtentsion.CreateOKRepository($"Thành công"));
         }
-        [HttpGet("/api/ThreadCount")]
+        [HttpGet("/v1/gopet/api/ThreadCount")]
         public int ThreadCount()
         {
             return ThreadPool.ThreadCount;
         }
 
-        [HttpGet("/api/PendingWorkItemCount")]
+        [HttpGet("/v1/gopet/api/PendingWorkItemCount")]
         public long PendingWorkItemCount()
         {
             return ThreadPool.PendingWorkItemCount;
         }
 
-        [HttpGet("/api/CompletedWorkItemCount")]
+        [HttpGet("/v1/gopet/api/CompletedWorkItemCount")]
         public long CompletedWorkItemCount()
         {
             return ThreadPool.CompletedWorkItemCount;
         }
-        [HttpGet("/api/Ipv4Tracker")]
+        [HttpGet("/v1/gopet/api/Ipv4Tracker")]
         public IActionResult Ipv4Tracker()
         {
             return Ok(GopetApiExtentsion.CreateOKRepository(PlayerManager.Ipv4Tracker.Tracks.Select(x => new object[] { x.Key, x.Value.Count })));
         }
-        [HttpPost("/api/SendMail/{to}/{subject}/{body}/{type}")]
+        [HttpPost("/v1/gopet/api/SendMail/{to}/{subject}/{body}/{type}")]
         public IActionResult SendMail(string to, string subject, string body, string type = "html")
         {
             GopetManager.EmailService.SendEmail(to, subject, GopetManager.EmailContent.Replace("{0}", body), type);
             return Ok(GopetApiExtentsion.CreateOKRepository($"Thành công"));
         }
 
-        [HttpGet("/api/Hash/{text}")]
+        [HttpGet("/v1/gopet/api/Hash/{text}")]
         public IActionResult Hash(string text)
         {
             return Ok(GopetHashHelper.ComputeHash(text));
         }
 
-        [HttpGet("/api/NumPlayerOnline")]
+        [HttpGet("/v1/gopet/api/NumPlayerOnline")]
         public IActionResult NumPlayerOnline()
         {
-            return Ok(PlayerManager.players.Count);
+            return Ok(GopetApiExtentsion.CreateOKRepository(PlayerManager.players.Count));
         }
 
 

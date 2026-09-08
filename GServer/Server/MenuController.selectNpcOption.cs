@@ -90,6 +90,9 @@ public partial class MenuController
                     showTop(TopSpendGold.Instance, player);
                 }
                 break;
+            case OP_TOP_TONG_NAP:
+                showTop(TopTongNap.Instance, player);
+                break;
             case OP_CHALLENGE:
                 {
                     if (player.checkStar(GopetManager.STAR_JOIN_CHALLENGE))
@@ -128,6 +131,12 @@ public partial class MenuController
                 break;
             case OP_TRADE_GIFT_LUA:
                 Trade(TradeGiftTemplate.TYPE_LUA, player);
+                break;
+            case OP_VIEW_TRADE_GIFT_SILVER:
+                ShowTradeGiftPool(TradeGiftTemplate.TYPE_COIN, player);
+                break;
+            case OP_VIEW_TRADE_GIFT_GOLD:
+                ShowTradeGiftPool(TradeGiftTemplate.TYPE_GOLD, player);
                 break;
             case OP_SHOP_ENERGY:
                 showShop(SHOP_ENERGY, player);
@@ -416,6 +425,9 @@ public partial class MenuController
             case OP_SELECT_PET_DEF_LEAGUE:
                 sendMenu(MENU_SELECT_PET_TO_DEF_LEAGUE, player);
                 break;
+            case OP_PET_LEAGUE_BETA:
+                player.controller.showArenaMenu();
+                break;
             case OP_SHOW_ALL_TATTO:
                 sendMenu(MENU_SHOW_ALL_TATTO, player);
                 break;
@@ -480,11 +492,19 @@ public partial class MenuController
             case OP_ĐIỂM_DANH:
                 player.controller.noelDaily();
                 break;
+            case OP_NHẬN_QUÀ_MỐC_NẠP:
+                // Cho xem danh sách/xem thông tin mốc nạp dù tài khoản chưa kích hoạt — chỉ chặn
+                // lúc NHẬN thật (xem ClaimNapMocReward, vẫn tự check ROLE_NON_ACTIVE riêng).
+                sendMenu(MENU_NAP_MOC, player);
+                break;
             case OP_HƯỚNG_DẪN_LÊN_THIÊN_ĐÌNH:
                 player.okDialog(player.Language.GuideToHeaven);
                 break;
             case OP_HIẾN_TẶNG_THÚ_CƯNG:
                 sendMenu(MENU_PET_SACRIFICE, player);
+                break;
+            case OP_PET_ABANDON:
+                sendMenu(MENU_PET_ABANDON, player);
                 break;
             case OP_TOP_USE_GIFT_BOX_2025:
             case OP_RECIVE_GIFT_MILISTONE_BIRTHDAY_EVNT:

@@ -143,6 +143,13 @@ public partial class MenuController
     public const int MENU_OPTION_KIOSK = 1088;
     public const int MENU_OPTION_KIOSK_CANCEL_ITEM = 1089;
     public const int MENU_OPTION_BUY_KIOSK_ITEM = 1090;
+    public const int MENU_ARENA_MAIN = 1100;
+    public const int MENU_ARENA_OPPONENT_LIST = 1101;
+    public const int MENU_PET_ABANDON = 1102;
+    /// <summary>Danh sách mốc nạp (bảng nap_moc_reward) — chọn 1 mốc để mở MENU_OPTION_NAP_MOC.</summary>
+    public const int MENU_NAP_MOC = 1103;
+    /// <summary>Popup 2 lựa chọn sau khi chọn 1 mốc nạp: xem thông tin / nhận mốc.</summary>
+    public const int MENU_OPTION_NAP_MOC = 1104;
     public static readonly MenuItemInfo[] ADMIN_INFOS = new MenuItemInfo[]{
         new AdminItemInfo("Đặt chỉ số pet đang đi theo", "Đặt chỉ số cho pet đi theo", "items/4000766.png"),
         new AdminItemInfo("Dịch chuyển đến người chơi", "Dịch chuyển đến người chơi chỉ định", "items/4000766.png"),
@@ -406,12 +413,32 @@ public partial class MenuController
     /// </summary>
     public const int OP_TOP_USE_GIFT_BOX_2025 = 97;
     /// <summary>
+    /// Bỏ rơi thú cưng
+    /// </summary>
+    public const int OP_PET_ABANDON = 98;
+    /// <summary>
+    /// Nhận quà theo mốc tổng nạp (user.tongnap, web DB gopettae_gopet_web) — xem bảng
+    /// nap_moc_reward (DB game gopettae_tae2), quản lý qua trang admin NapMoc.
+    /// </summary>
+    public const int OP_NHẬN_QUÀ_MỐC_NẠP = 99;
+    /// <summary>
+    /// Xếp hạng theo tổng tiền thật đã nạp (user.tongnap, web DB) — khác OP_TOP_SPEND_GOLD (xếp
+    /// theo spendGold, DB game). Xem TopTongNap.
+    /// </summary>
+    public const int OP_TOP_TONG_NAP = 100;
+    /// <summary>
     /// Option Custom
-    /// Trao đổi thưởng bằng 
+    /// Trao đổi thưởng bằng
     /// </summary>
     public const int OP_TRADE_GIFT_COIN = 1000000000;
     public const int OP_TRADE_GIFT_GOLD = 1000000001;
     public const int OP_TRADE_GIFT_LUA = 1000000002;
+    /// <summary>
+    /// Xem trước danh sách vật phẩm có thể nhận (không tốn thỏi) — xem MenuController.Trade() để
+    /// biết đúng pool tương ứng (TradeGift[TYPE_COIN]/[TYPE_GOLD]).
+    /// </summary>
+    public const int OP_VIEW_TRADE_GIFT_SILVER = 1000000003;
+    public const int OP_VIEW_TRADE_GIFT_GOLD = 1000000004;
     /// <summary>
     /// Văn bản khi hiện center dialog
     /// </summary>
@@ -551,6 +578,12 @@ public partial class MenuController
     public const int OBJKEY_ITEM_KIOSK_CANCEL = 71;
     public const int OBJKEY_BUY_ITEM_KIOSK_ITEM_ID = 72;
     public const int OBJKEY_ID_ITEM_USE_ITEM_COUNT = 73;
+    /// <summary>Khoá để lưu mốc nạp (NapMocReward) đang được chọn từ MENU_NAP_MOC.</summary>
+    public const int OBJKEY_NAP_MOC_REWARD = 74;
+    /// <summary>menuId/index/paymentIndex của item shop NPC đang chờ nhập số lượng mua.</summary>
+    public const int OBJKEY_BUY_SHOP_ITEM_MENU_ID = 75;
+    public const int OBJKEY_BUY_SHOP_ITEM_INDEX = 76;
+    public const int OBJKEY_BUY_SHOP_ITEM_PAYMENT_INDEX = 77;
     public const int DIALOG_CONFIRM_REMOVE_ITEM_EQUIP = 0;
     public const int DIALOG_CONFIRM_BUY_KIOSK_ITEM = 1;
     public const int DIALOG_ENCHANT = 3;
@@ -608,6 +641,7 @@ public partial class MenuController
     public const int INPUT_ASSIGNED_CHANGE_NAME_KIOSK = 37;
     public const int INPUT_NUM_BUY_RETAIL_ITEM_KIOSK = 38;
     public const int INPUT_USE_NUM_ITEM = 39;
+    public const int INPUT_TYPE_BUY_SHOP_ITEM_QUANTITY = 40;
     public const int IMGDIALOG_CAPTCHA = 0;
     #endregion
     public static JArrayList<MenuItemInfo> getPetFreeLst(Player player)
@@ -678,6 +712,34 @@ public partial class MenuController
             join += ($"{GopetManager.itemTemplate[item.Key].name} x{item.Value},");
         }
         player.okDialog($"{player.Language.TradeOKMessage} {join}");
+    }
+
+    /// <summary>
+    /// Xem trước toàn bộ vật phẩm có thể nhận khi đổi thỏi — KHÔNG trừ tiền/thỏi, chỉ hiển thị
+    /// (giống hệt pool thật Trade() dùng, sắp theo tỉ lệ giảm dần cho dễ nhìn).
+    /// </summary>
+    static void ShowTradeGiftPool(sbyte type, Player player)
+    {
+        JArrayList<MenuItemInfo> menuItemInfos = new();
+        if (GopetManager.TradeGift.ContainsKey(type))
+        {
+            foreach (var tradeGift in GopetManager.TradeGift[type].OrderByDescending(t => t.Percent))
+            {
+                ItemTemplate itemTemplate = GopetManager.itemTemplate.get(tradeGift.ItemTemplateId);
+                if (itemTemplate == null)
+                {
+                    continue;
+                }
+                MenuItemInfo menuItemInfo = new MenuItemInfo(
+                    Utilities.Format("%s x%s", itemTemplate.name, tradeGift.Count),
+                    "",
+                    itemTemplate.getIconPath(),
+                    false);
+                menuItemInfos.add(menuItemInfo);
+            }
+        }
+        String title = type == TradeGiftTemplate.TYPE_GOLD ? "Vật phẩm đổi Thỏi Vàng" : "Vật phẩm đổi Thỏi Bạc";
+        player.controller.showMenuItem(-1, TYPE_MENU_NONE, title, menuItemInfos);
     }
 
     public static JArrayList<int> typeSelectItemMaterial(int menuId, Player player)
@@ -816,7 +878,7 @@ public partial class MenuController
         {
             return GopetManager.PET_SKILLS.Where(p => p.nClass == GopetManager.Fighter || p.nClass == GopetManager.Assassin || p.nClass == GopetManager.Wizard).ToArray();
         }
-        JArrayList<PetSkill> petSkills = GopetManager.NCLASS_PETSKILL_HASH_MAP.get(player.playerData.petSelected.getPetTemplate().nclass);
+        JArrayList<PetSkill> petSkills = GopetManager.NCLASS_PETSKILL_HASH_MAP.get(player.playerData.petSelected.GetEffectiveNClass());
         return petSkills.ToArray();
     }
 
@@ -1121,6 +1183,7 @@ public partial class MenuController
                 return new sbyte[] { InputReader.FIELD_STRING, InputReader.FIELD_STRING, InputReader.FIELD_STRING };
             case INPUT_USE_NUM_ITEM:
             case INPUT_NUM_BUY_RETAIL_ITEM_KIOSK:
+            case INPUT_TYPE_BUY_SHOP_ITEM_QUANTITY:
             case INPUT_NUM_DUNG_HỢP:
             case INPUT_TYPE_COUNT_USE_BÓ_HOA:
             case INPUT_TYPE_COUNT_ADMIN_GIVE:

@@ -1,0 +1,6 @@
+{
+  "tcpPort": 19180,
+  "httpPort": 8082,
+  "domainName": "gopetvn.me",
+  "isOnlyAdminLogin": false
+}

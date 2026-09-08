@@ -1,0 +1,16 @@
+{
+  "game": {
+    "host": "127.0.0.1",
+    "port": 3306,
+    "database": "gopettae_tae2",
+    "username": "root",
+    "password": "123456"
+  },
+  "web": {
+    "host": "127.0.0.1",
+    "port": 3306,
+    "database": "gopettae_gopet_web",
+    "username": "root",
+    "password": "123456"
+  }
+}

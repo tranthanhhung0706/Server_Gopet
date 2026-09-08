@@ -412,7 +412,7 @@ public class GopetManager
     /**
      * Id các pet trong danh sách nhận pet miễn phí
      */
-    public static readonly int[] petFreeIds = new int[] { 1, 2, 3, 5, 6 };
+    public static readonly int[] petFreeIds = new int[] { 93, 94, 95 };
 
     /**
      * Map mẫu
@@ -532,7 +532,7 @@ public class GopetManager
     /// <summary>
     /// Tỉ lệ cường hoá
     /// </summary>
-    public static readonly float[] PERCENT_ENCHANT = new float[] { 90f, 80f, 70f, 60f, 50f, 30f, 20f, 5f, -10f, -20f };
+    public static readonly float[] PERCENT_ENCHANT = new float[] { 90f, 80f, 70f, 60f, 50f, 40f, 30f, 20f, 5f, 2f };
     /// <summary>
     /// Tỉ lệ cường hoá hiển thị
     /// </summary>
@@ -662,9 +662,9 @@ public class GopetManager
 
     public static readonly Dictionary<sbyte, Tuple<int[], int[], int>> TradeGiftPrice = new()
     {
-        [TradeGiftTemplate.TYPE_COIN] = new Tuple<int[], int[], int>(new int[] { GopetManager.MONEY_TYPE_SILVER_BAR, GopetManager.MONEY_TYPE_COIN }, new int[] { 3, 50000 }, MenuController.OP_TRADE_GIFT_COIN),
+        [TradeGiftTemplate.TYPE_COIN] = new Tuple<int[], int[], int>(new int[] { GopetManager.MONEY_TYPE_SILVER_BAR, GopetManager.MONEY_TYPE_COIN }, new int[] { 3, 5000 }, MenuController.OP_TRADE_GIFT_COIN),
         [TradeGiftTemplate.TYPE_LUA] = new Tuple<int[], int[], int>(new int[] { GopetManager.MONEY_TYPE_SILVER_BAR, GopetManager.MONEY_TYPE_LUA }, new int[] { 3, 5 }, MenuController.OP_TRADE_GIFT_LUA),
-        [TradeGiftTemplate.TYPE_GOLD] = new Tuple<int[], int[], int>(new int[] { GopetManager.MONEY_TYPE_GOLD_BAR, GopetManager.MONEY_TYPE_GOLD }, new int[] { 3, 2500 }, MenuController.OP_TRADE_GIFT_GOLD)
+        [TradeGiftTemplate.TYPE_GOLD] = new Tuple<int[], int[], int>(new int[] { GopetManager.MONEY_TYPE_GOLD_BAR, GopetManager.MONEY_TYPE_GOLD }, new int[] { 3, 2000 }, MenuController.OP_TRADE_GIFT_GOLD)
     };
     /// <summary>
     /// Id npc trần chân
@@ -1120,11 +1120,11 @@ public class GopetManager
                 Reincarnations[reincarnation.PetId] = reincarnation;
             }
             ServerMonitor.LogInfo("Tải dữ liệu trùng sinh thú cưng từ cơ sở dữ liệu OK");
-            /*var petEffectTemplates = conn.Query<PetEffectTemplate>("SELECT * FROM `pet_eff`");
+            var petEffectTemplates = conn.Query<PetEffectTemplate>("SELECT * FROM `pet_eff`");
             foreach (var item in petEffectTemplates)
             {
-                PET_EFF_TEMP[item.IdTemplate] = item;
-            }*/
+                PET_EFF_TEMP[item.Id] = item;
+            }
             ServerMonitor.LogInfo("Tải dữ liệu hiệu ứng thú cưng từ cơ sở dữ liệu OK");
         }
         using (var connWeb = MYSQLManager.createWebMySqlConnection())
@@ -1208,6 +1208,240 @@ public class GopetManager
         EmailService = new EmailService(ConfigurationManager.AppSettings.Get("email-serivce-config"));
         //File.WriteAllText(Directory.GetCurrentDirectory() + "/pet.json", JsonConvert.SerializeObject(ID_ITEM_PART_PET_AO_ANH.Select(x => new { id = x, name = GopetManager.itemTemplate[x].name })));
         //SaveJsonFile(Language["vi"], "/lang/vi.json");
+    }
+
+    /// <summary>
+    /// Nạp lại danh mục pet template (bảng gopet_pet) từ DB vào RAM mà KHÔNG cần restart GServer
+    /// — dùng sau khi sửa/thêm/xoá pet qua trang admin. init() chỉ chạy 1 lần lúc khởi động, nên
+    /// nếu không gọi hàm này, GServer vẫn dùng dữ liệu cũ trong RAM cho gameplay cho tới khi
+    /// restart dù DB đã đổi. Nạp lại luôn các cache phái sinh cùng lúc: petEnable,
+    /// typePetTemplate, Language[VI_CODE].PetNameLanguage (tên hiện trong game — khác hẳn cache
+    /// PETTEMPLATE_HASH_MAP chỉ dùng cho chỉ số), ListPetMustntUpTier (pet không được nâng tier).
+    /// </summary>
+    public static void ReloadPetTemplates()
+    {
+        using var conn = MYSQLManager.create();
+        var freshPets = conn.Query<PetTemplate>("SELECT * FROM `gopet_pet`").ToList();
+
+        PET_TEMPLATES.Clear();
+        petEnable.Clear();
+        typePetTemplate.Clear();
+        PETTEMPLATE_HASH_MAP.Clear();
+        ListPetMustntUpTier.Clear();
+
+        PET_TEMPLATES.AddRange(freshPets);
+        PET_TEMPLATES.ForEach(petTemplate =>
+        {
+            petEnable.add(petTemplate);
+            if (!typePetTemplate.ContainsKey(petTemplate.type))
+            {
+                typePetTemplate.put(petTemplate.type, new());
+            }
+            typePetTemplate.get(petTemplate.type).add(petTemplate);
+            PETTEMPLATE_HASH_MAP.put(petTemplate.petId, petTemplate);
+            Language[VI_CODE].PetNameLanguage[petTemplate.petId] = petTemplate.name;
+        });
+
+        foreach (var petTemplate in PET_TEMPLATES)
+        {
+            if (!ListPetMustntUpTier.Contains(petTemplate.petId) && petTier.Where(p => p.Value.petTemplateId2 == petTemplate.petId).Any())
+            {
+                ListPetMustntUpTier.Add(petTemplate.petId);
+            }
+        }
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu thú cưng từ cơ sở dữ liệu OK");
+    }
+
+    /// <summary>
+    /// Nạp lại danh mục item template (bảng item) từ DB vào RAM mà KHÔNG cần restart GServer.
+    /// Nạp lại luôn itemAssetsIcon (icon theo id số), NonAdminItemList,
+    /// Language[VI_CODE].ItemLanguage/ItemDescLanguage (tên/mô tả hiện trong game — khác cache
+    /// itemTemplate chỉ dùng cho chỉ số), và ID_ITEM_PART_PET_AO_ANH (mảnh ghép áo ảnh pet tier,
+    /// tính từ itemTemplates nên phải tính lại theo dữ liệu mới).
+    /// </summary>
+    public static void ReloadItemTemplates()
+    {
+        using var conn = MYSQLManager.create();
+        var freshItems = conn.Query<ItemTemplate>("SELECT * FROM `item`").ToList();
+
+        itemTemplates.Clear();
+        itemTemplate.Clear();
+        NonAdminItemList.Clear();
+        itemAssetsIcon.Clear();
+
+        itemTemplates.AddRange(freshItems);
+        int assetsId = 1;
+        itemTemplates.ForEach(itemTemp =>
+        {
+            itemTemp.setIconId(assetsId);
+            itemAssetsIcon[assetsId] = itemTemp.getIconPath();
+            itemTemplate.put(itemTemp.getItemId(), itemTemp);
+            if (itemTemp.getType() != ITEM_ADMIN)
+            {
+                NonAdminItemList.add(itemTemp);
+            }
+            Language[VI_CODE].ItemLanguage[itemTemp.itemId] = itemTemp.name;
+            Language[VI_CODE].ItemDescLanguage[itemTemp.itemId] = itemTemp.description;
+            assetsId++;
+        });
+
+        ID_ITEM_PART_PET_AO_ANH = petTier.Values.Select(x => itemTemplates.Where(item => item.type == ITEM_PART_PET && item.itemOption.Length > 0 && item.itemOption[0] == 4 && item.itemOptionValue[0] == x.petTemplateIdNeed).Select(m => m.itemId).FirstOrDefault()).ToArray();
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu vật phẩm từ cơ sở dữ liệu OK");
+    }
+
+    /// <summary>
+    /// Nạp lại danh mục shop (bảng shop) từ DB vào RAM mà KHÔNG cần restart GServer. Container
+    /// ShopTemplate theo shopId được tạo sẵn đúng 1 lần lúc init() (khớp các hằng số SHOP_* cố
+    /// định) nên KHÔNG tạo lại ở đây — chỉ xoá rồi nạp lại danh sách item bên trong mỗi
+    /// container. Nếu bảng shop có dòng shopId không nằm trong danh sách SHOP_* đã biết sẽ
+    /// throw UnsupportedOperationException (giống hệt hành vi của init() khi gặp shopId lạ).
+    /// </summary>
+    public static void ReloadShopTemplates()
+    {
+        using var conn = MYSQLManager.create();
+        var freshShopItems = conn.Query<ShopTemplateItem>("SELECT * FROM `shop`").ToList();
+
+        foreach (var container in shopTemplate.Values)
+        {
+            container.getShopTemplateItems().Clear();
+        }
+
+        foreach (var shopTemplate1 in freshShopItems)
+        {
+            if (shopTemplate.ContainsKey(shopTemplate1.shopId))
+            {
+                shopTemplate.get(shopTemplate1.shopId).getShopTemplateItems().add(shopTemplate1);
+            }
+            else
+            {
+                throw new UnsupportedOperationException(" khong ho tro loai shop " + shopTemplate1.shopId);
+            }
+        }
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu cửa hàng từ cơ sở dữ liệu OK");
+    }
+
+    /// <summary>
+    /// Nạp lại pool "đổi thỏi" (bảng trade_gift) từ DB vào RAM mà KHÔNG cần restart GServer —
+    /// dùng sau khi sửa/thêm/xoá qua trang admin Roll. TYPE_LUA không có dữ liệu riêng trong DB,
+    /// luôn dùng chung pool TYPE_COIN (giống hệt logic gốc trong init()).
+    /// </summary>
+    public static void ReloadTradeGift()
+    {
+        using var conn = MYSQLManager.create();
+        TradeGift[TradeGiftTemplate.TYPE_COIN] = conn.Query<TradeGiftTemplate>("SELECT * FROM `trade_gift` where Type = " + TradeGiftTemplate.TYPE_COIN).ToArray();
+        TradeGift[TradeGiftTemplate.TYPE_GOLD] = conn.Query<TradeGiftTemplate>("SELECT * FROM `trade_gift` where Type = " + TradeGiftTemplate.TYPE_GOLD).ToArray();
+        TradeGift[TradeGiftTemplate.TYPE_LUA] = TradeGift[TradeGiftTemplate.TYPE_COIN];
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu trao đổi thưởng từ cơ sở dữ liệu OK");
+    }
+
+    /// <summary>
+    /// Nạp lại danh mục Boss (bảng boss) từ DB vào RAM mà KHÔNG cần restart GServer — dùng sau khi
+    /// sửa/thêm/xoá qua trang admin Boss. Nạp lại luôn HourDailyBoss (boss loại 4, triệu hồi theo
+    /// giờ) tính lại từ dữ liệu mới, giống hệt logic gốc trong init().
+    /// </summary>
+    public static void ReloadBoss()
+    {
+        using var conn = MYSQLManager.create();
+        var bossTemArr = conn.Query<BossTemplate>("SELECT * FROM `boss`").ToArray();
+
+        boss.Clear();
+        foreach (var bossTemplate in bossTemArr)
+        {
+            boss[bossTemplate.bossId] = bossTemplate;
+        }
+        HourDailyBoss = bossTemArr.Where(x => x.typeBoss == 4).ToArray();
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu boss từ cơ sở dữ liệu OK");
+    }
+
+    /// <summary>
+    /// Nạp lại công thức trùng sinh pet (bảng reincarnation) từ DB vào RAM mà KHÔNG cần restart
+    /// GServer — dùng sau khi sửa/thêm/xoá qua trang admin Reincarnation.
+    /// </summary>
+    public static void ReloadReincarnation()
+    {
+        using var conn = MYSQLManager.create();
+        var reincarnations = conn.Query<PetReincarnation>("SELECT * FROM `reincarnation`");
+
+        Reincarnations.Clear();
+        foreach (var reincarnation in reincarnations)
+        {
+            Reincarnations[reincarnation.PetId] = reincarnation;
+        }
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu trùng sinh từ cơ sở dữ liệu OK");
+    }
+
+    /// <summary>
+    /// Nạp lại công thức tiến hoá pet (bảng pet_tier) từ DB vào RAM mà KHÔNG cần restart GServer —
+    /// dùng sau khi sửa/thêm/xoá qua trang admin Evolution.
+    /// </summary>
+    /// <summary>
+    /// Nạp lại danh mục xăm (bảng tattoo) từ DB vào RAM mà KHÔNG cần restart GServer — dùng sau khi
+    /// sửa/thêm/xoá qua trang admin Tattoo. Xăm pet đang mang (PetTatto) chỉ lưu tattooTemplateId,
+    /// tra Template qua tattos mỗi lần dùng nên tự động lấy dữ liệu mới không cần đụng gì thêm.
+    /// </summary>
+    public static void ReloadTattoo()
+    {
+        using var conn = MYSQLManager.create();
+        var tattoList = conn.Query<PetTattoTemplate>("SELECT * FROM `tattoo`");
+
+        tattos.Clear();
+        foreach (var petTattoTemplate in tattoList)
+        {
+            tattos.put(petTattoTemplate.tattooId, petTattoTemplate);
+            Language[VI_CODE].TattoLanguage[petTattoTemplate.tattooId] = petTattoTemplate.name;
+        }
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu xăm từ cơ sở dữ liệu OK");
+    }
+
+    public static void ReloadPetTier()
+    {
+        using var conn = MYSQLManager.create();
+        var petTierList = conn.Query<PetTier>("SELECT * FROM `pet_tier`");
+
+        petTier.Clear();
+        foreach (var petTier1 in petTierList)
+        {
+            petTier.put(petTier1.getPetTemplateId1(), petTier1);
+        }
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu tiến hoá pet từ cơ sở dữ liệu OK");
+    }
+
+    /// <summary>
+    /// Nạp lại điểm mọc quái (bảng gopet_mob_location) từ DB vào RAM mà KHÔNG cần restart GServer
+    /// — dùng sau khi sửa/thêm/xoá qua trang admin Location Mob. Map đang có người chơi/quái sẵn
+    /// không bị đụng tới — chỉ ảnh hưởng lần mọc/hồi sinh quái TIẾP THEO trên map đó.
+    /// </summary>
+    public static void ReloadMobLocation()
+    {
+        using var conn = MYSQLManager.create();
+        var mobLocationList = conn.Query("SELECT * FROM `gopet_mob_location`");
+
+        HashMap<int, JArrayList<MobLocation>> mobLoc = new();
+        foreach (var item in mobLocationList)
+        {
+            MobLocation mobLocation1 = new MobLocation(item.mapID, item.x, item.y);
+            if (!mobLoc.ContainsKey(mobLocation1.getMapId()))
+            {
+                mobLoc.put(mobLocation1.getMapId(), new());
+            }
+            mobLoc.get(mobLocation1.getMapId()).add(mobLocation1);
+        }
+
+        mobLocation.Clear();
+        foreach (var entry in mobLoc)
+        {
+            mobLocation.put(entry.Key, entry.Value.ToArray());
+        }
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu điểm mọc quái từ cơ sở dữ liệu OK");
     }
 
     public static T ReadJsonFile<T>(string targetPath)
@@ -1359,7 +1593,7 @@ public class GopetManager
         return (p) => p <= version;
     }
 
-    public static void SendHtmlMailAsync(string to,string title, string content)
+    public static void SendHtmlMailAsync(string to, string title, string content)
     {
         //EmailService.SendEmailAsync(to, title, EmailContent.Replace("{0}", content), "html");
     }

@@ -92,9 +92,14 @@ public class GameObject
         return def + getAgi() / 3;
     }
 
+    public virtual sbyte GetEffectiveNClass()
+    {
+        return Template.nclass;
+    }
+
     public virtual int getAtk()
     {
-        switch (Template.nclass)
+        switch (GetEffectiveNClass())
         {
             case GopetManager.Archer:
             case GopetManager.Fighter:

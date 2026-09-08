@@ -14,6 +14,18 @@ public class Pet : GameObject, IBinaryObject<Pet>
 
     public int petIdTemplate;
 
+    /**
+     * Ghi đè nclass của template, dùng khi trùng sinh tự lên thiên giới
+     * mà PetIdReincarnation trùng petId gốc (không đổi loài, chỉ đổi class)
+     */
+    public sbyte? nclassOverride = null;
+
+    /**
+     * Đánh dấu pet đã trùng sinh ít nhất 1 lần.
+     * Trùng sinh lần đầu vẫn xóa skill như cũ, từ lần 2 trở đi thì giữ nguyên skill.
+     */
+    public bool hasReincarnated = false;
+
     public bool petDieByPK = false;
     public long TimeDieZ { get; set; } = Utilities.CurrentTimeMillis;
 
@@ -28,6 +40,14 @@ public class Pet : GameObject, IBinaryObject<Pet>
     public String name = null;
 
     public int str, agi, _int;
+
+    /// <summary>
+    /// Phần atk/def cộng thêm từ trang bị + xăm + skin + cánh + thành tựu, tách riêng khỏi phần
+    /// atk/def tính từ str/agi gốc (xem applyInfo()) — dùng để Arena tính lại atk/def "tươi" theo
+    /// str/agi hiện tại (tránh field atk/def bị cũ khi luyện thêm tiềm năng) mà vẫn không mất bonus
+    /// trang bị/skin/cánh.
+    /// </summary>
+    public int atkBonus = 0, defBonus = 0;
 
     /**
      * Điểm tiềm năng
@@ -74,12 +94,24 @@ public class Pet : GameObject, IBinaryObject<Pet>
     public CopyOnWriteArrayList<int> HiddenStats = new CopyOnWriteArrayList<int>();
 
     public CopyOnWriteArrayList<PetEffect> PetEffects = new CopyOnWriteArrayList<PetEffect>();
+    public List<PetEffect> PetEffectss { get; set; } = new List<PetEffect>();
     protected Pet()
     {
 
     }
 
+    public void LoadEffectsFromTemplates(params int[] templateIds)
+    {
+        foreach (var id in templateIds)
+        {
+            if (GopetManager.PET_EFF_TEMP.TryGetValue(id, out var template))
+            {
+                PetEffectss.Add(new PetEffect(template));
 
+            }
+
+        }
+    }
     public Pet(int petIdTemplate)
     {
         this.petIdTemplate = petIdTemplate;
@@ -109,6 +141,24 @@ public class Pet : GameObject, IBinaryObject<Pet>
         get
         {
             return GopetManager.PETTEMPLATE_HASH_MAP[this.petIdTemplate];
+        }
+    }
+
+    public override sbyte GetEffectiveNClass()
+    {
+        return nclassOverride ?? base.GetEffectiveNClass();
+    }
+
+    public bool IsEffectiveSky()
+    {
+        switch (GetEffectiveNClass())
+        {
+            case GopetManager.Angel:
+            case GopetManager.Demon:
+            case GopetManager.Archer:
+                return true;
+            default:
+                return false;
         }
     }
 
@@ -301,10 +351,12 @@ public class Pet : GameObject, IBinaryObject<Pet>
     /// <param name="player"></param>
     public void applyInfo(Player player)
     {
-        this.atk = (this.getStr() * 30);
-        this.def = (this.getAgi() * 20);
-        this.maxHp = getHpViaPrice() + (this.getInt() * 50);
-        this.maxMp = getMpViaPrice() + (this.getInt() * 50);
+        int baseAtk = this.getStr() * 10;
+        int baseDef = this.getAgi() * 10;
+        this.atk = baseAtk;
+        this.def = baseDef;
+        this.maxHp = getHpViaPrice() + (this.getInt() * 20);
+        this.maxMp = getMpViaPrice() + (this.getInt() * 20);
         IDictionary<int, int> ItemEquipType = new Dictionary<int, int>();
         foreach (var next in equip.ToArray())
         {
@@ -421,6 +473,8 @@ public class Pet : GameObject, IBinaryObject<Pet>
                 }
             }
         }
+        this.atkBonus = this.atk - baseAtk;
+        this.defBonus = this.def - baseDef;
         this.HiddenStats.Clear();
         this.HiddenStats.AddRange(GopetManager.HiddentStatItemTemplates.Where(x =>
         (!x.IdWeapon.HasValue || (ItemEquipType.ContainsKey(GopetManager.PET_EQUIP_WEAPON) && ItemEquipType[GopetManager.PET_EQUIP_WEAPON] == x.IdWeapon)) &&
@@ -523,21 +577,22 @@ public class Pet : GameObject, IBinaryObject<Pet>
         this.petId = id;
     }
 
-    public IEnumerable<PetEffectTemplate> EffectTemplates
-    {
-        get
-        {
-            return new List<PetEffectTemplate>()
-            {
-            /*new PetEffectTemplate ()
-            {
-                FramePath = "peteff/output2.png",
-                FrameNum = 6,
-                IsDrawBefore = true,
-                FrameTime = 80,
-                vY = -100
-            }*/
-            };
-        }
-    }
+    // public IEnumerable<PetEffectTemplate> EffectTemplates
+    // {
+    //     get
+    //     {
+    //         return new List<PetEffectTemplate>()
+    //         {
+    //         new PetEffectTemplate ()
+    //         {
+    //             FramePath = "peteff/output2.png",
+    //             FrameNum = 6,
+    //             IsDrawBefore = true,
+    //             FrameTime = 80,
+    //             vY = -100
+    //         }
+    //         };
+    //     }
+    // }
+    public IEnumerable<PetEffectTemplate> EffectTemplates { get; set; } = Enumerable.Empty<PetEffectTemplate>();
 }

@@ -111,6 +111,15 @@ public class GopetPlace : Place
         mobs.remove(gopetMob);
         long timeGen = Utilities.CurrentTimeMillis + TIME_NEW_MOB;
         newMob.TryAdd(gopetMob.getMobLocation(), timeGen);
+        sendRemoveMob(gopetMob.getMobId());
+    }
+
+    public void sendRemoveMob(int mobId)
+    {
+        Message message = GameController.messagePetService(GopetCMD.REMOVE_MOB);
+        message.putInt(mobId);
+        message.cleanup();
+        sendMessage(message);
     }
 
     public Mob getMob(int mobId)
@@ -232,7 +241,7 @@ public class GopetPlace : Place
                 message.putInt(petSelected.lvl);
                 message[1].putsbyte(petSelected.getPetTemplate().frameNum);
                 message[1].putShort(petSelected.getPetTemplate().vY);
-                //GameController.WritePetEffect(message[1], petSelected.EffectTemplates);
+                GameController.WritePetEffect(message[1], petSelected.EffectTemplates);
             }
             message.cleanup();
             messagesDict[message[0]] = GopetManager.LessThanAndEquals(GopetManager.VERSION_133);
@@ -400,7 +409,7 @@ public class GopetPlace : Place
 
     public void startFightMob(int mobId, Player player)
     {
-        if (this.map.mapID == 12)
+        /*if (this.map.mapID == 12)
         {
             if (Utilities.CurrentTimeMillis - player.controller.getLastTimeKillMob() < 4500)
             {
@@ -408,15 +417,18 @@ public class GopetPlace : Place
                 player.session.Close();
                 return;
             }
-        }
+        }*/
         Mob mob = getMob(mobId);
         if (mob != null)
         {
             if (player.playerData.petSelected != null)
             {
-                if (!(mob is Boss) && mob.hp <= 0 && mob.getPetBattle(player) == null)
+                if (mob.hp <= 0)
                 {
-                    mobDie(mob);
+                    if (!(mob is Boss) && mob.getPetBattle(player) == null)
+                    {
+                        mobDie(mob);
+                    }
                     return;
                 }
                 if (player.playerData.petSelected.hp > 0)
@@ -708,6 +720,14 @@ public class GopetPlace : Place
             m.putUTF(val.Template.frameImgPath);
             m.putsbyte(val.getTemp().getOptionValue()[0]);
         }
+        // Ghi wingFrameNum SAU cùng, cùng thứ tự với vòng lặp trên (không xen giữa từng entry) để
+        // client cũ (chưa biết đọc phần này) vẫn đọc đúng 3 field đầu như cũ rồi dừng lại — phần dư
+        // ở cuối message tự bị bỏ qua an toàn nhờ message được đóng khung theo độ dài cố định
+        // (xem MsgReader.readMessage: mỗi Message chỉ chứa đúng `length` byte, không lấn sang message kế).
+        foreach (var entry in wingPlayer)
+        {
+            m.putsbyte(entry.Value.Template.wingFrameNum);
+        }
         m.cleanup();
         player.session.sendMessage(m);
 
@@ -724,6 +744,7 @@ public class GopetPlace : Place
             m.putInt(player.user.user_id);
             m.putUTF(wingItem.getTemp().getFrameImgPath());
             m.putsbyte(wingItem.getTemp().getOptionValue()[0]);
+            m.putsbyte(wingItem.getTemp().wingFrameNum);
             m.cleanup();
             sendMessage(m);
         }
@@ -737,6 +758,7 @@ public class GopetPlace : Place
         m.putInt(player.user.user_id);
         m.putUTF("");
         m.putsbyte(0);
+        m.putsbyte(2);
         m.cleanup();
         sendMessage(m);
     }

@@ -37,7 +37,7 @@ public class PlayerData
     public int star { get; set; } = 0;
     public Item skin { get; set; }
     public Item wing { get; set; }
-    public bool isOnSky { get; private set; } = false;
+    public bool isOnSky { get; set; } = false;
     public BuffExp? buffExp { get; set; } = new BuffExp();
     public int pkPoint { get; set; } = 0;
     public DateTime pkPointTime { get; set; }
@@ -50,6 +50,8 @@ public class PlayerData
     public int AccumulatedPoint { get; set; }
 
     public Pet PetDefLeague { get; set; }
+
+    public int ArenaPoint { get; set; } = 1000;
 
     public int EventPoint { get; set; }
     public int NumOfUseKiteNormal { get; set; }
@@ -82,7 +84,7 @@ public class PlayerData
     /// Trường này để ghi lại số lượng hoa tặng dùng vàng
     /// </summary>
     public int NumGiveFlowerGold { get; set; } = 0;
-   
+
     /// <summary>
     /// Trường thuộc sự kiện 20/11 2024
     /// Trường này để ghi lại số lượng hoa tặng dùng ngọc
@@ -142,6 +144,14 @@ public class PlayerData
     /// Trường thuộc sự kiện sinh nhật trò chơi
     /// </summary>
     public int NumUseGiftBox2025 { get; set; } = 0;
+    /// <summary>
+    /// Trường thuộc tính năng "Mốc nạp" — ghi lại mốc tổng nạp (user.tongnap, web DB
+    /// gopettae_gopet_web) CAO NHẤT đã nhận thưởng, để biết mốc nào trong bảng nap_moc_reward
+    /// chưa nhận (threshold > NapMocClaimed). Vì tongnap chỉ tăng dần và admin có thể chỉnh sửa
+    /// danh sách mốc bất kỳ lúc nào, so sánh theo giá trị threshold thật thay vì đếm theo index
+    /// thứ tự (an toàn hơn nếu admin thêm/sửa mốc giữa chừng).
+    /// </summary>
+    public long NapMocClaimed { get; set; } = 0;
     public PlayerData()
     {
         x = 24 * 4;
@@ -158,7 +168,21 @@ public class PlayerData
     {
         using (MySqlConnection conn = MYSQLManager.create())
         {
-            conn.Execute("INSERT INTO `player` (`ID`, `user_id`, `name`, `gender` , `items`) VALUES (NULL, @user_id, @name, @gender , NULL);", new
+            // Cột items để NULL (bình thường, có xử lý null riêng lúc load) nhưng 8 cột JSON
+            // NOT NULL còn lại KHÔNG có default trong DB — nếu không set tay ở đây, MySQL chạy
+            // strict mode sẽ báo lỗi "doesn't have a default value" và tạo nhân vật thất bại
+            // (không đăng ký được tài khoản mới). Giá trị rỗng khớp đúng kiểu C# tương ứng: '[]'
+            // cho các field CopyOnWriteArrayList<T>, '{}' cho các field Dictionary<K,V>.
+            conn.Execute(
+                @"INSERT INTO `player`
+                    (`ID`, `user_id`, `name`, `gender`, `items`,
+                     `achievements`, `letters`, `RequestAddFriends`, `BlockFriendLists`, `ListFriends`,
+                     `LettersSendTime`, `MoneyDisplays`, `TrashItemBackup`, `ClanTasked`)
+                  VALUES
+                    (NULL, @user_id, @name, @gender, NULL,
+                     '[]', '[]', '[]', '[]', '[]',
+                     '{}', '[]', '{}', '[]');",
+                new
             {
                 user_id,
                 name,
@@ -208,6 +232,7 @@ public class PlayerData
                             numUseEnergy = @numUseEnergy,
                             AccumulatedPoint = @AccumulatedPoint,
                             PetDefLeague = @PetDefLeague,
+                            ArenaPoint = @ArenaPoint,
                             EventPoint = @EventPoint,
                             achievements = @achievements,
                             NumOfUseKiteNormal = @NumOfUseKiteNormal,
@@ -237,7 +262,8 @@ public class PlayerData
                             NumEatCylindricalStickyRice = @NumEatCylindricalStickyRice,
                             NumEatCylindricalStickyRiceCoin = @NumEatCylindricalStickyRiceCoin,
                             IndexMilistoneBirthdayEvent = @IndexMilistoneBirthdayEvent,
-                            NumUseGiftBox2025 = @NumUseGiftBox2025
+                            NumUseGiftBox2025 = @NumUseGiftBox2025,
+                            NapMocClaimed = @NapMocClaimed
                             WHERE ID = @ID", playerData);
     }
     /// <summary>
