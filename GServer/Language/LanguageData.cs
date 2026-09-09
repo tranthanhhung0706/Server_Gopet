@@ -533,6 +533,9 @@ namespace Gopet.Language
         public string IncorrectPetUseSkillCard { get; set; } = "Thú cưng của bạn không thể sử dụng thẻ kỹ năng";
         public string GiveFlowerToNPC { get; set; } = "Tặng hoa";
         public string ViewTopFlowerGold { get; set; } = "TOP Tặng Vàng, Dâng Hoa";
+        public string ShopBoss2026Option { get; set; } = "Đổi Hoa Ngọc";
+        public string TopBoss2026Option { get; set; } = "Xem top săn boss";
+        public string TopFlowerCoinBoss2026Option { get; set; } = "Xem top số dư Hoa Ngọc";
         public string ViewTopFlowerGem { get; set; } = "TOP Dâng Ngọc, Tặng Hoa";
         public string PleaseGoToNPCToUseFlower { get; set; } = "Để dùng boá hoa bạn vui lòng đến gặp NPC Tran Chan để tặng!";
         public string UseFlowerOK { get; set; } = "Tặng hoa thành công! Nhận được {0} điểm tích luỹ";
@@ -587,6 +590,7 @@ namespace Gopet.Language
         public string REQUEST_KILL_ELITE_BOSS { get; set; } = "Tiêu diệt boss tinh anh {0}/{1}";
         public string NotEnoughItemToBuy { get; set; } = "Số lượng vật phẩm bạn nhập lớn hơn vật phẩm trên sạp";
         public string SHOP_BIRTHDAY_EVENT { get; set; } = "Cửa hàng sinh nhật";
+        public string SHOP_BOSS_2026 { get; set; } = "Cửa hàng Hoa Ngọc";
         public string MakeCakeErorr { get; set; } = "Làm bánh thất bại do không đủ nguyên liệu vui lòng xem hướng dẫn để biết thêm chi tiết";
         public string MakeCakeOK { get; set; } = "Làm bánh thành công";
         public string Ipv4Limited { get; set; } = "Địa chỉ IP này đăng nhập nhập quá nhiều, vui lòng chờ xíu";

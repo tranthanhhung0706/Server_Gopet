@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Gopet.Data.Event.Year2024;
 using Gopet.Data.Collections;
 using Gopet.Data.Event.Year2025;
+using Gopet.Data.Event.Year2026;
 namespace Gopet.Manager
 {
     public class EventManager
@@ -23,7 +24,10 @@ namespace Gopet.Manager
             _events.Add(BannerEvent.Instance);
             //_events.Add(Winter2024Event.Instance);
             //_events.Add(TeacherDay2024.Instance);
-            _events.Add(GameBirthdayEvent.Instance);
+            //_events.Add(GameBirthdayEvent.Instance);
+            // Boss2026.Condition đọc bảng event_config qua EventConfigManager — bật/tắt + chỉnh
+            // ngày qua trang admin Event, không cần comment/uncomment dòng này hay build lại nữa.
+            _events.Add(Boss2026.Instance);
         }
 
         public static void AddEvent(EventBase eventBase)

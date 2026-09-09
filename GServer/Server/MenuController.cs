@@ -427,6 +427,20 @@ public partial class MenuController
     /// </summary>
     public const int OP_TOP_TONG_NAP = 100;
     /// <summary>
+    /// Mở shop đổi Hoa Ngọc — sự kiện săn boss Boss2026.
+    /// </summary>
+    public const int OP_SHOW_SHOP_BOSS_2026 = 101;
+    /// <summary>
+    /// Xem bảng xếp hạng TỔNG điểm Hoa Ngọc cả đời (NumBossFlowerCoin2026, không giảm khi mua đồ)
+    /// — sự kiện săn boss Boss2026.
+    /// </summary>
+    public const int OP_XEM_TOP_BOSS_2026 = 102;
+    /// <summary>
+    /// Xem bảng xếp hạng số dư Hoa Ngọc ĐANG CÓ (FlowerCoin, giảm khi mua đồ) — sự kiện săn boss
+    /// Boss2026.
+    /// </summary>
+    public const int OP_XEM_TOP_FLOWER_COIN_2026 = 103;
+    /// <summary>
     /// Option Custom
     /// Trao đổi thưởng bằng
     /// </summary>
@@ -471,6 +485,10 @@ public partial class MenuController
     /// Cửa hàng vật phẩm sự kiện sinh nhật trò chơi
     /// </summary>
     public const sbyte SHOP_BIRTHDAY_EVENT = 13;
+    /// <summary>
+    /// Cửa hàng đổi Hoa Ngọc — sự kiện săn boss Boss2026 (xem Data/Event/Year2026/Boss2026.cs).
+    /// </summary>
+    public const sbyte SHOP_BOSS_2026 = 14;
 
     public const int OBJKEY_REMOVE_ITEM_EQUIP = 0;
     public const int OBJKEY_KIOSK_ITEM = 1;

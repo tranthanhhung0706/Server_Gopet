@@ -222,6 +222,12 @@ public class GopetManager
     /// Quà là thú cưng thử nghiệm
     /// </summary>
     public const int GIFT_PET_TRIAL = 15;
+    /// <summary>
+    /// Quà là điểm Hoa Ngọc sự kiện săn boss (xem Boss2026) — cộng cả FlowerCoin (số dư tiêu được,
+    /// dùng chung MONEY_TYPE_FLOWER_COIN) lẫn NumBossFlowerCoin2026 (tổng điểm cả đời, chỉ dùng để
+    /// xếp hạng, KHÔNG bị trừ khi tiêu Hoa Ngọc mua đồ).
+    /// </summary>
+    public const int GIFT_FLOWER_COIN_BOSS = 16;
     /**
      * thời gian chờ lượt đánh (mili giây)
      */
@@ -857,6 +863,7 @@ public class GopetManager
         shopTemplate.put(MenuController.SHOP_ENERGY, new ShopTemplate(MenuController.SHOP_ENERGY));
         shopTemplate.put(MenuController.SHOP_GIAN_THUONG, new ShopTemplate(MenuController.SHOP_GIAN_THUONG));
         shopTemplate.put(MenuController.SHOP_BIRTHDAY_EVENT, new ShopTemplate(MenuController.SHOP_BIRTHDAY_EVENT));
+        shopTemplate.put(MenuController.SHOP_BOSS_2026, new ShopTemplate(MenuController.SHOP_BOSS_2026));
     }
 
     public static void readMobLvl(String cmd, HashMap<int, MobLvInfo> hashMap)

@@ -8,6 +8,8 @@ namespace Gopet.Data.Map
     {
         #region CONST
         public const int TRẦN_CHÂN = -1;
+        /// <summary>NPC riêng quản lý sự kiện săn boss (xem Data/Event/Year2026/Boss2026.cs).</summary>
+        public const int THỢ_SĂN_BOSS_2026 = -42;
         #endregion
 
         public int npcId;

@@ -36,17 +36,29 @@ namespace Gopet.APIs
         private const string SelectPlayerListItemSql =
             @"SELECT ID AS Id, user_id AS UserId, name AS Name, gender AS Gender, gold AS Gold,
                      coin AS Coin, lua AS Lua, star AS Star, clanId AS ClanId, isAdmin AS IsAdmin,
-                     loginDate AS LoginDate, LastTimeOnline AS LastTimeOnline
+                     loginDate AS LoginDate, LastTimeOnline AS LastTimeOnline,
+                     NumBossFlowerCoin2026 AS NumBossFlowerCoin2026,
+                     GREATEST(0, FlowerCoin) AS FlowerCoin
               FROM `player`";
+
+        // Whitelist cột được sắp xếp — tránh SQL injection qua tên cột tự do.
+        private static readonly Dictionary<string, string> SortColumns = new()
+        {
+            ["id_desc"] = "ID DESC",
+            ["hoaNgoc_desc"] = "NumBossFlowerCoin2026 DESC, ID DESC",
+            ["flowerCoinBalance_desc"] = "FlowerCoin DESC, ID DESC",
+        };
 
         /// <summary>
         /// Danh sách player — có phân trang, tìm theo tên nhân vật, tìm theo username tài khoản,
-        /// lọc theo user_id/clanId.
+        /// lọc theo user_id/clanId, sắp xếp qua sortBy ("id_desc" mặc định, "hoaNgoc_desc" = tổng
+        /// điểm Hoa Ngọc cả đời, "flowerCoinBalance_desc" = số dư Hoa Ngọc đang có — cả 2 đều là
+        /// bảng xếp hạng sự kiện săn boss, cao -&gt; thấp).
         /// </summary>
         [HttpGet("/v1/gopet/api/Players")]
         public IActionResult GetPlayers([FromQuery] int page = 1, [FromQuery] int limit = 20,
             [FromQuery] string? search = null, [FromQuery] string? username = null,
-            [FromQuery] int? userId = null, [FromQuery] int? clanId = null)
+            [FromQuery] int? userId = null, [FromQuery] int? clanId = null, [FromQuery] string? sortBy = null)
         {
             page = Math.Max(1, page);
             limit = Math.Clamp(limit, 1, 100);
@@ -100,10 +112,12 @@ namespace Gopet.APIs
 
             int total = conn.ExecuteScalar<int>($"SELECT COUNT(*) FROM `player` {whereSql}", parameters);
 
+            string orderBySql = SortColumns.TryGetValue(sortBy ?? "", out var col) ? col : SortColumns["id_desc"];
+
             parameters.Add("limit", limit);
             parameters.Add("offset", offset);
             var players = conn.Query<PlayerListItem>(
-                $"{SelectPlayerListItemSql} {whereSql} ORDER BY ID DESC LIMIT @limit OFFSET @offset",
+                $"{SelectPlayerListItemSql} {whereSql} ORDER BY {orderBySql} LIMIT @limit OFFSET @offset",
                 parameters).ToList();
 
             var paginated = new PaginatedData<PlayerListItem>(players, total, page, limit);

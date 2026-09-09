@@ -106,6 +106,13 @@ public class PlayerData
     /// </summary>
     public int FlowerCoin { get; set; } = -1;
     /// <summary>
+    /// Trường thuộc sự kiện Boss2026 — tổng điểm Hoa Ngọc kiếm được từ săn boss (cả đời, chỉ dùng để
+    /// xếp hạng qua Boss2026.TopBossFlowerCoin2026), KHÔNG bị trừ khi tiêu FlowerCoin mua đồ (khác
+    /// FlowerCoin — số dư tiêu được, có giảm khi mua). Xem GameController.onReiceiveGift, type
+    /// GIFT_FLOWER_COIN_BOSS.
+    /// </summary>
+    public int NumBossFlowerCoin2026 { get; set; } = 0;
+    /// <summary>
     /// Trường thuộc sự kiện Noel 2024
     /// Để ghi lại thời gian ngày hôm nay đã nhận quà Noel chưa
     /// </summary>
@@ -255,6 +262,7 @@ public class PlayerData
                             IndexMilistoneTeacherEvent = @IndexMilistoneTeacherEvent,
                             FlowerGold = @FlowerGold,
                             FlowerCoin = @FlowerCoin,
+                            NumBossFlowerCoin2026 = @NumBossFlowerCoin2026,
                             DailyNoelTime = @DailyNoelTime,
                             DailyNoelIndex = @DailyNoelIndex,
                             NumEatSquareStickyRice = @NumEatSquareStickyRice,

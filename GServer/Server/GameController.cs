@@ -4,6 +4,7 @@ using Gopet.Battle;
 using Gopet.Data;
 using Gopet.Data.GopetClan;
 using Gopet.Data.Collections;
+using Gopet.Data.Event.Year2026;
 using Gopet.Data.Dialog;
 using Gopet.Data.GopetItem;
 using Gopet.Data.Map;
@@ -4544,6 +4545,20 @@ public class GameController
                         popups.add(new Popup(item.getName(player)));
                     }
                     break;
+                case GopetManager.GIFT_FLOWER_COIN_BOSS:
+                    {
+                        // Chỉ cộng khi sự kiện Boss2026 đang thật sự mở (event_config.isEnabled +
+                        // trong khung giờ) — đóng sự kiện qua trang admin thì boss vẫn bị giết bình
+                        // thường nhưng không phát Hoa Ngọc nữa.
+                        if (Boss2026.Instance.Condition)
+                        {
+                            int amount = giftInfo[1];
+                            player.playerData.FlowerCoin += amount;
+                            player.playerData.NumBossFlowerCoin2026 += amount;
+                            popups.add(new Popup(Utilities.FormatNumber(amount) + " (hoa ngọc)"));
+                        }
+                    }
+                    break;
                 case GopetManager.GIFT_PET_TRIAL:
                     {
                         int petId = giftInfo[1];
@@ -5593,6 +5608,9 @@ public class GameController
                         PetTemplate temp = GopetManager.PETTEMPLATE_HASH_MAP.get(giftInfo[1]);
                         lines.add($"Pet dùng thử: {(temp != null ? temp.name : $"Pet #{giftInfo[1]}")}");
                     }
+                    break;
+                case GopetManager.GIFT_FLOWER_COIN_BOSS:
+                    lines.add($"Hoa ngọc: {giftInfo[1]}");
                     break;
                 default:
                     lines.add("Phần thưởng đặc biệt");

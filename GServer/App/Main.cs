@@ -45,6 +45,7 @@ namespace Gopet.App
             GopetManager.loadMarket();
             BXHManager.instance.start();
             FieldManager.Init();
+            EventConfigManager.Init();
             initRuntime();
             RuntimeServer.instance.start();
             DailyBossEvent.Instance = new DailyBossEvent();

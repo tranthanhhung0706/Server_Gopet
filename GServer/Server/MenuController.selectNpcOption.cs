@@ -1,5 +1,6 @@
 ﻿using Gopet.Data.Event.Year2024;
 using Gopet.Data.Event.Year2025;
+using Gopet.Data.Event.Year2026;
 using Gopet.Data.GopetClan;
 using Gopet.Data.item;
 using Gopet.Data.top;
@@ -92,6 +93,20 @@ public partial class MenuController
                 break;
             case OP_TOP_TONG_NAP:
                 showTop(TopTongNap.Instance, player);
+                break;
+            case OP_SHOW_SHOP_BOSS_2026:
+                if (!Boss2026.Instance.Condition)
+                {
+                    player.redDialog("Sự kiện săn boss hiện chưa mở hoặc đã kết thúc");
+                    break;
+                }
+                showShop(SHOP_BOSS_2026, player);
+                break;
+            case OP_XEM_TOP_BOSS_2026:
+                showTop(Boss2026.TopBossFlowerCoin2026.Instance, player);
+                break;
+            case OP_XEM_TOP_FLOWER_COIN_2026:
+                showTop(Boss2026.TopFlowerCoinBalance2026.Instance, player);
                 break;
             case OP_CHALLENGE:
                 {

@@ -17,5 +17,10 @@ namespace Gopet.APIs
         public bool IsAdmin { get; set; }
         public DateTime LoginDate { get; set; }
         public DateTime LastTimeOnline { get; set; }
+        // Điểm Hoa Ngọc cả đời từ sự kiện săn boss (xem Data/Event/Year2026/Boss2026.cs) — không
+        // bị trừ khi tiêu Hoa Ngọc mua đồ, dùng để xếp hạng.
+        public int NumBossFlowerCoin2026 { get; set; }
+        // Số dư Hoa Ngọc ĐANG CÓ (MONEY_TYPE_FLOWER_COIN) — giảm khi mua đồ ở SHOP_BOSS_2026.
+        public int FlowerCoin { get; set; }
     }
 }
