@@ -1,6 +1,7 @@
 
 using Gopet.Data.GopetItem;
 using Gopet.Util;
+using Newtonsoft.Json;
 
 public class ShopTemplateItem
 {
@@ -18,7 +19,17 @@ public class ShopTemplateItem
     /// Ngọc + 100.000 Ngọc). NULL/rỗng/price2[i]=0 = lựa chọn i chỉ cần 1 loại tiền như trước giờ
     /// (không đổi hành vi cũ). Xem MenuController.checkMoneyShopItem/deductMoneyShopItem.
     /// </summary>
+    /// <remarks>
+    /// [JsonProperty(NullValueHandling = Ignore)] BẮT BUỘC phải có: object này bị serialize thẳng
+    /// vào cột player.shopArena (VARCHAR 4000, xem ShopArena.cs) mỗi khi player reset shop đấu
+    /// trường — JsonAdapter dùng NullValueHandling.Include GLOBAL nên nếu không override riêng ở
+    /// đây, mọi ShopTemplateItem null cả 2 field mới này (hầu hết mọi item hiện có, vì tính năng
+    /// chỉ dùng cho hộp quà Boss2026) sẽ tốn thêm ~30 byte/item × N item trong shopArena, có thể
+    /// làm vượt 4000 ký tự → MySQL cắt cụt JSON → crash JsonSerializationException lúc login.
+    /// </remarks>
+    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
     public sbyte[]? moneyType2;
+    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
     public int[]? price2;
     public bool isSpceial = false;
     public String nameSpeceial, descriptionSpeceial;
