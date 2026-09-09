@@ -99,12 +99,11 @@ public partial class MenuController
                                                 GiftCodeData giftCodeData = MySqlConnection.QuerySingleOrDefault<GiftCodeData>("SELECT * FROM `gift_code` WHERE `gift_code`.`code` = @code;", new { code = code });
                                                 if (giftCodeData != null)
                                                 {
+                                                    // isForNonActiveUser=true = code MỞ RỘNG cho cả tài khoản chưa kích hoạt (không giới hạn
+                                                    // riêng cho tài khoản đã kích hoạt) — không phải "chỉ dành cho chưa kích hoạt". Tài khoản đã
+                                                    // kích hoạt luôn đổi được mọi code; chỉ tài khoản CHƯA kích hoạt bị chặn với code thường
+                                                    // (isForNonActiveUser=false).
                                                     bool isActive = player.user.role != UserData.ROLE_NON_ACTIVE;
-                                                    if (giftCodeData.isForNonActiveUser && isActive)
-                                                    {
-                                                        player.redDialog(player.Language.GiftCodeOnlyForNonActiveUser);
-                                                        goto EndGiftCode;
-                                                    }
                                                     if (!giftCodeData.isForNonActiveUser && !isActive)
                                                     {
                                                         player.redDialog(player.Language.GiftCodeOnlyForActiveUser);
