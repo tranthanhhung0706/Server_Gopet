@@ -27,6 +27,13 @@ namespace Gopet.APIs
         public sbyte[]? MoneyType { get; set; }
         // Giá tương ứng — MoneyType[i] và Price[i] PHẢI cùng độ dài, ghép theo index.
         public int[]? Price { get; set; }
+        // Loại tiền THỨ 2 bắt buộc phải có ĐỦ cùng lúc với MoneyType[i]/Price[i] (CỘNG THÊM, khác
+        // hẳn ý nghĩa của MoneyType/Price là "chọn 1 trong N") — vd lựa chọn i cần 5 Hoa Ngọc VÀ
+        // 100.000 Ngọc thì MoneyType2[i]=1 (Ngọc), Price2[i]=100000. NULL hoặc Price2[i]=0 (hoặc
+        // để nguyên field null) = lựa chọn i chỉ cần 1 loại tiền như trước giờ. Nếu set thì phải
+        // cùng độ dài với MoneyType/Price. Xem MenuController.checkMoneyShopItem.
+        public sbyte[]? MoneyType2 { get; set; }
+        public int[]? Price2 { get; set; }
         // Có field/getter nhưng KHÔNG nơi nào trong code so sánh/gate theo giá trị này — cột hiện
         // không ảnh hưởng gameplay (shop Clan thật sự dựng động trong ShopClan.cs, không đọc từ
         // bảng này).

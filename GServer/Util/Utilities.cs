@@ -193,6 +193,37 @@ namespace Gopet.Util
             return arr.ElementAt(nextInt(arr.Count()));
         }
 
+        /// <summary>
+        /// Chọn 1 index theo trọng số (weight càng lớn thì xác suất trúng càng cao) — dùng cho
+        /// GopetManager.GIFT_RANDOM_ITEM_WEIGHTED. Không cần tổng trọng số = 100, hệ thống tự tính
+        /// tỷ lệ tương đối (vd weight 50 và 5 thì phần tử đầu có tỷ lệ gấp 10 lần phần tử sau).
+        /// Trọng số &lt;= 0 coi như không thể trúng. Tổng trọng số &lt;= 0 (vd toàn 0) thì fallback
+        /// về random đều để tránh chia cho 0.
+        /// </summary>
+        public static int WeightedRandomIndex(List<int> weights)
+        {
+            int total = 0;
+            foreach (int w in weights)
+            {
+                total += Math.Max(0, w);
+            }
+            if (total <= 0)
+            {
+                return nextInt(weights.Count);
+            }
+            int roll = nextInt(total);
+            int cumulative = 0;
+            for (int i = 0; i < weights.Count; i++)
+            {
+                cumulative += Math.Max(0, weights[i]);
+                if (roll < cumulative)
+                {
+                    return i;
+                }
+            }
+            return weights.Count - 1;
+        }
+
         public static T RandomArray<T>(List<T> arr)
         {
             if (arr.Count == 1)

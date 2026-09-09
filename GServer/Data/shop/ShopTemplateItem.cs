@@ -10,6 +10,16 @@ public class ShopTemplateItem
     public int count;
     public sbyte[] moneyType;
     public int[] price;
+    /// <summary>
+    /// Loại tiền tệ THỨ 2 bắt buộc phải có ĐỦ (cộng thêm, không phải lựa chọn khác) — khác với
+    /// moneyType/price là danh sách CHỌN 1 trong N. Ghép theo index với moneyType/price: nếu
+    /// moneyType2[i]/price2[i] tồn tại và price2[i] > 0 thì lựa chọn thanh toán thứ i cần đủ CẢ
+    /// price[i] moneyType[i] LẪN price2[i] moneyType2[i] mới mua được (vd hộp quà Boss2026: 5 Hoa
+    /// Ngọc + 100.000 Ngọc). NULL/rỗng/price2[i]=0 = lựa chọn i chỉ cần 1 loại tiền như trước giờ
+    /// (không đổi hành vi cũ). Xem MenuController.checkMoneyShopItem/deductMoneyShopItem.
+    /// </summary>
+    public sbyte[]? moneyType2;
+    public int[]? price2;
     public bool isSpceial = false;
     public String nameSpeceial, descriptionSpeceial;
     public bool needRemove = false;
@@ -128,6 +138,16 @@ public class ShopTemplateItem
     public int[] getPrice()
     {
         return this.price;
+    }
+
+    public sbyte[]? getMoneyType2()
+    {
+        return this.moneyType2;
+    }
+
+    public int[]? getPrice2()
+    {
+        return this.price2;
     }
 
     public String getNameSpeceial()
@@ -303,6 +323,8 @@ public class ShopTemplateItem
         item.count = count;
         item.moneyType = moneyType.ToArray();
         item.price = price.ToArray();
+        item.moneyType2 = moneyType2?.ToArray();
+        item.price2 = price2?.ToArray();
         item.isSpceial = isSpceial;
         item.nameSpeceial = nameSpeceial;
         item.descriptionSpeceial = descriptionSpeceial;

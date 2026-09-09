@@ -536,6 +536,7 @@ namespace Gopet.Language
         public string ShopBoss2026Option { get; set; } = "Đổi Hoa Ngọc";
         public string TopBoss2026Option { get; set; } = "Xem top săn boss";
         public string TopFlowerCoinBoss2026Option { get; set; } = "Xem top số dư Hoa Ngọc";
+        public string ShopGiftBoxBoss2026Option { get; set; } = "Đổi hộp quà";
         public string ViewTopFlowerGem { get; set; } = "TOP Dâng Ngọc, Tặng Hoa";
         public string PleaseGoToNPCToUseFlower { get; set; } = "Để dùng boá hoa bạn vui lòng đến gặp NPC Tran Chan để tặng!";
         public string UseFlowerOK { get; set; } = "Tặng hoa thành công! Nhận được {0} điểm tích luỹ";

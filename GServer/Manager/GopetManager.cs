@@ -228,6 +228,15 @@ public class GopetManager
     /// xếp hạng, KHÔNG bị trừ khi tiêu Hoa Ngọc mua đồ).
     /// </summary>
     public const int GIFT_FLOWER_COIN_BOSS = 16;
+    /// <summary>
+    /// Giống GIFT_RANDOM_ITEM (9) — random 1 hoặc nhiều phần thưởng từ danh sách — nhưng CÓ trọng
+    /// số (tỷ lệ ra không đều nhau). Khác định dạng: mỗi phần tử là bộ 3 số [weight, count, itemId]
+    /// thay vì 2 số [count, itemId]. Weight càng cao thì xác suất trúng càng cao, không cần cộng
+    /// tổng = 100 (hệ thống tự quy đổi theo tỷ lệ tương đối). itemId âm vẫn dùng được mã pool đặc
+    /// biệt giống type 9 (xem GameController.GrantRandomItemPick). Ví dụ [17,1, 90,1,185, 10,1,-135]
+    /// = random 1 phần thưởng, 90% ra itemId 185 (kim cương), 10% ra Mảnh "Hoàng Kim" ngẫu nhiên.
+    /// </summary>
+    public const int GIFT_RANDOM_ITEM_WEIGHTED = 17;
     /**
      * thời gian chờ lượt đánh (mili giây)
      */
@@ -864,6 +873,7 @@ public class GopetManager
         shopTemplate.put(MenuController.SHOP_GIAN_THUONG, new ShopTemplate(MenuController.SHOP_GIAN_THUONG));
         shopTemplate.put(MenuController.SHOP_BIRTHDAY_EVENT, new ShopTemplate(MenuController.SHOP_BIRTHDAY_EVENT));
         shopTemplate.put(MenuController.SHOP_BOSS_2026, new ShopTemplate(MenuController.SHOP_BOSS_2026));
+        shopTemplate.put(MenuController.SHOP_BOSS_2026_GIFT_BOX, new ShopTemplate(MenuController.SHOP_BOSS_2026_GIFT_BOX));
     }
 
     public static void readMobLvl(String cmd, HashMap<int, MobLvInfo> hashMap)

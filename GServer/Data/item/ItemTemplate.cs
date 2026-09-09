@@ -44,6 +44,12 @@ namespace Gopet.Data.GopetItem
         /// </summary>
         public int[] itemOptionValue { get; private set; } = new int[0];
         /// <summary>
+        /// Danh sách phần thưởng ngẫu nhiên khi "mở" item này (hộp quà) — cùng format gift_code
+        /// .gift_data/boss.gift, xem GameController.onReiceiveGift. NULL/rỗng = item không mở được
+        /// gì (không phải hộp quà). Xem Data/Event/Year2026/Boss2026.cs (UseItem) để biết chỗ đọc.
+        /// </summary>
+        public int[][] giftData { get; private set; } = new int[0][];
+        /// <summary>
         /// Khoảng random chỉ số healt point
         /// </summary>
         public int[] hpRange { get; private set; }

@@ -108,6 +108,14 @@ public partial class MenuController
             case OP_XEM_TOP_FLOWER_COIN_2026:
                 showTop(Boss2026.TopFlowerCoinBalance2026.Instance, player);
                 break;
+            case OP_SHOW_SHOP_GIFT_BOX_2026:
+                if (!Boss2026.Instance.Condition)
+                {
+                    player.redDialog("Sự kiện săn boss hiện chưa mở hoặc đã kết thúc");
+                    break;
+                }
+                showShop(SHOP_BOSS_2026_GIFT_BOX, player);
+                break;
             case OP_CHALLENGE:
                 {
                     if (player.checkStar(GopetManager.STAR_JOIN_CHALLENGE))

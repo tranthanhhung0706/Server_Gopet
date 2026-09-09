@@ -669,6 +669,7 @@ public partial class MenuController
                 break;
             case SHOP_BIRTHDAY_EVENT:
             case SHOP_BOSS_2026:
+            case SHOP_BOSS_2026_GIFT_BOX:
             case SHOP_GIAN_THUONG:
             case SHOP_ENERGY:
             case SHOP_CLAN:
@@ -748,10 +749,10 @@ public partial class MenuController
                     int[] price = shopTemplateItem.getPrice();
                     if (paymentIndex >= 0 && paymentIndex < typeMoney.Length)
                     {
-                        if (checkMoney(typeMoney[paymentIndex], price[paymentIndex], player))
+                        if (checkMoneyShopItem(shopTemplateItem, paymentIndex, 1, player))
                         {
                             if (shopTemplateItem.isSellItem || player.controller.objectPerformed.ContainsKey(OBJKEY_NAME_PET_WANT))
-                                addMoney(typeMoney[paymentIndex], -price[paymentIndex], player);
+                                deductMoneyShopItem(shopTemplateItem, paymentIndex, 1, player);
                             if (shopTemplateItem.isNeedRemove())
                             {
                                 shopTemplate.getShopTemplateItems().remove(shopTemplateItem);
@@ -2981,18 +2982,17 @@ public partial class MenuController
         }
         ShopTemplateItem shopTemplateItem = shopTemplate.getShopTemplateItems().get(index);
         sbyte[] typeMoney = shopTemplateItem.getMoneyType();
-        int[] price = shopTemplateItem.getPrice();
         if (paymentIndex < 0 || paymentIndex >= typeMoney.Length)
         {
             return;
         }
-        long totalPrice = (long)price[paymentIndex] * count;
-        if (!checkMoney(typeMoney[paymentIndex], totalPrice, player))
+        if (!checkMoneyShopItem(shopTemplateItem, paymentIndex, count, player))
         {
-            NotEngouhMoney(typeMoney[paymentIndex], totalPrice, player);
+            NotEngouhMoneyShopItem(shopTemplateItem, paymentIndex, count, player);
             return;
         }
-        addMoney(typeMoney[paymentIndex], -totalPrice, player);
+        long totalPrice = (long)shopTemplateItem.getPrice()[paymentIndex] * count;
+        deductMoneyShopItem(shopTemplateItem, paymentIndex, count, player);
         bool canTrade = !shopTemplateItem.isLock && (shopTemplateItem.itemTemTempleId != 240009 || shopTemplateItem.itemTemTempleId != 240010);
         int totalUnitCount = shopTemplateItem.getCount() * count;
         Item item = new Item(shopTemplateItem.getItemTempalteId()) { canTrade = canTrade };

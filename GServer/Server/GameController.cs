@@ -4282,6 +4282,84 @@ public class GameController
         }
     }
 
+    /// <summary>
+    /// Xử lý 1 lượt trúng thưởng ngẫu nhiên — dùng chung cho GIFT_RANDOM_ITEM (đều) và
+    /// GIFT_RANDOM_ITEM_WEIGHTED (có trọng số), 2 kiểu chỉ khác cách CHỌN ra (itemId, count),
+    /// còn phần resolve mã pool đặc biệt (itemId âm) + cộng item/điểm cho player thì giống hệt
+    /// nhau nên tách riêng để khỏi chép lại code.
+    /// </summary>
+    private void GrantRandomItemPick(int itemId, int count, JArrayList<Popup> popups)
+    {
+        bool flag = false;
+        switch (itemId)
+        {
+            case -123:
+                itemId = Utilities.RandomArray(GopetManager.ID_ITEM_SILVER);
+                break;
+            case -124:
+                itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PET_TIER_ONE);
+                break;
+            case -125:
+                itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PET_TIER_TWO);
+                break;
+            case -126:
+                player.playerData.AccumulatedPoint += count;
+                popups.add(new Popup(string.Format(player.Language.GiftAccumulatedPoint, count)));
+                flag = true;
+                break;
+            case -127:
+                itemId = Utilities.RandomArray(GopetManager.ID_ITEM_SILVER2);
+                break;
+            case -128:
+                itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PART_PET_TIER_THREE);
+                break;
+            case -129:
+                itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PET_TIER_ONE);
+                break;
+            case -130:
+                itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PART_WING_TIER_1);
+                break;
+            case -131:
+                itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PART_WING_TIER_2);
+                break;
+            case -132:
+                itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PART_WING_TIER_3);
+                break;
+            case -133:
+                itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PART_HAI_TAC);
+                break;
+            case -134:
+                itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PART_TINH_VAN);
+                break;
+            case -135:
+                itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PART_HOANG_KIM);
+                break;
+            case -136:
+                itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PART_PET_TIER_FOUR);
+                break;
+            case -137:
+                itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PART_PET_TIER_FIVE);
+                break;
+        }
+        if (flag) return;
+        Item item = new Item(itemId);
+        item.SourcesItem.Add(Gopet.Data.item.ItemSource.TỪ_GIFT_CODE);
+        if (!item.getTemp().isStackable)
+        {
+            for (int j = 0; j < count; j++)
+            {
+                player.addItemToInventory(new Item(itemId) { SourcesItem = new CopyOnWriteArrayList<Gopet.Data.item.ItemSource>(Gopet.Data.item.ItemSource.TỪ_GIFT_CODE) });
+            }
+            popups.add(new Popup(item.getName(player) + " x" + count));
+        }
+        else
+        {
+            item.count = count;
+            player.addItemToInventory(item);
+            popups.add(new Popup(item.getName(player)));
+        }
+    }
+
     public JArrayList<Popup> onReiceiveGift(int[][]? gift)
     {
         JArrayList<Popup> popups = new();
@@ -4381,77 +4459,29 @@ public class GameController
                         {
                             for (int t = 0; t < numGift; t++)
                             {
-                                bool flag = false;
                                 int[] rand = Utilities.RandomArray(listGiftRandom);
-                                int itemId = rand[1];
-                                int count = rand[0];
-                                switch (itemId)
-                                {
-                                    case -123:
-                                        itemId = Utilities.RandomArray(GopetManager.ID_ITEM_SILVER);
-                                        break;
-                                    case -124:
-                                        itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PET_TIER_ONE);
-                                        break;
-                                    case -125:
-                                        itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PET_TIER_TWO);
-                                        break;
-                                    case -126:
-                                        player.playerData.AccumulatedPoint += count;
-                                        popups.add(new Popup(string.Format(player.Language.GiftAccumulatedPoint, count)));
-                                        flag = true;
-                                        break;
-                                    case -127:
-                                        itemId = Utilities.RandomArray(GopetManager.ID_ITEM_SILVER2);
-                                        break;
-                                    case -128:
-                                        itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PART_PET_TIER_THREE);
-                                        break;
-                                    case -129:
-                                        itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PET_TIER_ONE);
-                                        break;
-                                    case -130:
-                                        itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PART_WING_TIER_1);
-                                        break;
-                                    case -131:
-                                        itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PART_WING_TIER_2);
-                                        break;
-                                    case -132:
-                                        itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PART_WING_TIER_3);
-                                        break;
-                                    case -133:
-                                        itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PART_HAI_TAC);
-                                        break;
-                                    case -134:
-                                        itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PART_TINH_VAN);
-                                        break;
-                                    case -135:
-                                        itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PART_HOANG_KIM);
-                                        break;
-                                    case -136:
-                                        itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PART_PET_TIER_FOUR);
-                                        break;
-                                    case -137:
-                                        itemId = Utilities.RandomArray(GopetManager.ID_ITEM_PART_PET_TIER_FIVE);
-                                        break;
-                                }
-                                if (flag) break;
-                                Item item = new Item(itemId);
-                                item.SourcesItem.Add(Gopet.Data.item.ItemSource.TỪ_GIFT_CODE);
-                                if (!item.getTemp().isStackable)
-                                {
-                                    for (int j = 0; j < count; j++)
-                                    {
-                                        player.addItemToInventory(new Item(itemId) { SourcesItem = new CopyOnWriteArrayList<Gopet.Data.item.ItemSource>(Gopet.Data.item.ItemSource.TỪ_GIFT_CODE) });
-                                    }
-                                    popups.add(new Popup(item.getName(player) + " x" + count));
-                                }
-                                else
-                                {
-                                    item.count = count;
-                                    player.addItemToInventory(item);
-                                    popups.add(new Popup(item.getName(player)));
-                                }
+                                GrantRandomItemPick(rand[1], rand[0], popups);
+                            }
+                        }
+                    }
+                    break;
+                case GopetManager.GIFT_RANDOM_ITEM_WEIGHTED:
+                    {
+                        int numGift = giftInfo[1];
+                        List<int> weights = new();
+                        List<int[]> listGiftRandom = new(); // mỗi phần tử: [count, itemId]
+                        for (int xxx = 2; xxx + 2 < giftInfo.Length; xxx += 3)
+                        {
+                            weights.Add(giftInfo[xxx]);
+                            listGiftRandom.Add(new int[] { giftInfo[xxx + 1], giftInfo[xxx + 2] });
+                        }
+                        if (listGiftRandom.Count > 0)
+                        {
+                            for (int t = 0; t < numGift; t++)
+                            {
+                                int pickIndex = Utilities.WeightedRandomIndex(weights);
+                                int[] pick = listGiftRandom[pickIndex];
+                                GrantRandomItemPick(pick[1], pick[0], popups);
                             }
                         }
                     }
@@ -5580,6 +5610,9 @@ public class GameController
                     break;
                 case GopetManager.GIFT_RANDOM_ITEM:
                     lines.add($"Ngẫu nhiên {giftInfo[1]} phần thưởng từ danh sách vật phẩm đặc biệt");
+                    break;
+                case GopetManager.GIFT_RANDOM_ITEM_WEIGHTED:
+                    lines.add($"Ngẫu nhiên {giftInfo[1]} phần thưởng (có trọng số %) từ danh sách vật phẩm đặc biệt");
                     break;
                 case GopetManager.GIFT_ITEM_MAX_OPTION:
                     {

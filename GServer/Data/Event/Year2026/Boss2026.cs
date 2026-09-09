@@ -1,4 +1,6 @@
 using Dapper;
+using Gopet.Data.Collections;
+using Gopet.Data.GopetItem;
 using Gopet.Manager;
 using Gopet.Util;
 using System;
@@ -34,6 +36,11 @@ namespace Gopet.Data.Event.Year2026
 
         public const string EVENT_KEY = "boss2026";
 
+        /// <summary>ID "Hộp quà thường" — mua ở SHOP_BOSS_2026 bằng 10 Hoa Ngọc hoặc 20.000 Ngọc.</summary>
+        public const int ID_GIFT_BOX_NORMAL = 240024;
+        /// <summary>ID "Hộp quà VIP" — mua ở SHOP_BOSS_2026 bằng 20 Hoa Ngọc hoặc 2.000 Vàng.</summary>
+        public const int ID_GIFT_BOX_VIP = 240025;
+
         protected Boss2026()
         {
             this.Name = "Sự kiện săn boss 2026";
@@ -42,6 +49,40 @@ namespace Gopet.Data.Event.Year2026
         public override bool Condition => EventConfigManager.IsActive(EVENT_KEY);
 
         public override bool NeedRemove => false;
+
+        public override int[] ItemsOfEvent => new int[] { ID_GIFT_BOX_NORMAL, ID_GIFT_BOX_VIP };
+
+        /// <summary>
+        /// Mở hộp quà — trừ 1 hộp, tặng ngẫu nhiên 1 vật phẩm theo ItemTemplate.giftData của CHÍNH
+        /// item hộp đó (cột `giftData` bảng `item`, sửa qua trang admin Item) — KHÔNG hardcode
+        /// trong code nữa. Giống hệt cấu trúc UseEventItem() của GameBirthdayEvent cho
+        /// ID_RANDOM_EVENT_BOX, chỉ khác nguồn dữ liệu loot.
+        /// </summary>
+        public override void UseItem(int itemId, Player player)
+        {
+            if (itemId != ID_GIFT_BOX_NORMAL && itemId != ID_GIFT_BOX_VIP)
+            {
+                return;
+            }
+            if (!GopetManager.itemTemplate.ContainsKey(itemId) || GopetManager.itemTemplate.get(itemId).giftData.Length == 0)
+            {
+                player.redDialog("Hộp quà này chưa được cấu hình danh sách vật phẩm, vui lòng báo admin");
+                return;
+            }
+            Item item = player.controller.selectItemsbytemp(itemId, GopetManager.NORMAL_INVENTORY);
+            if (item == null || !GameController.checkCount(item, 1))
+            {
+                return;
+            }
+            player.controller.subCountItem(item, 1, GopetManager.NORMAL_INVENTORY);
+            JArrayList<Popup> popups = player.controller.onReiceiveGift(GopetManager.itemTemplate.get(itemId).giftData);
+            JArrayList<String> textInfo = new();
+            foreach (Popup popup in popups)
+            {
+                textInfo.add(popup.getText());
+            }
+            player.okDialog(string.Format(player.Language.GetGiftCodeOK, String.Join(",", textInfo)));
+        }
 
         /// <summary>
         /// Đăng ký tên hiển thị 2 option của NPC "Thợ Săn Boss" + bảng xếp hạng — chạy ĐÚNG 1 LẦN
@@ -61,6 +102,7 @@ namespace Gopet.Data.Event.Year2026
                 item1.Value.NpcOptionLanguage[MenuController.OP_SHOW_SHOP_BOSS_2026] = item1.Value.ShopBoss2026Option;
                 item1.Value.NpcOptionLanguage[MenuController.OP_XEM_TOP_BOSS_2026] = item1.Value.TopBoss2026Option;
                 item1.Value.NpcOptionLanguage[MenuController.OP_XEM_TOP_FLOWER_COIN_2026] = item1.Value.TopFlowerCoinBoss2026Option;
+                item1.Value.NpcOptionLanguage[MenuController.OP_SHOW_SHOP_GIFT_BOX_2026] = item1.Value.ShopGiftBoxBoss2026Option;
             }
         }
 

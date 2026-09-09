@@ -20,6 +20,10 @@ namespace Gopet.APIs
         public bool IsStackable { get; set; }
         public int[]? ItemOption { get; set; }
         public int[]? ItemOptionValue { get; set; }
+        // Danh sách phần thưởng ngẫu nhiên khi "mở" item này (hộp quà) — cùng format gift_code
+        // .gift_data/boss.gift, vd [[9,1,1,182,1,183]] = mở ra random 1 trong 2 item 182/183.
+        // NULL/rỗng = item không mở được gì (không phải hộp quà). Xem Boss2026.UseItem().
+        public int[][]? GiftData { get; set; }
         public int[]? AtkRange { get; set; }
         public int[]? DefRange { get; set; }
         public int[]? HpRange { get; set; }

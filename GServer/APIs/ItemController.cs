@@ -33,7 +33,7 @@ namespace Gopet.APIs
         private const string SelectItemTemplateSql =
             @"SELECT itemId AS ItemId, name AS Name, description AS Description, type AS Type,
                      iconPath AS IconPath, frameImgPath AS FrameImgPath, gender AS Gender, isStackable AS IsStackable,
-                     itemOption AS ItemOption, itemOptionValue AS ItemOptionValue,
+                     itemOption AS ItemOption, itemOptionValue AS ItemOptionValue, giftData AS GiftData,
                      atkRange AS AtkRange, defRange AS DefRange, hpRange AS HpRange, mpRange AS MpRange,
                      requireStr AS RequireStr, requireInt AS RequireInt, requireAgi AS RequireAgi,
                      expire AS Expire, isOnSky AS IsOnSky, canTrade AS CanTrade,
@@ -164,6 +164,7 @@ namespace Gopet.APIs
             bool IsStackable = true,
             int[]? ItemOption = null,
             int[]? ItemOptionValue = null,
+            int[][]? GiftData = null,
             int[]? AtkRange = null,
             int[]? DefRange = null,
             int[]? HpRange = null,
@@ -208,6 +209,7 @@ namespace Gopet.APIs
                 req.IsStackable,
                 req.ItemOption,
                 req.ItemOptionValue,
+                req.GiftData,
                 req.AtkRange,
                 req.DefRange,
                 req.HpRange,
@@ -227,11 +229,11 @@ namespace Gopet.APIs
             conn.Execute(
                 @"INSERT INTO `item`
                     (itemId, name, description, type, iconPath, frameImgPath, gender, isStackable,
-                     itemOption, itemOptionValue, atkRange, defRange, hpRange, mpRange,
+                     itemOption, itemOptionValue, giftData, atkRange, defRange, hpRange, mpRange,
                      requireStr, requireInt, requireAgi, expire, isOnSky, canTrade, petNClass, element, price, wingFrameNum)
                   VALUES
                     (@ItemId, @Name, @Description, @Type, @IconPath, @FrameImgPath, @Gender, @IsStackable,
-                     @ItemOption, @ItemOptionValue, @AtkRange, @DefRange, @HpRange, @MpRange,
+                     @ItemOption, @ItemOptionValue, @GiftData, @AtkRange, @DefRange, @HpRange, @MpRange,
                      @RequireStr, @RequireInt, @RequireAgi, @Expire, @IsOnSky, @CanTrade, @PetNClass, @Element, @Price, @WingFrameNum)",
                 insertParams);
 
@@ -241,7 +243,7 @@ namespace Gopet.APIs
 
         public record UpdateItemRequest(string? Name, string? Description, int? Type, string? IconPath,
             string? FrameImgPath, sbyte? Gender, bool? IsStackable, int[]? ItemOption, int[]? ItemOptionValue,
-            int[]? AtkRange, int[]? DefRange, int[]? HpRange, int[]? MpRange, int? RequireStr, int? RequireInt,
+            int[][]? GiftData, int[]? AtkRange, int[]? DefRange, int[]? HpRange, int[]? MpRange, int? RequireStr, int? RequireInt,
             int? RequireAgi, long? Expire, bool? IsOnSky, bool? CanTrade, sbyte? PetNClass, sbyte? Element, int? Price,
             sbyte? WingFrameNum);
 
@@ -271,6 +273,7 @@ namespace Gopet.APIs
             if (req?.IsStackable is bool isStackable) { setClauses.Add("isStackable = @isStackable"); parameters.Add("isStackable", isStackable); }
             if (req?.ItemOption != null) { setClauses.Add("itemOption = @itemOption"); parameters.Add("itemOption", req.ItemOption); }
             if (req?.ItemOptionValue != null) { setClauses.Add("itemOptionValue = @itemOptionValue"); parameters.Add("itemOptionValue", req.ItemOptionValue); }
+            if (req?.GiftData != null) { setClauses.Add("giftData = @giftData"); parameters.Add("giftData", req.GiftData); }
             if (req?.AtkRange != null) { setClauses.Add("atkRange = @atkRange"); parameters.Add("atkRange", req.AtkRange); }
             if (req?.DefRange != null) { setClauses.Add("defRange = @defRange"); parameters.Add("defRange", req.DefRange); }
             if (req?.HpRange != null) { setClauses.Add("hpRange = @hpRange"); parameters.Add("hpRange", req.HpRange); }

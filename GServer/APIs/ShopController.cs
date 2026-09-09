@@ -30,6 +30,7 @@ namespace Gopet.APIs
             @"SELECT id AS Id, ShopId AS ShopId, inventoryType AS InventoryType,
                      itemTemTempleId AS ItemTemTempleId, petId AS PetId, count AS Count,
                      isSellItem AS IsSellItem, moneyType AS MoneyType, price AS Price,
+                     moneyType2 AS MoneyType2, price2 AS Price2,
                      clanLvl AS ClanLvl, perCount AS PerCount
               FROM `shop`";
 
@@ -47,6 +48,26 @@ namespace Gopet.APIs
             if (moneyType.Length != price.Length)
             {
                 error = "moneyType và price phải có cùng độ dài (ghép theo index)";
+                return false;
+            }
+            error = null;
+            return true;
+        }
+
+        /// <summary>
+        /// MoneyType2/Price2 (loại tiền thứ 2 bắt buộc, CỘNG THÊM) là tuỳ chọn — nhưng nếu có set
+        /// thì phải cùng độ dài với MoneyType/Price (ghép theo index).
+        /// </summary>
+        private static bool IsValidPayment2(sbyte[]? moneyType, int[]? price, sbyte[]? moneyType2, int[]? price2, out string? error)
+        {
+            if (moneyType2 == null && price2 == null)
+            {
+                error = null;
+                return true;
+            }
+            if ((moneyType2?.Length ?? 0) != (price2?.Length ?? 0) || moneyType2?.Length != moneyType?.Length)
+            {
+                error = "moneyType2/price2 (nếu có) phải cùng độ dài với moneyType/price";
                 return false;
             }
             error = null;
@@ -117,6 +138,8 @@ namespace Gopet.APIs
             bool IsSellItem = true,
             sbyte[]? MoneyType = null,
             int[]? Price = null,
+            sbyte[]? MoneyType2 = null,
+            int[]? Price2 = null,
             int ClanLvl = 0,
             int PerCount = 0,
             sbyte InventoryType = 0);
@@ -136,6 +159,10 @@ namespace Gopet.APIs
             {
                 return BadRequest(new BaseResponse<object?>(0, paymentError, null));
             }
+            if (!IsValidPayment2(req.MoneyType, req.Price, req.MoneyType2, req.Price2, out string? payment2Error))
+            {
+                return BadRequest(new BaseResponse<object?>(0, payment2Error, null));
+            }
             if (req.IsSellItem && req.ItemTemTempleId == null)
             {
                 return BadRequest(new BaseResponse<object?>(0, "Thiếu itemTemTempleId (đang bán item)", null));
@@ -149,9 +176,9 @@ namespace Gopet.APIs
 
             int newId = conn.ExecuteScalar<int>(
                 @"INSERT INTO `shop`
-                    (ShopId, inventoryType, itemTemTempleId, petId, count, isSellItem, moneyType, price, clanLvl, perCount)
+                    (ShopId, inventoryType, itemTemTempleId, petId, count, isSellItem, moneyType, price, moneyType2, price2, clanLvl, perCount)
                   VALUES
-                    (@ShopId, @InventoryType, @ItemTemTempleId, @PetId, @Count, @IsSellItem, @MoneyType, @Price, @ClanLvl, @PerCount);
+                    (@ShopId, @InventoryType, @ItemTemTempleId, @PetId, @Count, @IsSellItem, @MoneyType, @Price, @MoneyType2, @Price2, @ClanLvl, @PerCount);
                   SELECT LAST_INSERT_ID();",
                 req);
 
@@ -160,7 +187,8 @@ namespace Gopet.APIs
         }
 
         public record UpdateShopRequest(int? ShopId, sbyte? InventoryType, int? ItemTemTempleId, int? PetId,
-            int? Count, bool? IsSellItem, sbyte[]? MoneyType, int[]? Price, int? ClanLvl, int? PerCount);
+            int? Count, bool? IsSellItem, sbyte[]? MoneyType, int[]? Price, sbyte[]? MoneyType2, int[]? Price2,
+            int? ClanLvl, int? PerCount);
 
         /// <summary>Cập nhật 1 phần shop item. Không cho đổi id (khoá chính).</summary>
         [HttpPatch("/v1/gopet/api/Shops/{id:int}")]
@@ -174,13 +202,22 @@ namespace Gopet.APIs
                 return NotFound(new BaseResponse<object?>(0, "Không tìm thấy shop item", null));
             }
 
+            sbyte[] effectiveMoneyType = req?.MoneyType ?? existing.MoneyType ?? Array.Empty<sbyte>();
+            int[] effectivePrice = req?.Price ?? existing.Price ?? Array.Empty<int>();
             if ((req?.MoneyType != null || req?.Price != null))
             {
-                sbyte[] effectiveMoneyType = req.MoneyType ?? existing.MoneyType ?? Array.Empty<sbyte>();
-                int[] effectivePrice = req.Price ?? existing.Price ?? Array.Empty<int>();
                 if (!IsValidPayment(effectiveMoneyType, effectivePrice, out string? paymentError))
                 {
                     return BadRequest(new BaseResponse<object?>(0, paymentError, null));
+                }
+            }
+            if ((req?.MoneyType2 != null || req?.Price2 != null))
+            {
+                sbyte[]? effectiveMoneyType2 = req?.MoneyType2 ?? existing.MoneyType2;
+                int[]? effectivePrice2 = req?.Price2 ?? existing.Price2;
+                if (!IsValidPayment2(effectiveMoneyType, effectivePrice, effectiveMoneyType2, effectivePrice2, out string? payment2Error))
+                {
+                    return BadRequest(new BaseResponse<object?>(0, payment2Error, null));
                 }
             }
 
@@ -196,6 +233,8 @@ namespace Gopet.APIs
             if (req?.IsSellItem is bool isSellItem) { setClauses.Add("isSellItem = @isSellItem"); parameters.Add("isSellItem", isSellItem); }
             if (req?.MoneyType != null) { setClauses.Add("moneyType = @moneyType"); parameters.Add("moneyType", req.MoneyType); }
             if (req?.Price != null) { setClauses.Add("price = @price"); parameters.Add("price", req.Price); }
+            if (req?.MoneyType2 != null) { setClauses.Add("moneyType2 = @moneyType2"); parameters.Add("moneyType2", req.MoneyType2); }
+            if (req?.Price2 != null) { setClauses.Add("price2 = @price2"); parameters.Add("price2", req.Price2); }
             if (req?.ClanLvl is int clanLvl) { setClauses.Add("clanLvl = @clanLvl"); parameters.Add("clanLvl", clanLvl); }
             if (req?.PerCount is int perCount) { setClauses.Add("perCount = @perCount"); parameters.Add("perCount", perCount); }
 

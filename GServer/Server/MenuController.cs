@@ -441,6 +441,10 @@ public partial class MenuController
     /// </summary>
     public const int OP_XEM_TOP_FLOWER_COIN_2026 = 103;
     /// <summary>
+    /// Mở shop đổi Hộp quà (thường/VIP) — sự kiện săn boss Boss2026.
+    /// </summary>
+    public const int OP_SHOW_SHOP_GIFT_BOX_2026 = 104;
+    /// <summary>
     /// Option Custom
     /// Trao đổi thưởng bằng
     /// </summary>
@@ -489,6 +493,11 @@ public partial class MenuController
     /// Cửa hàng đổi Hoa Ngọc — sự kiện săn boss Boss2026 (xem Data/Event/Year2026/Boss2026.cs).
     /// </summary>
     public const sbyte SHOP_BOSS_2026 = 14;
+    /// <summary>
+    /// Cửa hàng riêng đổi Hộp quà (thường/VIP) — sự kiện săn boss Boss2026, tách khỏi
+    /// SHOP_BOSS_2026 (đồ lặt vặt/vũ khí) cho dễ tìm.
+    /// </summary>
+    public const sbyte SHOP_BOSS_2026_GIFT_BOX = 15;
 
     public const int OBJKEY_REMOVE_ITEM_EQUIP = 0;
     public const int OBJKEY_KIOSK_ITEM = 1;
@@ -938,8 +947,7 @@ public partial class MenuController
             MenuItemInfo.PaymentOption[] paymentOptions = new MenuItemInfo.PaymentOption[shopTemplateItem.getMoneyType().Length];
             for (int i = 0; i < shopTemplateItem.getMoneyType().Length; i++)
             {
-                sbyte b = shopTemplateItem.getMoneyType()[i];
-                MenuItemInfo.PaymentOption paymentOption = new MenuItemInfo.PaymentOption(i, getMoneyText(b, shopTemplateItem.getPrice()[i], player), checkMoney(b, shopTemplateItem.getPrice()[i], player) ? (sbyte)1 : (sbyte)0);
+                MenuItemInfo.PaymentOption paymentOption = new MenuItemInfo.PaymentOption(i, getMoneyTextShopItem(shopTemplateItem, i, player), checkMoneyShopItem(shopTemplateItem, i, 1, player) ? (sbyte)1 : (sbyte)0);
                 paymentOptions[i] = paymentOption;
             }
             menuItemInfo.setShowDialog(true);
@@ -1115,6 +1123,84 @@ public partial class MenuController
                 player.playerData.NumEatSquareStickyRiceCoin += (int)value;
                 break;
         }
+    }
+
+    /// <summary>
+    /// Lựa chọn thanh toán ở index này có bắt buộc thêm loại tiền thứ 2 không (xem
+    /// ShopTemplateItem.moneyType2/price2) — price2[i] &lt;= 0 coi như không có, giữ hành vi cũ
+    /// (chỉ 1 loại tiền) để không phá các shop item hiện có.
+    /// </summary>
+    private static bool HasSecondCurrency(ShopTemplateItem shopTemplateItem, int paymentIndex)
+    {
+        sbyte[]? moneyType2 = shopTemplateItem.getMoneyType2();
+        int[]? price2 = shopTemplateItem.getPrice2();
+        return moneyType2 != null && price2 != null
+            && paymentIndex >= 0 && paymentIndex < moneyType2.Length && paymentIndex < price2.Length
+            && price2[paymentIndex] > 0;
+    }
+
+    /// <summary>
+    /// Kiểm tra đủ tiền cho 1 lựa chọn thanh toán của shop item — bao gồm cả loại tiền thứ 2 nếu
+    /// có (mua = cần đủ CẢ 2 loại, không phải chọn 1 trong 2). multiplier = số lượng mua (quantity).
+    /// </summary>
+    public static bool checkMoneyShopItem(ShopTemplateItem shopTemplateItem, int paymentIndex, long multiplier, Player player)
+    {
+        sbyte[] typeMoney = shopTemplateItem.getMoneyType();
+        int[] price = shopTemplateItem.getPrice();
+        if (!checkMoney(typeMoney[paymentIndex], (long)price[paymentIndex] * multiplier, player))
+        {
+            return false;
+        }
+        if (HasSecondCurrency(shopTemplateItem, paymentIndex))
+        {
+            if (!checkMoney(shopTemplateItem.getMoneyType2()![paymentIndex], (long)shopTemplateItem.getPrice2()![paymentIndex] * multiplier, player))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>Trừ tiền cho 1 lựa chọn thanh toán của shop item — LUÔN gọi sau khi checkMoneyShopItem trả true.</summary>
+    public static void deductMoneyShopItem(ShopTemplateItem shopTemplateItem, int paymentIndex, long multiplier, Player player)
+    {
+        sbyte[] typeMoney = shopTemplateItem.getMoneyType();
+        int[] price = shopTemplateItem.getPrice();
+        addMoney(typeMoney[paymentIndex], -(long)price[paymentIndex] * multiplier, player);
+        if (HasSecondCurrency(shopTemplateItem, paymentIndex))
+        {
+            addMoney(shopTemplateItem.getMoneyType2()![paymentIndex], -(long)shopTemplateItem.getPrice2()![paymentIndex] * multiplier, player);
+        }
+    }
+
+    /// <summary>Báo lỗi thiếu tiền — ưu tiên báo loại tiền chính nếu thiếu, không thì báo loại tiền thứ 2.</summary>
+    public static void NotEngouhMoneyShopItem(ShopTemplateItem shopTemplateItem, int paymentIndex, long multiplier, Player player)
+    {
+        sbyte[] typeMoney = shopTemplateItem.getMoneyType();
+        int[] price = shopTemplateItem.getPrice();
+        long mainNeeded = (long)price[paymentIndex] * multiplier;
+        if (!checkMoney(typeMoney[paymentIndex], mainNeeded, player))
+        {
+            NotEngouhMoney(typeMoney[paymentIndex], mainNeeded, player);
+            return;
+        }
+        if (HasSecondCurrency(shopTemplateItem, paymentIndex))
+        {
+            NotEngouhMoney(shopTemplateItem.getMoneyType2()![paymentIndex], (long)shopTemplateItem.getPrice2()![paymentIndex] * multiplier, player);
+        }
+    }
+
+    /// <summary>Text hiển thị giá 1 lựa chọn thanh toán — nối thêm " + " loại tiền thứ 2 nếu có.</summary>
+    public static string getMoneyTextShopItem(ShopTemplateItem shopTemplateItem, int paymentIndex, Player player)
+    {
+        sbyte[] typeMoney = shopTemplateItem.getMoneyType();
+        int[] price = shopTemplateItem.getPrice();
+        string text = getMoneyText(typeMoney[paymentIndex], price[paymentIndex], player);
+        if (HasSecondCurrency(shopTemplateItem, paymentIndex))
+        {
+            text += " + " + getMoneyText(shopTemplateItem.getMoneyType2()![paymentIndex], shopTemplateItem.getPrice2()![paymentIndex], player);
+        }
+        return text;
     }
 
     public static void showInventory(Player player, sbyte typeInventory, int menuId, String title)
