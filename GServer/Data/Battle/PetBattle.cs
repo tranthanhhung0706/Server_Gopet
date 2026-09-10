@@ -1234,7 +1234,11 @@ namespace Gopet.Battle
         private bool randMiss(PetBattleInfo nonPetBattleInfo)
         {
             ItemInfo[] itemInfos = nonPetBattleInfo.getBuff();
-            return ItemInfo.getValueById(itemInfos, ItemInfo.Type.MISS_IN_99999_TURN) > 0 && ActiveObject.AccuracyPercent - ItemInfo.getValueById(itemInfos, ItemInfo.Type.MISS_IN_99999_TURN) / 100f - PassiveObject.SkipPercent > Utilities.NextFloatPer();
+            int dodgeValue = ItemInfo.getValueById(itemInfos, ItemInfo.Type.MISS_IN_99999_TURN);
+            // Cùng công thức với GameObject.IsMiss() (roll > hitRate còn lại) — bản cũ viết ngược
+            // chiều so sánh (hitRate > roll) khiến dodge càng cao thì càng ít khi né được (dodge=100
+            // gần như không bao giờ né), ngược hẳn ý nghĩa "tăng tỷ lệ né" của skill.
+            return dodgeValue > 0 && Utilities.NextFloatPer() > ActiveObject.AccuracyPercent - dodgeValue / 100f - PassiveObject.SkipPercent;
         }
 
         private bool dotmana(PetSkillLv petSkillLv)
