@@ -58,7 +58,8 @@ namespace Gopet.APIs
         [HttpGet("/v1/gopet/api/Players")]
         public IActionResult GetPlayers([FromQuery] int page = 1, [FromQuery] int limit = 20,
             [FromQuery] string? search = null, [FromQuery] string? username = null,
-            [FromQuery] int? userId = null, [FromQuery] int? clanId = null, [FromQuery] string? sortBy = null)
+            [FromQuery] int? userId = null, [FromQuery] int? clanId = null, [FromQuery] string? sortBy = null,
+            [FromQuery] string? idsIn = null, [FromQuery] string? idsNotIn = null)
         {
             page = Math.Max(1, page);
             limit = Math.Clamp(limit, 1, 100);
@@ -66,6 +67,35 @@ namespace Gopet.APIs
 
             var where = new List<string>();
             var parameters = new DynamicParameters();
+
+            // Lọc theo danh sách ID cụ thể (vd trạng thái online — không nằm trong DB, buff_gopet
+            // tự tra PlayerManager.players rồi truyền ID xuống đây để lọc ĐÚNG trên toàn bộ danh
+            // sách thay vì chỉ lọc trong 1 trang). idsIn rỗng sau khi parse (vd 0 player đang
+            // online) -> chắc chắn không có kết quả, trả rỗng ngay tránh "ID IN ()" lỗi cú pháp.
+            if (idsIn != null)
+            {
+                List<int> ids = idsIn.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => int.TryParse(s, out int v) ? v : (int?)null)
+                    .Where(v => v.HasValue).Select(v => v!.Value).ToList();
+                if (ids.Count == 0)
+                {
+                    var empty = new PaginatedData<PlayerListItem>(new List<PlayerListItem>(), 0, page, limit);
+                    return Ok(new BaseResponse<PaginatedData<PlayerListItem>>(1, "Thành công", empty));
+                }
+                where.Add("ID IN @idsIn");
+                parameters.Add("idsIn", ids);
+            }
+            if (!string.IsNullOrWhiteSpace(idsNotIn))
+            {
+                List<int> ids = idsNotIn.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => int.TryParse(s, out int v) ? v : (int?)null)
+                    .Where(v => v.HasValue).Select(v => v!.Value).ToList();
+                if (ids.Count > 0)
+                {
+                    where.Add("ID NOT IN @idsNotIn");
+                    parameters.Add("idsNotIn", ids);
+                }
+            }
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -160,6 +190,21 @@ namespace Gopet.APIs
         {
             bool isOnline = PlayerManager.players.Any(p => p?.playerData != null && p.playerData.ID == id);
             return Ok(new BaseResponse<bool>(1, "Thành công", isOnline));
+        }
+
+        /// <summary>
+        /// Toàn bộ player.ID đang online (tra PlayerManager.players in-memory) — dùng để lọc
+        /// "đang online"/"đang offline" ĐÚNG trên toàn bộ danh sách (qua idsIn/idsNotIn của
+        /// GetPlayers) thay vì chỉ lọc được trong phạm vi 1 trang phân trang.
+        /// </summary>
+        [HttpGet("/v1/gopet/api/Players/OnlineIds")]
+        public IActionResult GetOnlinePlayerIds()
+        {
+            int[] ids = PlayerManager.players
+                .Where(p => p?.playerData != null)
+                .Select(p => p.playerData.ID)
+                .ToArray();
+            return Ok(new BaseResponse<int[]>(1, "Thành công", ids));
         }
 
         public record UpdatePlayerRequest(string? Name, int? Gender, long? Gold, long? Coin, long? Lua,
