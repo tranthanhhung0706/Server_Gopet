@@ -1304,7 +1304,7 @@ namespace Gopet.Battle
             {
                 int def = nonPet.getDef() + ItemInfo.getValueById(nonPetBattleInfo.getBuff(), ItemInfo.Type.DEF);
 
-                if (def > 0 && ItemInfo.getValueById(nonPetBattleInfo.getBuff(), ItemInfo.Type.DEF_PER) > 0)
+                if (def > 0 && ItemInfo.getValueById(nonPetBattleInfo.getBuff(), ItemInfo.Type.DEF_PER) != 0)
                 {
                     def += (int)Utilities.GetValueFromPercent(def, ItemInfo.getValueById(nonPetBattleInfo.getBuff(), ItemInfo.Type.DEF_PER) / 100f);
                 }

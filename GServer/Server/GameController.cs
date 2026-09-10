@@ -1646,6 +1646,9 @@ public class GameController
         lastArenaChallengeTime = Utilities.CurrentTimeMillis;
         player.MineStar(ARENA_CHALLENGE_ENERGY_COST);
 
+        // Client tự giả lập scene "Lôi đài" tại chỗ khi nhận ARENA_BATTLE_START (xem
+        // PetGameModel.java case -100), nên server không cần warp người chơi sang map nào cả —
+        // đánh ngay tại vị trí hiện tại của họ.
         Mob defenderMob = new Mob();
         defenderMob.petIdTemplate = defensePet.petIdTemplate;
         defenderMob.skill = defensePet.skill;
