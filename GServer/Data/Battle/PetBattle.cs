@@ -1786,10 +1786,6 @@ namespace Gopet.Battle
                     }
                 }
             }
-            else
-            {
-                return;
-            }
             sendPetAttack(turnEffects, new TurnEffect(TurnEffect.NONE, -1, 0, 0, 0));
         }
 
