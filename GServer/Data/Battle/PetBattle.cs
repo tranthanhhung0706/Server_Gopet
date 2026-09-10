@@ -1694,15 +1694,21 @@ namespace Gopet.Battle
             {
                 if (petAttackMob)
                 {
+                    // updateDamagePhanDoan() chạy SAU khi nextTurn() đã đảo isActiveTurn (xem dòng
+                    // 810/813) nên getPet() ở đây trả về phe SẮP hành động (vừa mới bị đánh lúc
+                    // nãy), không phải phe vừa tấn công — "pet != null" (isActiveTurn=true sau đảo)
+                    // nghĩa là LƯỢT TRƯỚC là mob tấn công, nên phản đòn phải trừ máu MOB (không
+                    // phải activePet — trước đây gọi nhầm activePet.subHp khiến pet tự trừ máu 2
+                    // lần thay vì mob nhận phản đòn).
                     if (pet != null)
                     {
-                        activePet.subHp(damagePhandoan);
+                        mob.addHp(damagePhandoan, activePlayer);
+                        mob.SetWinnerIfHpZero(activePlayer);
                         turnEffects.add(new TurnEffect(TurnEffect.NONE, mob.getMobId(), PetSkill.GetTPhanDonSkill(activePet), -damagePhandoan, 0));
                     }
                     else
                     {
-                        mob.addHp(damagePhandoan, activePlayer);
-                        mob.SetWinnerIfHpZero(activePlayer);
+                        activePet.subHp(damagePhandoan);
                         turnEffects.add(new TurnEffect(TurnEffect.NONE, activePlayer.playerData.user_id, PetSkill.GetTPhanDonSkill(mob), -damagePhandoan, 0));
                     }
                 }
