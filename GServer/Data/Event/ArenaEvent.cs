@@ -19,25 +19,10 @@ namespace Gopet.Data.Event
         public bool IsFighting { get; set; } = false;
 
         public override string Name => "Đấu trường";
-        public override bool Condition
-        {
-            get
-            {
-                if (IsRunning || IsFighting) return true;
-                return
-                    (
-                    DateTime.Now.Hour == 6 ||
-                    DateTime.Now.Hour == 8 ||
-                    DateTime.Now.Hour == 11 ||
-                    DateTime.Now.Hour == 13 ||
-                    DateTime.Now.Hour == 17 ||
-                    DateTime.Now.Hour == 19 ||
-                    DateTime.Now.Hour == 21 ||
-                    DateTime.Now.Hour == 23
-                    )
-                    && DateTime.Now.Minute <= 5;
-            }
-        }
+        // Trước đây chỉ tự mở vào 8 khung giờ cố định/ngày (6h,8h,11h,13h,17h,19h,21h,23h, 5 phút
+        // đầu mỗi khung) — giờ bỏ giới hạn giờ, sự kiện luôn sẵn sàng: Update() sẽ tự lặp lại chu
+        // kỳ đăng ký (30 phút) + thi đấu liên tục, không cần chờ đúng giờ trong ngày nữa.
+        public override bool Condition => true;
 
 
         public bool CanJournalism
@@ -54,7 +39,7 @@ namespace Gopet.Data.Event
         private long lastTimeWait = 0;
         private long timeWaitNextTurn = 0;
         private uint showBanner = 0;
-        public const long TIME_WAIT_COST = 60000 * 30;
+        public const long TIME_WAIT_COST = 60000 * 5;
         public const long TIME_WAIT_TURN_COST = 60000 * 3;
         public CopyOnWriteArrayList<int> IdPlayerJoin = new CopyOnWriteArrayList<int>();
 
