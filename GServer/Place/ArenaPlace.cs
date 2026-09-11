@@ -14,13 +14,16 @@ public class ArenaPlace : GopetPlace
 {
     private CopyOnWriteArrayList<ArenaData> _data = new CopyOnWriteArrayList<ArenaData>();
 
+    // Đã dịch xuống ~30px so với bản gốc (nhân vật đứng gần mép trên chuồng thay vì chính giữa) —
+    // dựa theo toạ độ thật đo được qua "admin location" (chuồng 1: tamtai3 (258,220)) đối chiếu
+    // với ảnh chụp lúc đang đấu. Test lại rồi báo nếu vẫn cần chỉnh thêm.
     public static readonly PointArena[] POINTS = new PointArena[]
     {
-        new (174, 220, 258, 220),
-        new (71, 91, 138, 97),
-        new (285, 90, 356, 97),
-        new (70, 311, 138, 309),
-        new (285, 313, 352, 314)
+        new (174, 250, 258, 250),
+        new (71, 121, 138, 127),
+        new (285, 120, 356, 127),
+        new (70, 341, 138, 339),
+        new (285, 343, 352, 344)
     };
 
     public ArenaPlace(GopetMap m, int ID) : base(m, ID)

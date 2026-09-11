@@ -82,16 +82,12 @@ namespace Gopet.Data.Event
                 {
                     return;
                 }
-                if (IdPlayerJoin.Count <= 1)
-                {
-                    IsFighting = false;
-                    IsRunning = false;
-                    IdPlayerJoin.Clear();
-                }
-                else
-                {
-                    NextTurn();
-                }
+                // Chỉ bắt cặp đánh ĐÚNG 1 vòng duy nhất — không tự bốc thăm tiếp vòng kế cho
+                // người thắng nữa (bỏ hẳn cơ chế loại trực tiếp nhiều vòng). Hết vòng là kết thúc
+                // đợt, mở lại đăng ký mới ngay (Update() phía trên sẽ tự chạy lại từ đầu).
+                IsFighting = false;
+                IsRunning = false;
+                IdPlayerJoin.Clear();
             }
         }
 
