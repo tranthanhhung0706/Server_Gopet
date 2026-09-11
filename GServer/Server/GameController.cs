@@ -10,6 +10,7 @@ using Gopet.Data.GopetItem;
 using Gopet.Data.Map;
 using Gopet.Data.User;
 using Gopet.IO;
+using Gopet.Manager;
 using Gopet.Util;
 using MySqlConnector;
 using static MenuController;
@@ -1128,6 +1129,9 @@ public class GameController
             case GopetCMD.NORMAL_INVENTORY:
                 MenuController.showInventory(player, GopetManager.NORMAL_INVENTORY, MenuController.MENU_NORMAL_INVENTORY, "Rương đồ");
                 break;
+            case GopetCMD.USE_NORMAL_ITEM_COUNT:
+                useNormalItemCount(message.readInt(), message.readInt());
+                break;
             case GopetCMD.UP_TIER_ITEM:
                 upTierItem(message.readInt(), message.readInt(), false);
                 break;
@@ -2128,6 +2132,36 @@ public class GameController
             message.putInt(pet.tiemnang_point);
             message.cleanup();
             player.session.sendMessage(message);
+        }
+    }
+
+    /// <summary>
+    /// Dùng 1 vật phẩm trong Rương đồ (NORMAL_INVENTORY) theo số lượng nhập ở client, trong ĐÚNG 1
+    /// gói tin — thay vì client tự gửi lặp lại từng gói UseItem riêng (mỗi gói ra 1 dialog đè
+    /// nhau, mở nhiều hộp chỉ thấy được 1 kết quả). Vật phẩm dạng ITEM_EVENT (vd hộp quà sự kiện)
+    /// giao cho EventBase.UseItemCount() gộp hết loot vào 1 dialog danh sách; các loại vật phẩm
+    /// khác giữ nguyên hành vi cũ, chỉ lặp lại đúng logic dùng-từng-cái có sẵn ở MENU_NORMAL_INVENTORY.
+    /// </summary>
+    private void useNormalItemCount(int index, int count)
+    {
+        if (count <= 0)
+        {
+            return;
+        }
+        CopyOnWriteArrayList<Item> listItemNormal = player.playerData.getInventoryOrCreate(GopetManager.NORMAL_INVENTORY);
+        if (index < 0 || index >= listItemNormal.Count)
+        {
+            return;
+        }
+        Item itemSelect = listItemNormal.get(index);
+        if (itemSelect.getTemp().getType() == GopetManager.ITEM_EVENT)
+        {
+            EventManager.FindAndUseItemEvent(itemSelect.itemTemplateId, player, count);
+            return;
+        }
+        for (int i = 0; i < count; i++)
+        {
+            MenuController.selectMenu(MenuController.MENU_NORMAL_INVENTORY, index, 0, player);
         }
     }
 

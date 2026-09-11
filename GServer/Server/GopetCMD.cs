@@ -184,6 +184,10 @@ public class GopetCMD
     public const sbyte FAST_REMOVE_MOB = 99;
     public const sbyte ENERGY_INFO = 102;
     public const sbyte CHECK_SPEED = 103;
+    /// <summary>Client gửi (index trong Rương đồ, số lượng muốn dùng) trong 1 gói duy nhất —
+    /// xem GameController.useNormalItemCount(). Item event (vd hộp quà) gộp kết quả vào 1 dialog
+    /// danh sách; các loại khác lặp lại đúng logic dùng-từng-cái hiện có.</summary>
+    public const sbyte USE_NORMAL_ITEM_COUNT = 104;
     public const sbyte REMOVE_BATTLE_BY_MOB_ID = 96;
     public const sbyte UPDATE_HP_BOSS = 89;
 

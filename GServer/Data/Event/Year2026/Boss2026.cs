@@ -85,6 +85,43 @@ namespace Gopet.Data.Event.Year2026
         }
 
         /// <summary>
+        /// Mở NHIỀU hộp cùng lúc (client cho nhập số lượng ở màn Rương đồ) — trừ đúng
+        /// <paramref name="count"/> hộp trong 1 lần, mở lần lượt lấy loot rồi gộp TẤT CẢ vật phẩm
+        /// nhận được vào 1 dialog dạng danh sách (mỗi dòng 1 vật phẩm), thay vì client tự gửi
+        /// nhiều gói UseItem riêng lẻ (trước đây mỗi gói ra 1 dialog đè lên nhau, chỉ thấy dialog
+        /// cuối/1 vật phẩm dù mở nhiều hộp).
+        /// </summary>
+        public override void UseItemCount(int itemId, Player player, int count)
+        {
+            if (itemId != ID_GIFT_BOX_NORMAL && itemId != ID_GIFT_BOX_VIP)
+            {
+                return;
+            }
+            if (!GopetManager.itemTemplate.ContainsKey(itemId) || GopetManager.itemTemplate.get(itemId).giftData.Length == 0)
+            {
+                player.redDialog("Hộp quà này chưa được cấu hình danh sách vật phẩm, vui lòng báo admin");
+                return;
+            }
+            Item item = player.controller.selectItemsbytemp(itemId, GopetManager.NORMAL_INVENTORY);
+            if (item == null || !GameController.checkCount(item, count))
+            {
+                player.redDialog("Bạn không có đủ số lượng hộp để mở.");
+                return;
+            }
+            player.controller.subCountItem(item, count, GopetManager.NORMAL_INVENTORY);
+            JArrayList<String> textInfo = new();
+            for (int i = 0; i < count; i++)
+            {
+                JArrayList<Popup> popups = player.controller.onReiceiveGift(GopetManager.itemTemplate.get(itemId).giftData);
+                foreach (Popup popup in popups)
+                {
+                    textInfo.add(popup.getText());
+                }
+            }
+            player.okDialog(string.Format(player.Language.GetGiftCodeOK, "\n" + String.Join("\n", textInfo)));
+        }
+
+        /// <summary>
         /// Đăng ký tên hiển thị 2 option của NPC "Thợ Săn Boss" + bảng xếp hạng — chạy ĐÚNG 1 LẦN
         /// lúc GServer khởi động, KHÔNG phụ thuộc Condition (vì Condition giờ đổi được bất cứ lúc
         /// nào qua trang admin, nếu gate ở đây thì bật sự kiện sau này sẽ không có tên option/bảng
