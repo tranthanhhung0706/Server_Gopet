@@ -14,16 +14,18 @@ public class ArenaPlace : GopetPlace
 {
     private CopyOnWriteArrayList<ArenaData> _data = new CopyOnWriteArrayList<ArenaData>();
 
-    // Đã dịch xuống ~30px so với bản gốc (nhân vật đứng gần mép trên chuồng thay vì chính giữa) —
-    // dựa theo toạ độ thật đo được qua "admin location" (chuồng 1: tamtai3 (258,220)) đối chiếu
-    // với ảnh chụp lúc đang đấu. Test lại rồi báo nếu vẫn cần chỉnh thêm.
+    // Client vẽ pet ở TRUNG ĐIỂM của 2 người chơi ±30px (xem PetGameModel.java case 59:
+    // n21=(char1.x+char2.x)/2, pet đặt ở n21±30) — KHÔNG vẽ theo toạ độ riêng từng người, nên
+    // cho cả 2 người cùng 1 toạ độ = tâm chuồng để trung điểm luôn đúng tâm, pet tự đối xứng đều.
+    // Toạ độ tâm dưới đây = trung bình cộng của cặp X1Y1/X2Y2 cũ sau lần chỉnh +80 gần nhất —
+    // test lại rồi báo nếu vẫn cần chỉnh thêm/bớt.
     public static readonly PointArena[] POINTS = new PointArena[]
     {
-        new (174, 250, 258, 250),
-        new (71, 121, 138, 127),
-        new (285, 120, 356, 127),
-        new (70, 341, 138, 339),
-        new (285, 343, 352, 344)
+        new (216, 300, 216, 300),
+        new (105, 174, 105, 174),
+        new (320, 174, 320, 174),
+        new (104, 390, 104, 390),
+        new (319, 394, 319, 394)
     };
 
     public ArenaPlace(GopetMap m, int ID) : base(m, ID)
