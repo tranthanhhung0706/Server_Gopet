@@ -1491,6 +1491,29 @@ public class GopetManager
         ServerMonitor.LogInfo("Nạp lại dữ liệu cấp độ quái theo map từ cơ sở dữ liệu OK");
     }
 
+    /// <summary>
+    /// Nạp lại mẫu danh hiệu (bảng achievement) từ DB vào RAM mà KHÔNG cần restart GServer — dùng
+    /// sau khi sửa/thêm/xoá qua trang admin Achievement. Danh hiệu player đang sở hữu/mặc sẵn
+    /// (PlayerData.achievements/CurrentAchievementId) không bị đụng tới, chỉ đổi dữ liệu MẪU
+    /// (tên/icon/chỉ số) dùng để tra cứu lần sau.
+    /// </summary>
+    public static void ReloadAchievement()
+    {
+        using var conn = MYSQLManager.create();
+        var freshAchievements = conn.Query<AchievementTemplate>("SELECT * FROM `achievement`").ToList();
+
+        AchievementMAP.Clear();
+        foreach (var item in freshAchievements)
+        {
+            AchievementMAP[item.IdTemplate] = item;
+            Language[VI_CODE].AchievementNameLanguage[item.IdTemplate] = item.Name;
+            Language[VI_CODE].AchievementDescLanguage[item.IdTemplate] = item.Description;
+        }
+        achievements = freshAchievements;
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu danh hiệu từ cơ sở dữ liệu OK");
+    }
+
     public static T ReadJsonFile<T>(string targetPath)
     {
         if (File.Exists(Directory.GetCurrentDirectory() + targetPath))

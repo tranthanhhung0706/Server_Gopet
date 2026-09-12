@@ -20,8 +20,10 @@ namespace Gopet.Data.user
             IdTemplate = idTemplate;
             if (this.Template.Expire > 0)
             {
-                Expire = DateTime.Now;
-                Expire.Value.AddMilliseconds(this.Template.Expire);
+                // DateTime bất biến — AddMilliseconds trả về giá trị MỚI, phải gán lại mới có tác
+                // dụng (bản cũ tính xong rồi bỏ, khiến Expire luôn = thời điểm tạo, checkExpire()
+                // xoá danh hiệu gần như ngay lập tức thay vì đúng hạn).
+                Expire = DateTime.Now.AddMilliseconds(this.Template.Expire);
             }
         }
 
