@@ -112,6 +112,18 @@ public class GopetPlace : Place
         long timeGen = Utilities.CurrentTimeMillis + TIME_NEW_MOB;
         newMob.TryAdd(gopetMob.getMobLocation(), timeGen);
         sendRemoveMob(gopetMob.getMobId());
+        // Tăng counter "quái đã giết để ra boss" NGAY lúc chết thật sự — trước đây tăng trong
+        // createNewMob() (chỉ chạy khi quái MỚI spawn thay thế, trễ TIME_NEW_MOB=25s sau khi
+        // chết), khiến counter luôn trễ so với số quái đã giết thật khi farm nhanh hơn 25s/con.
+        // Không tăng khi giết chính con boss đó (giữ đúng hành vi cũ — createNewMob() trước đây
+        // cũng bỏ qua vòng lặp tăng khi nhánh đó đang spawn boss).
+        if (!(gopetMob is Boss))
+        {
+            for (int i = 0; i < numMobDieNeed.Length; i++)
+            {
+                numMobDie[i]++;
+            }
+        }
     }
 
     public void sendRemoveMob(int mobId)
@@ -669,10 +681,6 @@ public class GopetPlace : Place
                             nGopetMobs.add(m);
                             break;
                         }
-                    }
-                    for (global::System.Int32 i = 0; i < map.mapTemplate.boss.Length; i++)
-                    {
-                        numMobDie[i]++;
                     }
                 END_INIT_MOB:;
                 }
