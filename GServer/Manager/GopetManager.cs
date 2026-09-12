@@ -1461,6 +1461,36 @@ public class GopetManager
         ServerMonitor.LogInfo("Nạp lại dữ liệu điểm mọc quái từ cơ sở dữ liệu OK");
     }
 
+    /// <summary>
+    /// Nạp lại cấu hình cấp độ quái theo map (bảng gopet_map_moblvl) từ DB vào RAM mà KHÔNG cần
+    /// restart GServer — dùng sau khi sửa/thêm/xoá qua trang admin Map Mob Lv. Quái đã spawn sẵn
+    /// trên map không bị đụng tới — chỉ ảnh hưởng lần spawn/hồi sinh quái TIẾP THEO.
+    /// </summary>
+    public static void ReloadMobLvlMap()
+    {
+        using var conn = MYSQLManager.create();
+        var mobLvlMapList = conn.Query("SELECT * FROM `gopet_map_moblvl`");
+
+        HashMap<int, JArrayList<MobLvlMap>> mobLvlMap_ = new();
+        foreach (var item in mobLvlMapList)
+        {
+            MobLvlMap mobLvlMap = new MobLvlMap(item.mapID, item.lvlFrom, item.lvlTo, item.petId);
+            if (!mobLvlMap_.ContainsKey(mobLvlMap.getMapId()))
+            {
+                mobLvlMap_.put(mobLvlMap.getMapId(), new());
+            }
+            mobLvlMap_.get(mobLvlMap.getMapId()).add(mobLvlMap);
+        }
+
+        MOBLVL_MAP.Clear();
+        foreach (var entry in mobLvlMap_)
+        {
+            MOBLVL_MAP.put(entry.Key, entry.Value.ToArray());
+        }
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu cấp độ quái theo map từ cơ sở dữ liệu OK");
+    }
+
     public static T ReadJsonFile<T>(string targetPath)
     {
         if (File.Exists(Directory.GetCurrentDirectory() + targetPath))

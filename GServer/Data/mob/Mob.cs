@@ -124,7 +124,11 @@ namespace Gopet.Data.Mob
         {
             if (mobLvInfo == null)
             {
-                mobLvInfo = GopetManager.MOBLVLINFO_HASH_MAP.get(Utilities.nextInt(mobLvlMap.getLvlFrom(), mobLvlMap.getLvlTo()));
+                // Utilities.nextInt(x1,x2) gọi Random.Next(x1,x2) — loại trừ x2 (chỉ random trong
+                // [x1,x2)). Cột lvlTo trong DB (gopet_map_moblvl) được nhập liệu theo nghĩa BAO GỒM
+                // cả 2 đầu (vd có dòng lvlFrom=1,lvlTo=1 nghĩa là chỉ cấp 1) nên phải +1 để cấp cao
+                // nhất trong range thật sự có cơ hội spawn, không bị loại trừ ngầm.
+                mobLvInfo = GopetManager.MOBLVLINFO_HASH_MAP.get(Utilities.nextInt(mobLvlMap.getLvlFrom(), mobLvlMap.getLvlTo() + 1));
             }
             this.lvl = mobLvInfo.lvl;
             maxHp = mobLvInfo.hp;
