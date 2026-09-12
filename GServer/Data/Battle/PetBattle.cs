@@ -878,6 +878,22 @@ namespace Gopet.Battle
                         activePet.addExp(exp);
                         activePlayer.controller.updatePetLvl();
                         place.mobDie(mob);
+                        // Tiến trình quái đã giết / cần giết để triệu hồi boss trên map này (xem
+                        // map.numPetDie, GopetPlace.numMobDie/numMobDieNeed) — counter thật chỉ
+                        // tăng lúc quái MỚI được spawn thay thế (~25s sau, trong createNewMob()),
+                        // nên hiện numMobDie[i]+1 ngay lúc giết để phản hồi tức thì, không cần chờ
+                        // đúng thời điểm counter thật cập nhật. Gửi cùng cơ chế Popup + mã style
+                        // "2" như thông báo "+15 điểm đấu trường" (xem winArena()).
+                        for (int bi = 0; bi < place.map.mapTemplate.boss.Length; bi++)
+                        {
+                            int needKill = place.numMobDieNeed[bi];
+                            if (needKill <= 0) continue;
+                            int bossId = place.map.mapTemplate.boss[bi];
+                            if (!GopetManager.boss.ContainsKey(bossId)) continue;
+                            int progress = Math.Min(place.numMobDie[bi] + 1, needKill);
+                            string bossName = GopetManager.boss.get(bossId).getName(activePlayer);
+                            petBattleTexts.add(new Popup($"{progress}/{needKill} quái để triệu hồi {bossName}"));
+                        }
                         JArrayList<DropItem> listItemDrop = new(GopetManager.dropItem.get(place.map.mapID).ToList());
                         if (GopetManager.mapHasDropItemLvlRange.Contains(place.map.mapID))
                         {
