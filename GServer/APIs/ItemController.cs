@@ -37,7 +37,8 @@ namespace Gopet.APIs
                      atkRange AS AtkRange, defRange AS DefRange, hpRange AS HpRange, mpRange AS MpRange,
                      requireStr AS RequireStr, requireInt AS RequireInt, requireAgi AS RequireAgi,
                      expire AS Expire, isOnSky AS IsOnSky, canTrade AS CanTrade,
-                     petNClass AS PetNClass, element AS Element, price AS Price, wingFrameNum AS WingFrameNum
+                     petNClass AS PetNClass, element AS Element, price AS Price, wingFrameNum AS WingFrameNum,
+                     skinFrameNum AS SkinFrameNum
               FROM `item`";
 
         private const string AssetFolder = "items";
@@ -178,7 +179,8 @@ namespace Gopet.APIs
             sbyte PetNClass = -1,
             sbyte Element = -1,
             int Price = 10,
-            sbyte WingFrameNum = 2);
+            sbyte WingFrameNum = 2,
+            sbyte SkinFrameNum = 2);
 
         /// <summary>Tạo item template mới. itemId do admin chỉ định (không auto-increment, giống dữ liệu gốc).</summary>
         [HttpPost("/v1/gopet/api/Items")]
@@ -224,17 +226,20 @@ namespace Gopet.APIs
                 req.Element,
                 req.Price,
                 req.WingFrameNum,
+                req.SkinFrameNum,
             };
 
             conn.Execute(
                 @"INSERT INTO `item`
                     (itemId, name, description, type, iconPath, frameImgPath, gender, isStackable,
                      itemOption, itemOptionValue, giftData, atkRange, defRange, hpRange, mpRange,
-                     requireStr, requireInt, requireAgi, expire, isOnSky, canTrade, petNClass, element, price, wingFrameNum)
+                     requireStr, requireInt, requireAgi, expire, isOnSky, canTrade, petNClass, element, price, wingFrameNum,
+                     skinFrameNum)
                   VALUES
                     (@ItemId, @Name, @Description, @Type, @IconPath, @FrameImgPath, @Gender, @IsStackable,
                      @ItemOption, @ItemOptionValue, @GiftData, @AtkRange, @DefRange, @HpRange, @MpRange,
-                     @RequireStr, @RequireInt, @RequireAgi, @Expire, @IsOnSky, @CanTrade, @PetNClass, @Element, @Price, @WingFrameNum)",
+                     @RequireStr, @RequireInt, @RequireAgi, @Expire, @IsOnSky, @CanTrade, @PetNClass, @Element, @Price, @WingFrameNum,
+                     @SkinFrameNum)",
                 insertParams);
 
             var created = conn.QueryFirstOrDefault<ItemTemplateDto>($"{SelectItemTemplateSql} WHERE itemId = @ItemId", req);
@@ -245,7 +250,7 @@ namespace Gopet.APIs
             string? FrameImgPath, sbyte? Gender, bool? IsStackable, int[]? ItemOption, int[]? ItemOptionValue,
             int[][]? GiftData, int[]? AtkRange, int[]? DefRange, int[]? HpRange, int[]? MpRange, int? RequireStr, int? RequireInt,
             int? RequireAgi, long? Expire, bool? IsOnSky, bool? CanTrade, sbyte? PetNClass, sbyte? Element, int? Price,
-            sbyte? WingFrameNum);
+            sbyte? WingFrameNum, sbyte? SkinFrameNum);
 
         /// <summary>Cập nhật 1 phần item template. Không cho đổi itemId (khoá chính, bị hidden_stat tham chiếu).</summary>
         [HttpPatch("/v1/gopet/api/Items/{id:int}")]
@@ -288,6 +293,7 @@ namespace Gopet.APIs
             if (req?.Element is sbyte element) { setClauses.Add("element = @element"); parameters.Add("element", element); }
             if (req?.Price is int price) { setClauses.Add("price = @price"); parameters.Add("price", price); }
             if (req?.WingFrameNum is sbyte wingFrameNum) { setClauses.Add("wingFrameNum = @wingFrameNum"); parameters.Add("wingFrameNum", wingFrameNum); }
+            if (req?.SkinFrameNum is sbyte skinFrameNum) { setClauses.Add("skinFrameNum = @skinFrameNum"); parameters.Add("skinFrameNum", skinFrameNum); }
 
             if (setClauses.Count == 0)
             {

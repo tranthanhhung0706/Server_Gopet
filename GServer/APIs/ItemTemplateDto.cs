@@ -43,5 +43,8 @@ namespace Gopet.APIs
         // Số khung hình (frame) trong FrameImgPath để client cắt/chạy animation cánh (wing) —
         // chỉ có ý nghĩa với item type WING_ITEM. Mặc định 2 (client cũ hardcode 2 khung).
         public sbyte WingFrameNum { get; set; }
+        // Số khung hình (frame) trong FrameImgPath để client cắt/chạy animation nhân vật khi mặc
+        // SKIN — chỉ có ý nghĩa với item type skin. Mặc định 2 (client cũ hardcode 2 khung).
+        public sbyte SkinFrameNum { get; set; }
     }
 }

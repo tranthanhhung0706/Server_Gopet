@@ -80,6 +80,13 @@ namespace Gopet.Data.GopetItem
         /// </summary>
         public sbyte wingFrameNum { get; private set; } = 2;
         /// <summary>
+        /// Số khung hình (frame) trong <see cref="frameImgPath"/> để client cắt và chạy animation
+        /// nhân vật khi mặc SKIN — giống hệt <see cref="wingFrameNum"/> nhưng dành cho skin (client
+        /// cũ trước đây luôn hardcode 2, mặc định 2 ở đây để skin cũ không cần cập nhật DB vẫn hiển
+        /// thị y hệt như trước; chỉ skin nào thật sự vẽ nhiều/ít hơn 2 khung mới cần set khác).
+        /// </summary>
+        public sbyte skinFrameNum { get; private set; } = 2;
+        /// <summary>
         /// Đường dẫn icon
         /// </summary>
         public string iconPath { get; private set; }

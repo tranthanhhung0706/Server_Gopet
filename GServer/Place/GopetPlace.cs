@@ -792,6 +792,13 @@ public class GopetPlace : Place
             m.putInt(key);
             m.putUTF(val.getTemp().getFrameImgPath());
         }
+        // Ghi skinFrameNum SAU cùng, cùng thứ tự với vòng lặp trên (không xen giữa từng entry) để
+        // client cũ (chưa biết đọc phần này) vẫn đọc đúng 2 field đầu như cũ rồi dừng lại — giống
+        // hệt cách làm với wingFrameNum (xem sendWing() ở trên).
+        foreach (var entry in skinPlayer)
+        {
+            m.putsbyte(entry.Value.getTemp().skinFrameNum);
+        }
         m.cleanup();
         player.session.sendMessage(m);
         sendMySkin(player);
@@ -806,10 +813,12 @@ public class GopetPlace : Place
         if (itemSkin != null)
         {
             m.putUTF(itemSkin.getTemp().getFrameImgPath());
+            m.putsbyte(itemSkin.getTemp().skinFrameNum);
         }
         else
         {
             m.putUTF("");
+            m.putsbyte(2);
         }
 
         m.cleanup();
