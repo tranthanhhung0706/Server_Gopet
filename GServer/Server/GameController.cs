@@ -1132,6 +1132,9 @@ public class GameController
             case GopetCMD.USE_NORMAL_ITEM_COUNT:
                 useNormalItemCount(message.readInt(), message.readInt());
                 break;
+            case GopetCMD.DELETE_TIEM_NANG_COUNT:
+                deleteTiemNangCount(message.readInt(), message.readsbyte());
+                break;
             case GopetCMD.UP_TIER_ITEM:
                 upTierItem(message.readInt(), message.readInt(), false);
                 break;
@@ -2107,6 +2110,57 @@ public class GameController
                 }
             }
         }
+    }
+
+    // Tẩy nhiều điểm tiềm năng đã cộng vào 1 chỉ số (sức mạnh/tốc độ/thông minh) trong ĐÚNG 1 gói
+    // tin, giống cơ chế cộng hàng loạt ở trên (upTiemNang) nhưng theo chiều ngược lại — tự lặp trừ
+    // vàng + trừ điểm bên trong server, dừng sớm nếu hết điểm để tẩy hoặc hết vàng, rồi trả về
+    // đúng 1 dialog kết quả duy nhất (không lặp gửi nhiều gói riêng như MENU_DELETE_TIEM_NANG cũ).
+    private void deleteTiemNangCount(int num, sbyte index)
+    {
+        if (isHasBattleAndShowDialog())
+        {
+            return;
+        }
+        Pet pet = player.getPet();
+        if (pet == null)
+        {
+            player.petNotFollow();
+            return;
+        }
+        if (index < 0 || index >= gym_options.Length)
+        {
+            return;
+        }
+        if (pet.tiemnang[index] <= 0)
+        {
+            player.redDialog(player.Language.ThisIndicatorHasBeenErased);
+            return;
+        }
+        int count = Math.Max(1, num);
+        int done = 0;
+        bool outOfGold = false;
+        while (done < count && pet.tiemnang[index] > 0)
+        {
+            if (!player.checkGold(MenuController.PriceDeleteTiemNang))
+            {
+                outOfGold = true;
+                break;
+            }
+            player.mineGold(MenuController.PriceDeleteTiemNang);
+            pet.tiemnang[index]--;
+            pet.tiemnang_point++;
+            ++done;
+        }
+        if (done <= 0)
+        {
+            notEnoughGold();
+            return;
+        }
+        pet.applyInfo(player);
+        updateTiemnang();
+        HistoryManager.addHistory(new History(player).setLog(Utilities.Format("Tẩy tiềm năng cho pet %s [num =%s,index=%s]", pet.Template.name, done, index)).setObj(pet));
+        player.okDialog(player.Language.DeleteGymOK + (done > 1 ? " x" + done : "") + (outOfGold ? " (" + player.Language.NotEnoughGold + ")" : ""));
     }
 
     private void updateTiemnang()

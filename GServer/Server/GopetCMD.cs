@@ -188,6 +188,11 @@ public class GopetCMD
     /// xem GameController.useNormalItemCount(). Item event (vd hộp quà) gộp kết quả vào 1 dialog
     /// danh sách; các loại khác lặp lại đúng logic dùng-từng-cái hiện có.</summary>
     public const sbyte USE_NORMAL_ITEM_COUNT = 104;
+    /// <summary>Client gửi (index chỉ số gym muốn tẩy, số lượng muốn tẩy 1 lần) trong 1 gói duy
+    /// nhất — xem GameController.deleteTiemNangCount(). Giống cơ chế cộng tiềm năng hàng loạt
+    /// (UP_TIEM_NANG) nhưng theo chiều ngược lại (tẩy bớt), server tự lặp trừ vàng/điểm rồi trả
+    /// về đúng 1 dialog kết quả duy nhất.</summary>
+    public const sbyte DELETE_TIEM_NANG_COUNT = 105;
     public const sbyte REMOVE_BATTLE_BY_MOB_ID = 96;
     public const sbyte UPDATE_HP_BOSS = 89;
 
