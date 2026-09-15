@@ -25,8 +25,10 @@ namespace Gopet.APIs
     [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
     public class GopetMobController : ControllerBase
     {
+        // `Int` phải bọc backtick khi dùng làm alias — INT là kiểu dữ liệu (từ khoá dành riêng) của
+        // MySQL/MariaDB, dùng trần làm alias sẽ vỡ cú pháp SQL ("You have an error in your SQL syntax...").
         private const string SelectGopetMobSql =
-            @"SELECT lvl AS Lvl, str AS Str, _int AS Int, agi AS Agi, exp AS Exp, coin AS Coin, hp AS Hp
+            @"SELECT lvl AS Lvl, str AS Str, _int AS `Int`, agi AS Agi, exp AS Exp, coin AS Coin, hp AS Hp
               FROM `gopet_mob`";
 
         /// <summary>Danh sách chỉ số quái theo cấp độ — có phân trang, sắp theo cấp tăng dần.</summary>
