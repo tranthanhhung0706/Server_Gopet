@@ -111,7 +111,11 @@ public class GameObject
             case GopetManager.Wizard:
                 return atk + (getInt() / 3) + 5;
         }
-        return 0;
+        // Không có nhánh mặc định trước đây khiến bất kỳ template nào có nclass khác 6 giá trị
+        // hệ chuẩn (vd = -1, quy ước "không có hệ" dùng cho quái/mob) đều rơi về đúng atk = 0 —
+        // quái/pet loại này đánh không gây sát thương. Dùng chỉ số cao nhất trong 3 chỉ số làm
+        // công thức dự phòng, thay vì luôn trả 0.
+        return atk + (Math.Max(getStr(), Math.Max(getAgi(), getInt())) / 3) + 5;
     }
 
     public virtual int getHpViaPrice()

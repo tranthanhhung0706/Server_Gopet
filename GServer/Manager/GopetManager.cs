@@ -1492,6 +1492,25 @@ public class GopetManager
     }
 
     /// <summary>
+    /// Nạp lại chỉ số quái theo cấp độ (bảng gopet_mob) từ DB vào RAM mà KHÔNG cần restart GServer
+    /// — dùng sau khi sửa/thêm/xoá qua trang admin Gopet Mob. Quái đã spawn sẵn trên map (đang giữ
+    /// tham chiếu MobLvInfo cũ) không bị đụng tới — chỉ ảnh hưởng lần spawn/hồi sinh quái TIẾP THEO.
+    /// </summary>
+    public static void ReloadGopetMob()
+    {
+        using var conn = MYSQLManager.create();
+        IEnumerable<MobLvInfo> data = conn.Query<MobLvInfo>("SELECT * FROM `gopet_mob`");
+
+        MOBLVLINFO_HASH_MAP.Clear();
+        foreach (var mobLvInfo in data)
+        {
+            MOBLVLINFO_HASH_MAP[mobLvInfo.lvl] = mobLvInfo;
+        }
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu chỉ số quái theo cấp độ từ cơ sở dữ liệu OK");
+    }
+
+    /// <summary>
     /// Nạp lại mẫu danh hiệu (bảng achievement) từ DB vào RAM mà KHÔNG cần restart GServer — dùng
     /// sau khi sửa/thêm/xoá qua trang admin Achievement. Danh hiệu player đang sở hữu/mặc sẵn
     /// (PlayerData.achievements/CurrentAchievementId) không bị đụng tới, chỉ đổi dữ liệu MẪU
