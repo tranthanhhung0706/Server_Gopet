@@ -3889,7 +3889,7 @@ public class GameController
                 {
                     pet.skill[skillIndex][1]++;
                     this.taskCalculator.onUpdateSkillPet(pet, pet.skill[skillIndex][1]);
-                    player.okDialog(string.Format(player.Language.UpTierPetOK, petSkill.getName(player), pet.skill[skillIndex][1]));
+                    player.okDialog(string.Format(player.Language.UpSkillOK, petSkill.getName(player), pet.skill[skillIndex][1]));
                     HistoryManager.addHistory(new History(player).setLog(Utilities.Format("Bạn đã nâng cấp %s lên cấp %s  cho pet %s!", petSkill.name, pet.skill[skillIndex][1], pet.getNameWithoutStar(player))).setObj(pet));
                 }
                 else
