@@ -278,8 +278,6 @@ public class GopetManager
     public static HashMap<int, BossTemplate> boss = new();
 
 
-    public static JArrayList<int> mapHasDropItemLvlRange = new();
-
     public static JArrayList<PetTemplate> petEnable = new();
 
     public static ShopArenaTemplate[] SHOP_ARENA_TEMPLATE;
@@ -1508,6 +1506,34 @@ public class GopetManager
         }
 
         ServerMonitor.LogInfo("Nạp lại dữ liệu chỉ số quái theo cấp độ từ cơ sở dữ liệu OK");
+    }
+
+    /// <summary>
+    /// Nạp lại cấu hình rớt đồ khi quái chết (bảng drop_item) từ DB vào RAM mà KHÔNG cần restart
+    /// GServer — dùng sau khi sửa/thêm/xoá qua trang admin Drop Item. Chỉ ảnh hưởng lần quái chết
+    /// TIẾP THEO (xem PetBattle.cs đọc GopetManager.dropItem lúc quái chết).
+    /// </summary>
+    public static void ReloadDropItem()
+    {
+        using var conn = MYSQLManager.create();
+        var dropItemList = conn.Query<DropItem>("SELECT * FROM `drop_item`");
+
+        HashMap<int, JArrayList<DropItem>> local = new();
+        foreach (var dropItem1 in dropItemList)
+        {
+            if (!local.ContainsKey(dropItem1.getMapId()))
+            {
+                local.put(dropItem1.getMapId(), new());
+            }
+            if (dropItem1.getPercent() < 0f)
+            {
+                continue;
+            }
+            local.get(dropItem1.getMapId()).add(dropItem1);
+        }
+        dropItem = local;
+
+        ServerMonitor.LogInfo("Nạp lại dữ liệu rớt đồ khi quái chết từ cơ sở dữ liệu OK");
     }
 
     /// <summary>

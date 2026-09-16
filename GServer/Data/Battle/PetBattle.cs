@@ -893,17 +893,19 @@ namespace Gopet.Battle
                             string bossName = GopetManager.boss.get(bossId).getName(activePlayer);
                             petBattleTexts.add(new Popup($"{progress}/{needKill} quái để triệu hồi {bossName}"));
                         }
+                        // Lọc theo lvlRange luôn áp dụng cho MỌI map (trước đây chỉ chạy nếu mapId nằm
+                        // trong GopetManager.mapHasDropItemLvlRange — nhưng danh sách đó không có chỗ
+                        // nào thêm phần tử vào cả nên luôn rỗng, khiến lvlRange trong DB bị vô hiệu
+                        // hoàn toàn dù mọi dòng drop_item đều có cấu hình lvlRange thật). Dòng nào
+                        // không set lvlRange (null) thì không bị lọc, luôn đủ điều kiện như cũ.
                         JArrayList<DropItem> listItemDrop = new(GopetManager.dropItem.get(place.map.mapID).ToList());
-                        if (GopetManager.mapHasDropItemLvlRange.Contains(place.map.mapID))
+                        foreach (DropItem next in listItemDrop.ToArray())
                         {
-                            foreach (DropItem next in listItemDrop.ToArray())
+                            if (next.getLvlRange() != null)
                             {
-                                if (next.getLvlRange() != null)
+                                if (!(next.getLvlRange()[0] <= mob.getMobLvInfo().lvl && next.getLvlRange()[1] >= mob.getMobLvInfo().lvl))
                                 {
-                                    if (!(next.getLvlRange()[0] <= mob.getMobLvInfo().lvl && next.getLvlRange()[1] >= mob.getMobLvInfo().lvl))
-                                    {
-                                        listItemDrop.remove(next);
-                                    }
+                                    listItemDrop.remove(next);
                                 }
                             }
                         }

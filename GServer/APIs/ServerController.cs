@@ -152,7 +152,7 @@ namespace Gopet.APIs
             return Ok(new BaseResponse<ServerFieldDto?>(1, "Cập nhật thành công", updated));
         }
 
-        public record ReloadCatalogResult(int Pets, int Items, int ShopItems, int TradeGifts, int Bosses, int Reincarnations, int PetTiers, int MobLocations, int Tattoos, int MobLvlMaps, int GopetMobs, int Achievements);
+        public record ReloadCatalogResult(int Pets, int Items, int ShopItems, int TradeGifts, int Bosses, int Reincarnations, int PetTiers, int MobLocations, int Tattoos, int MobLvlMaps, int GopetMobs, int DropItems, int Achievements);
 
         /// <summary>
         /// Nạp lại danh mục Pet/Item/Shop (bảng gopet_pet/item/shop) từ DB vào RAM — dùng sau khi
@@ -180,6 +180,7 @@ namespace Gopet.APIs
                 GopetManager.ReloadTattoo();
                 GopetManager.ReloadMobLvlMap();
                 GopetManager.ReloadGopetMob();
+                GopetManager.ReloadDropItem();
                 GopetManager.ReloadAchievement();
             }
             catch (Exception ex)
@@ -199,6 +200,7 @@ namespace Gopet.APIs
                 GopetManager.tattos.Count,
                 GopetManager.MOBLVL_MAP.Values.Sum(v => v.Length),
                 GopetManager.MOBLVLINFO_HASH_MAP.Count,
+                GopetManager.dropItem.Values.Sum(v => v.Count),
                 GopetManager.AchievementMAP.Count);
 
             return Ok(new BaseResponse<ReloadCatalogResult>(1, "Đã nạp lại danh mục Pet/Item/Shop — áp dụng ngay, không cần restart GServer", result));
