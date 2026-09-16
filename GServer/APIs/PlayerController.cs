@@ -38,7 +38,7 @@ namespace Gopet.APIs
                      coin AS Coin, lua AS Lua, star AS Star, clanId AS ClanId, isAdmin AS IsAdmin,
                      loginDate AS LoginDate, LastTimeOnline AS LastTimeOnline,
                      NumBossFlowerCoin2026 AS NumBossFlowerCoin2026,
-                     GREATEST(0, FlowerCoin) AS FlowerCoin
+                     GREATEST(0, FlowerCoin) AS FlowerCoin, spendGold AS SpendGold
               FROM `player`";
 
         // Whitelist cột được sắp xếp — tránh SQL injection qua tên cột tự do.
@@ -47,13 +47,16 @@ namespace Gopet.APIs
             ["id_desc"] = "ID DESC",
             ["hoaNgoc_desc"] = "NumBossFlowerCoin2026 DESC, ID DESC",
             ["flowerCoinBalance_desc"] = "FlowerCoin DESC, ID DESC",
+            ["spendGold_desc"] = "SpendGold DESC, ID DESC",
         };
 
         /// <summary>
         /// Danh sách player — có phân trang, tìm theo tên nhân vật, tìm theo username tài khoản,
         /// lọc theo user_id/clanId, sắp xếp qua sortBy ("id_desc" mặc định, "hoaNgoc_desc" = tổng
         /// điểm Hoa Ngọc cả đời, "flowerCoinBalance_desc" = số dư Hoa Ngọc đang có — cả 2 đều là
-        /// bảng xếp hạng sự kiện săn boss, cao -&gt; thấp).
+        /// bảng xếp hạng sự kiện săn boss, cao -&gt; thấp; "spendGold_desc" = bảng xếp hạng "Top Đại
+        /// gia xuống núi", xem Player.CanAddSpendGold — chỉ cộng dồn khi event "spend_gold_rank"
+        /// đang bật qua EventConfigManager).
         /// </summary>
         [HttpGet("/v1/gopet/api/Players")]
         public IActionResult GetPlayers([FromQuery] int page = 1, [FromQuery] int limit = 20,

@@ -22,5 +22,8 @@ namespace Gopet.APIs
         public int NumBossFlowerCoin2026 { get; set; }
         // Số dư Hoa Ngọc ĐANG CÓ (MONEY_TYPE_FLOWER_COIN) — giảm khi mua đồ ở SHOP_BOSS_2026.
         public int FlowerCoin { get; set; }
+        // Tổng vàng (gold) đã tiêu — chỉ cộng dồn khi event "spend_gold_rank" đang bật qua
+        // EventConfigManager, xem Player.CanAddSpendGold. Dùng cho bảng "Top Đại gia xuống núi".
+        public long SpendGold { get; set; }
     }
 }

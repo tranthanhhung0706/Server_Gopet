@@ -48,7 +48,7 @@ public class BXHManager
                 {
                     next.Update();
                 }
-                lastTime = Utilities.CurrentTimeMillis + 1000 * 60 * 15;
+                lastTime = Utilities.CurrentTimeMillis + 1000 * 60 * 5;
             }
             Thread.Sleep(60000);
         }

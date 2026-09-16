@@ -19,6 +19,7 @@ using System.Collections.Concurrent;
 using System.Numerics;
 using System.Diagnostics.CodeAnalysis;
 using Gopet.Shared.Helper;
+using Gopet.Manager;
 
 public class Player : IHandleMessage
 {
@@ -774,11 +775,18 @@ Thread.Sleep(1000);
     }
 
 
+    // Từng set cứng "DateTime.Now <= 1/2/2025" (hẹn giờ 1 lần cho sự kiện Tết 2025 rồi quên gỡ) —
+    // khiến bảng xếp hạng "Top Đại gia xuống núi" bị đóng băng âm thầm từ sau mốc đó, không ai được
+    // cộng thêm dù vẫn tiêu vàng bình thường. Đổi sang EventConfigManager để admin bật/tắt + chỉnh
+    // ngày mở/đóng qua trang web (thêm dòng eventKey "spend_gold_rank" ở đó), không cần sửa code/
+    // build lại GServer mỗi đợt mở sự kiện — xem Boss2026.Condition dùng cùng cơ chế.
+    public const string SPEND_GOLD_RANK_EVENT_KEY = "spend_gold_rank";
+
     public virtual bool CanAddSpendGold
     {
         get
         {
-            return DateTime.Now <= new DateTime(2025, 2, 1, 21, 0, 0);
+            return EventConfigManager.IsActive(SPEND_GOLD_RANK_EVENT_KEY);
         }
     }
 
