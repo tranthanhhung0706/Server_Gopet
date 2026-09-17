@@ -4577,6 +4577,15 @@ public class GameController
                         }
                     }
                     break;
+                case GopetManager.GIFT_ITEM_RANDOM_COUNT:
+                    {
+                        int itemId = giftInfo[1];
+                        int minCount = giftInfo[2];
+                        int maxCount = giftInfo[3];
+                        int count = minCount >= maxCount ? minCount : Utilities.nextInt(minCount, maxCount + 1);
+                        GrantRandomItemPick(itemId, count, popups);
+                    }
+                    break;
                 case GopetManager.GIFT_ITEM_MAX_OPTION:
                     {
                         int itemId = giftInfo[1];
@@ -5704,6 +5713,14 @@ public class GameController
                     break;
                 case GopetManager.GIFT_RANDOM_ITEM_WEIGHTED:
                     lines.add($"Ngẫu nhiên {giftInfo[1]} phần thưởng (có trọng số %) từ danh sách vật phẩm đặc biệt");
+                    break;
+                case GopetManager.GIFT_ITEM_RANDOM_COUNT:
+                    {
+                        ItemTemplate temp = GopetManager.itemTemplate.get(giftInfo[1]);
+                        int minCount = giftInfo.Length >= 3 ? giftInfo[2] : 0;
+                        int maxCount = giftInfo.Length >= 4 ? giftInfo[3] : minCount;
+                        lines.add($"{(temp != null ? temp.name : $"Item #{giftInfo[1]}")} x{minCount}-{maxCount} (chắc chắn nhận, số lượng ngẫu nhiên)");
+                    }
                     break;
                 case GopetManager.GIFT_ITEM_MAX_OPTION:
                     {

@@ -238,6 +238,12 @@ public class GopetManager
     /// = random 1 phần thưởng, 90% ra itemId 185 (kim cương), 10% ra Mảnh "Hoàng Kim" ngẫu nhiên.
     /// </summary>
     public const int GIFT_RANDOM_ITEM_WEIGHTED = 17;
+    /// <summary>
+    /// Chắc chắn nhận itemId này (khác type 9/17 là RANDOM CHỌN 1 trong nhiều) — chỉ số LƯỢNG là
+    /// ngẫu nhiên trong [min,max] (đều theo Utilities.nextInt, bao gồm cả 2 đầu). Format:
+    /// [18, itemId, min, max]. Ví dụ [18,240026,1,15] = chắc chắn nhận Bột mì, số lượng 1-15.
+    /// </summary>
+    public const int GIFT_ITEM_RANDOM_COUNT = 18;
     /**
      * thời gian chờ lượt đánh (mili giây)
      */
