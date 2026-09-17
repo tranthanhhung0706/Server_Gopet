@@ -30,6 +30,8 @@ namespace Gopet.Manager
             _events.Add(Boss2026.Instance);
             // TrungThu2026.Condition cũng đọc bảng event_config (eventKey = "trungthu2026").
             _events.Add(TrungThu2026.Instance);
+            // Vòng lặp hồi sinh Boss Trung Thu (typeBoss=2) — dùng chung công tắc "trungthu2026".
+            _events.Add(BossTrungThu2026.Instance);
         }
 
         public static void AddEvent(EventBase eventBase)

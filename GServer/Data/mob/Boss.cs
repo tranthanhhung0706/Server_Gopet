@@ -73,6 +73,14 @@ namespace Gopet.Data.Mob
             this.setMobLocation(mobLocation);
             this.setMobLvInfo(new MobLvInfoImp(bossTemplate));
             initMob();
+            // Boss có cấu hình SkillIds (cột `skill` bảng `boss`, vd typeBoss=2 Boss Trung Thu) sẽ
+            // ngẫu nhiên tung skill thay vì chỉ đánh thường — xem PetBattle.mobAttack() đọc field
+            // skill (kế thừa từ Pet) này qua pickUsableSkill()/mobUseSkill() (đã có sẵn, trước giờ
+            // chỉ dùng cho Arena). skillLv=1 cho mọi skillId vì boss không "học" skill theo cấp.
+            if (bossTemplate.SkillIds != null && bossTemplate.SkillIds.Length > 0)
+            {
+                this.skill = bossTemplate.SkillIds.Select(id => new int[] { id, 1 }).ToArray();
+            }
         }
 
         public override PetBattle getPetBattle(Player player)

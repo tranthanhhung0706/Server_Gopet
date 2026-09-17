@@ -28,7 +28,8 @@ namespace Gopet.APIs
             @"SELECT bossId AS BossId, name AS Name, petTemplateId AS PetTemplateId, str AS Str,
                      _int AS _int, agi AS Agi, lvl AS Lvl, typeBoss AS TypeBoss, gift AS Gift,
                      exp AS Exp, hp AS Hp, atk AS Atk, HourSummon AS HourSummon,
-                     BossMapSummon AS BossMapSummon
+                     BossMapSummon AS BossMapSummon, SkillIds AS SkillIds, SummonCount AS SummonCount,
+                     SummonIntervalMinutes AS SummonIntervalMinutes
               FROM `boss`";
 
         /// <summary>Danh sách boss — có phân trang, lọc theo typeBoss nếu truyền vào.</summary>
@@ -70,7 +71,8 @@ namespace Gopet.APIs
         }
 
         public record CreateBossRequest(string Name, int PetTemplateId, int Str, int _int, int Agi, int Lvl,
-            sbyte TypeBoss, string Gift, int Exp, int Hp, int Atk, string? HourSummon, string? BossMapSummon);
+            sbyte TypeBoss, string Gift, int Exp, int Hp, int Atk, string? HourSummon, string? BossMapSummon, string? SkillIds,
+            int SummonCount = 0, int SummonIntervalMinutes = 0);
 
         /// <summary>Tạo boss mới. bossId tự tăng.</summary>
         [HttpPost("/v1/gopet/api/Bosses")]
@@ -92,6 +94,10 @@ namespace Gopet.APIs
             {
                 return BadRequest(new BaseResponse<object?>(0, mapError, null));
             }
+            if (!IsValidIntArray(req.SkillIds, out string? skillError))
+            {
+                return BadRequest(new BaseResponse<object?>(0, skillError, null));
+            }
             if (!GopetManager.PETTEMPLATE_HASH_MAP.ContainsKey(req.PetTemplateId))
             {
                 return BadRequest(new BaseResponse<object?>(0, $"Không tìm thấy pet template id = {req.PetTemplateId}", null));
@@ -100,8 +106,8 @@ namespace Gopet.APIs
             using var conn = MYSQLManager.create();
 
             int newId = conn.ExecuteScalar<int>(
-                @"INSERT INTO `boss` (name, petTemplateId, str, _int, agi, lvl, typeBoss, gift, exp, hp, atk, HourSummon, BossMapSummon)
-                  VALUES (@Name, @PetTemplateId, @Str, @_int, @Agi, @Lvl, @TypeBoss, @Gift, @Exp, @Hp, @Atk, @HourSummon, @BossMapSummon);
+                @"INSERT INTO `boss` (name, petTemplateId, str, _int, agi, lvl, typeBoss, gift, exp, hp, atk, HourSummon, BossMapSummon, SkillIds, SummonCount, SummonIntervalMinutes)
+                  VALUES (@Name, @PetTemplateId, @Str, @_int, @Agi, @Lvl, @TypeBoss, @Gift, @Exp, @Hp, @Atk, @HourSummon, @BossMapSummon, @SkillIds, @SummonCount, @SummonIntervalMinutes);
                   SELECT LAST_INSERT_ID();",
                 new
                 {
@@ -118,6 +124,9 @@ namespace Gopet.APIs
                     req.Atk,
                     HourSummon = req.HourSummon ?? "[]",
                     BossMapSummon = req.BossMapSummon ?? "[]",
+                    SkillIds = req.SkillIds ?? "[]",
+                    req.SummonCount,
+                    req.SummonIntervalMinutes,
                 });
 
             var created = conn.QueryFirstOrDefault<BossDto>($"{SelectBossSql} WHERE bossId = @id", new { id = newId });
@@ -125,7 +134,8 @@ namespace Gopet.APIs
         }
 
         public record UpdateBossRequest(string? Name, int? PetTemplateId, int? Str, int? _int, int? Agi, int? Lvl,
-            sbyte? TypeBoss, string? Gift, int? Exp, int? Hp, int? Atk, string? HourSummon, string? BossMapSummon);
+            sbyte? TypeBoss, string? Gift, int? Exp, int? Hp, int? Atk, string? HourSummon, string? BossMapSummon, string? SkillIds,
+            int? SummonCount, int? SummonIntervalMinutes);
 
         /// <summary>Cập nhật 1 phần boss. Không cho đổi bossId (khoá chính).</summary>
         [HttpPatch("/v1/gopet/api/Bosses/{id:int}")]
@@ -151,6 +161,10 @@ namespace Gopet.APIs
             {
                 return BadRequest(new BaseResponse<object?>(0, mapError, null));
             }
+            if (req?.SkillIds != null && !IsValidIntArray(req.SkillIds, out string? skillError))
+            {
+                return BadRequest(new BaseResponse<object?>(0, skillError, null));
+            }
             if (req?.PetTemplateId is int petIdVal && !GopetManager.PETTEMPLATE_HASH_MAP.ContainsKey(petIdVal))
             {
                 return BadRequest(new BaseResponse<object?>(0, $"Không tìm thấy pet template id = {petIdVal}", null));
@@ -173,6 +187,9 @@ namespace Gopet.APIs
             if (req?.Atk is int atk) { setClauses.Add("atk = @atk"); parameters.Add("atk", atk); }
             if (req?.HourSummon != null) { setClauses.Add("HourSummon = @hourSummon"); parameters.Add("hourSummon", req.HourSummon); }
             if (req?.BossMapSummon != null) { setClauses.Add("BossMapSummon = @bossMapSummon"); parameters.Add("bossMapSummon", req.BossMapSummon); }
+            if (req?.SkillIds != null) { setClauses.Add("SkillIds = @skillIds"); parameters.Add("skillIds", req.SkillIds); }
+            if (req?.SummonCount is int summonCount) { setClauses.Add("SummonCount = @summonCount"); parameters.Add("summonCount", summonCount); }
+            if (req?.SummonIntervalMinutes is int summonIntervalMinutes) { setClauses.Add("SummonIntervalMinutes = @summonIntervalMinutes"); parameters.Add("summonIntervalMinutes", summonIntervalMinutes); }
 
             if (setClauses.Count == 0)
             {

@@ -1524,38 +1524,24 @@ namespace Gopet.Battle
             }
         }
 
+        // Mob/Boss có cấu hình skill (Pet.skill, xem Boss.cs gán từ BossTemplate.SkillIds) sẽ ngẫu
+        // nhiên tung skill thay vì luôn đánh thường — dùng lại đúng pickUsableSkill()/mobUseSkill()
+        // đã có sẵn cho Arena (xem arenaSmartAttack). Mob/Boss không cấu hình skill (mặc định
+        // mob.skill rỗng) thì pickUsableSkill luôn trả về null, hành vi giữ nguyên như trước (chỉ
+        // đánh thường) — không ảnh hưởng boss/quái đã có từ trước.
         private void mobAttack()
         {
-            mobUseNormalAttack();
-            //        if (this.mob.getMobLvInfo().getLvl() > 3) {
-            //            bool isUseSkill = Utilities.NextFloatPer() <= 200f;
-            //            if (isUseSkill) {
-            //                ArrayList<PetSkill> listSkill = GopetManager.NCLASS_PETSKILL_HASH_MAP.get(this.mob.getPetTemplate().getNclass());
-            //                if (listSkill != null) {
-            ////                    System.out.println("data.battle.PetBattle.mobAttack() list skill not null");
-            //                    if (!listSkill.isEmpty()) {
-            ////                        System.out.println("data.battle.PetBattle.mobAttack() list skill not empty");
-            //                        PetSkill petSkill = listSkill.get(Utilities.nextInt(listSkill.Count));
-            //                        int skillLv = Utilities.nextInt(0, Math.min(7, this.mob.getMobLvInfo().getLvl() / 7));
-            //                        PetSkillLv petSkillLv = petSkill.skillLv.get(skillLv);
-            ////                        System.out.println("data.battle.PetBattle.mobAttack() mp mob " + this.mob.mp);
-            //                        if ((passiveBattleInfo.isCoolDown(petSkill.skillID) || this.mob.mp < petSkillLv.mpLost)) {
-            //                            mobUseNormalAttack();
-            //                        } else {
-            //                            mobUseSkill(petSkill, petSkillLv);
-            //                        }
-            //                    } else {
-            //                        mobUseNormalAttack();
-            //                    }
-            //                } else {
-            //                    mobUseNormalAttack();
-            //                }
-            //            } else {
-            //                mobUseNormalAttack();
-            //            }
-            //        } else {
-            //            mobUseNormalAttack();
-            //        }
+            int[] chosen = pickUsableSkill(mob.skill, passiveBattleInfo, mob.mp);
+            if (chosen != null)
+            {
+                PetSkill petSkill = GopetManager.PETSKILL_HASH_MAP.get(chosen[0]);
+                PetSkillLv petSkillLv = petSkill.skillLv.get(chosen[1] - 1);
+                mobUseSkill(petSkill, petSkillLv);
+            }
+            else
+            {
+                mobUseNormalAttack();
+            }
         }
 
         // Chọn ngẫu nhiên 1 skill còn dùng được (không cooldown, đủ mp) trong danh sách skill thật của pet.
