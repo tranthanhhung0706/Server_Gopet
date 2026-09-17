@@ -565,7 +565,7 @@ public class GopetManager
     public const int PRICE_UP_TIER_PET = 10000;
     public const long MAX_TIME_BUFF_EXP = 1000 * 60 * 60 * 3;
     public const long TIME_BUFF_EXP = 1000 * 60 * 30;
-    public const int LVL_PET_REQUIER_UP_TIER = 25;
+    public const int LVL_PET_REQUIER_UP_TIER = 15;
     public const float KIOSK_PER_SELL = 5f;
     public const int DELAY_INVITE_PLAYER_CHALLENGE = 40000;
     public const int MAX_PK_POINT = 10;
