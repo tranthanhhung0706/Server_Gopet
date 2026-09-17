@@ -4462,6 +4462,14 @@ public class GameController
         for (int i = 0; i < gift.Length; i++)
         {
             int[] giftInfo = gift[i];
+            // 1 dòng gift cấu hình sai (vd thiếu tham số, itemId không tồn tại...) trước đây làm
+            // crash NGAY GIỮA lúc xử lý — với trường hợp hạ boss, đúng lúc này còn CHƯA kịp chạy
+            // place.mobDie()/okDialog()/RemoveBattleByMobId() ở dưới (xem win() trong PetBattle.cs),
+            // nên player bị treo màn hình chờ mãi không có phản hồi ("bị đơ" sau khi hạ boss) và xác
+            // boss cũng không bị dọn khỏi map. Giờ chỉ log lỗi + bỏ qua ĐÚNG dòng gift đó, các dòng
+            // khác và phần dọn dẹp sau khi thắng vẫn chạy bình thường.
+            try
+            {
             switch (giftInfo[0])
             {
                 case GopetManager.GIFT_GOLD:
@@ -4707,6 +4715,11 @@ public class GameController
                         popups.add(new Popup(pet.getNameWithoutStar(player)));
                     }
                     break;
+            }
+            }
+            catch (Exception ex)
+            {
+                GopetManager.ServerMonitor.LogError($"onReiceiveGift: dòng gift #{i} lỗi (dữ liệu: [{string.Join(",", giftInfo)}]) — bỏ qua, không ảnh hưởng các phần thưởng khác.\n{ex}");
             }
         }
         return popups;
