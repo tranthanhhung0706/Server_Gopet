@@ -740,7 +740,11 @@ namespace Gopet.Battle
                         nextTurn();
                     }
                 }
-                if (isPetAttackMob())
+                // !hasWinner(): petAttack() ở khối phía trên có thể vừa hạ mob và tự chuyển lượt
+                // sang mob (nextTurn() bên trong petAttack) NGAY TRONG CÙNG lần gọi update() này —
+                // thiếu điều kiện này thì khối dưới đây thấy "tới lượt mob" là đúng luôn, cho mob ra
+                // thêm 1 đòn dù đã chết, trước khi hasWinner()/win() ở cuối hàm kịp kết thúc trận.
+                if (isPetAttackMob() && !hasWinner())
                 {
                     if (this.MobAttackTime < DateTime.Now && petAttackMob && getUserTurnId() == mob.getMobId() && IsMobFighted)
                     {
@@ -1712,6 +1716,10 @@ namespace Gopet.Battle
                         mob.addHp(damagePhandoan, activePlayer);
                         mob.SetWinnerIfHpZero(activePlayer);
                         turnEffects.add(new TurnEffect(TurnEffect.NONE, mob.getMobId(), PetSkill.GetTPhanDonSkill(activePet), -damagePhandoan, 0));
+                        if (mob is Boss)
+                        {
+                            this.place.UpdateHpMob(this.mob.GetId(), mob.hp);
+                        }
                     }
                     else
                     {
@@ -1753,6 +1761,13 @@ namespace Gopet.Battle
                         mob.addHp(damage, activePlayer);
                         mob.SetWinnerIfHpZero(activePlayer);
                         turnEffects.add(new TurnEffect(TurnEffect.NONE, mob.getMobId(), PetSkill.GetToxicSkill(activePet), -damage, 0));
+                        // Thiếu dòng này khiến thanh HP boss hiển thị (đọc riêng qua hpBoss, đồng bộ
+                        // nhiều người xem) không cập nhật theo sát thương độc theo lượt — chỉ "bắt
+                        // kịp" khi có đòn đánh thường/skill chủ động tiếp theo, nhìn như máu trừ chậm.
+                        if (mob is Boss)
+                        {
+                            this.place.UpdateHpMob(this.mob.GetId(), mob.hp);
+                        }
                     }
                     else
                     {
@@ -1781,6 +1796,10 @@ namespace Gopet.Battle
                         mob.addHp(damage, activePlayer);
                         mob.SetWinnerIfHpZero(activePlayer);
                         turnEffects.add(new TurnEffect(TurnEffect.NONE, mob.getMobId(), PetSkill.GetToxicSkill(activePet), -damage, 0));
+                        if (mob is Boss)
+                        {
+                            this.place.UpdateHpMob(this.mob.GetId(), mob.hp);
+                        }
                     }
                     else
                     {
