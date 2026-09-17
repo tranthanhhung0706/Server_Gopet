@@ -38,7 +38,9 @@ namespace Gopet.APIs
                      coin AS Coin, lua AS Lua, star AS Star, clanId AS ClanId, isAdmin AS IsAdmin,
                      loginDate AS LoginDate, LastTimeOnline AS LastTimeOnline,
                      NumBossFlowerCoin2026 AS NumBossFlowerCoin2026,
-                     GREATEST(0, FlowerCoin) AS FlowerCoin, spendGold AS SpendGold
+                     GREATEST(0, FlowerCoin) AS FlowerCoin, spendGold AS SpendGold,
+                     NumUseMoonCakeBoxNormal2026 AS NumUseMoonCakeBoxNormal2026,
+                     NumUseMoonCakeBoxVip2026 AS NumUseMoonCakeBoxVip2026
               FROM `player`";
 
         // Whitelist cột được sắp xếp — tránh SQL injection qua tên cột tự do.
@@ -48,6 +50,8 @@ namespace Gopet.APIs
             ["hoaNgoc_desc"] = "NumBossFlowerCoin2026 DESC, ID DESC",
             ["flowerCoinBalance_desc"] = "FlowerCoin DESC, ID DESC",
             ["spendGold_desc"] = "SpendGold DESC, ID DESC",
+            ["moonCakeBoxNormal_desc"] = "NumUseMoonCakeBoxNormal2026 DESC, ID DESC",
+            ["moonCakeBoxVip_desc"] = "NumUseMoonCakeBoxVip2026 DESC, ID DESC",
         };
 
         /// <summary>

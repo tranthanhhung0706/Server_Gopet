@@ -15,6 +15,7 @@ using Gopet.Data.item;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Gopet.Data.user;
 using Gopet.Data.Event.Year2024;
+using Gopet.Data.Event.Year2026;
 using System.Diagnostics;
 using Gopet.Data.Clan;
 using Gopet.Language;
@@ -268,6 +269,9 @@ public class GopetManager
     public static HashMap<int, int> PetExp = new();
 
     public static HashMap<int, JArrayList<DropItem>> dropItem = new();
+
+    /// <summary>Công thức chế tạo hộp quà Trung Thu 2026 (bảng trung_thu_recipe), khoá theo boxItemId.</summary>
+    public static HashMap<int, TrungThuRecipe> trungThuRecipe = new();
 
     public static HashMap<int, TierItem> tierItem = new();
 
@@ -1083,6 +1087,11 @@ public class GopetManager
                 }
                 dropItem.get(dropItem1.getMapId()).add(dropItem1);
             }
+            var trungThuRecipeList = conn.Query<TrungThuRecipe>("SELECT * FROM `trung_thu_recipe`");
+            foreach (var recipe in trungThuRecipeList)
+            {
+                trungThuRecipe.put(recipe.BoxItemId, recipe);
+            }
             var itemTierList = conn.Query<TierItem>("SELECT * FROM `tier_item`");
             foreach (var tierItem1 in itemTierList)
             {
@@ -1534,6 +1543,26 @@ public class GopetManager
         dropItem = local;
 
         ServerMonitor.LogInfo("Nạp lại dữ liệu rớt đồ khi quái chết từ cơ sở dữ liệu OK");
+    }
+
+    /// <summary>
+    /// Nạp lại công thức chế tạo hộp quà Trung Thu 2026 (bảng trung_thu_recipe) từ DB vào RAM mà
+    /// KHÔNG cần restart GServer — dùng sau khi sửa qua trang admin. Áp dụng ngay cho lần chế tạo
+    /// TIẾP THEO (xem TrungThu2026.CraftGiftBox đọc GopetManager.trungThuRecipe).
+    /// </summary>
+    public static void ReloadTrungThuRecipe()
+    {
+        using var conn = MYSQLManager.create();
+        var recipeList = conn.Query<TrungThuRecipe>("SELECT * FROM `trung_thu_recipe`");
+
+        HashMap<int, TrungThuRecipe> local = new();
+        foreach (var recipe in recipeList)
+        {
+            local.put(recipe.BoxItemId, recipe);
+        }
+        trungThuRecipe = local;
+
+        ServerMonitor.LogInfo("Nạp lại công thức chế tạo Trung Thu 2026 từ cơ sở dữ liệu OK");
     }
 
     /// <summary>

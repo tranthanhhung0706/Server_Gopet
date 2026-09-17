@@ -150,6 +150,16 @@ public partial class MenuController
     public const int MENU_NAP_MOC = 1103;
     /// <summary>Popup 2 lựa chọn sau khi chọn 1 mốc nạp: xem thông tin / nhận mốc.</summary>
     public const int MENU_OPTION_NAP_MOC = 1104;
+    /// <summary>Popup xác nhận công thức + chi phí trước khi chế tạo Hộp quà trung thu THƯỜNG.</summary>
+    public const int MENU_CRAFT_BOX_NORMAL_TRUNG_THU_2026 = 1105;
+    /// <summary>Popup xác nhận công thức + chi phí trước khi chế tạo Hộp quà trung thu VIP.</summary>
+    public const int MENU_CRAFT_BOX_VIP_TRUNG_THU_2026 = 1106;
+    /// <summary>Danh sách mốc quà hộp thường (bảng trung_thu_milestone, boxType=0) — chọn 1 mốc để mở MENU_OPTION_TRUNG_THU_MILESTONE.</summary>
+    public const int MENU_TRUNG_THU_MILESTONE_NORMAL = 1107;
+    /// <summary>Danh sách mốc quà hộp VIP (bảng trung_thu_milestone, boxType=1) — chọn 1 mốc để mở MENU_OPTION_TRUNG_THU_MILESTONE.</summary>
+    public const int MENU_TRUNG_THU_MILESTONE_VIP = 1108;
+    /// <summary>Popup 2 lựa chọn sau khi chọn 1 mốc Trung Thu: xem thông tin / nhận mốc.</summary>
+    public const int MENU_OPTION_TRUNG_THU_MILESTONE = 1109;
     public static readonly MenuItemInfo[] ADMIN_INFOS = new MenuItemInfo[]{
         new AdminItemInfo("Đặt chỉ số pet đang đi theo", "Đặt chỉ số cho pet đi theo", "items/4000766.png"),
         new AdminItemInfo("Dịch chuyển đến người chơi", "Dịch chuyển đến người chơi chỉ định", "items/4000766.png"),
@@ -445,6 +455,30 @@ public partial class MenuController
     /// </summary>
     public const int OP_SHOW_SHOP_GIFT_BOX_2026 = 104;
     /// <summary>
+    /// Chế tạo Hộp quà trung thu THƯỜNG — sự kiện Trung Thu 2026 (TrungThu2026).
+    /// </summary>
+    public const int OP_CRAFT_BOX_NORMAL_TRUNG_THU_2026 = 105;
+    /// <summary>
+    /// Chế tạo Hộp quà trung thu VIP — sự kiện Trung Thu 2026 (TrungThu2026).
+    /// </summary>
+    public const int OP_CRAFT_BOX_VIP_TRUNG_THU_2026 = 106;
+    /// <summary>
+    /// Xem bảng xếp hạng số lần dùng Hộp quà trung thu THƯỜNG — sự kiện Trung Thu 2026.
+    /// </summary>
+    public const int OP_XEM_TOP_BOX_NORMAL_TRUNG_THU_2026 = 107;
+    /// <summary>
+    /// Xem bảng xếp hạng số lần dùng Hộp quà trung thu VIP — sự kiện Trung Thu 2026.
+    /// </summary>
+    public const int OP_XEM_TOP_BOX_VIP_TRUNG_THU_2026 = 108;
+    /// <summary>
+    /// Hướng dẫn sự kiện Trung Thu 2026 — cách chế tạo hộp quà + farm nguyên liệu ở các map.
+    /// </summary>
+    public const int OP_GUIDE_TRUNG_THU_2026 = 109;
+    /// <summary>Nhận quà theo mốc số lần dùng Hộp quà trung thu THƯỜNG — sự kiện Trung Thu 2026.</summary>
+    public const int OP_NHAN_QUA_MOC_BOX_NORMAL_TRUNG_THU_2026 = 110;
+    /// <summary>Nhận quà theo mốc số lần dùng Hộp quà trung thu VIP — sự kiện Trung Thu 2026.</summary>
+    public const int OP_NHAN_QUA_MOC_BOX_VIP_TRUNG_THU_2026 = 111;
+    /// <summary>
     /// Option Custom
     /// Trao đổi thưởng bằng
     /// </summary>
@@ -611,6 +645,8 @@ public partial class MenuController
     public const int OBJKEY_BUY_SHOP_ITEM_MENU_ID = 75;
     public const int OBJKEY_BUY_SHOP_ITEM_INDEX = 76;
     public const int OBJKEY_BUY_SHOP_ITEM_PAYMENT_INDEX = 77;
+    /// <summary>Khoá để lưu mốc Trung Thu (TrungThuMilestone) đang được chọn từ MENU_TRUNG_THU_MILESTONE_NORMAL/VIP.</summary>
+    public const int OBJKEY_TRUNG_THU_MILESTONE_REWARD = 78;
     public const int DIALOG_CONFIRM_REMOVE_ITEM_EQUIP = 0;
     public const int DIALOG_CONFIRM_BUY_KIOSK_ITEM = 1;
     public const int DIALOG_ENCHANT = 3;

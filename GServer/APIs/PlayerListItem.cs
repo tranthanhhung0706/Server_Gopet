@@ -25,5 +25,9 @@ namespace Gopet.APIs
         // Tổng vàng (gold) đã tiêu — chỉ cộng dồn khi event "spend_gold_rank" đang bật qua
         // EventConfigManager, xem Player.CanAddSpendGold. Dùng cho bảng "Top Đại gia xuống núi".
         public long SpendGold { get; set; }
+        // Tổng số lần dùng Hộp quà trung thu THƯỜNG/VIP (sự kiện TrungThu2026) — xem
+        // Data/Event/Year2026/TrungThu2026.cs, dùng cho 2 bảng xếp hạng riêng.
+        public int NumUseMoonCakeBoxNormal2026 { get; set; }
+        public int NumUseMoonCakeBoxVip2026 { get; set; }
     }
 }

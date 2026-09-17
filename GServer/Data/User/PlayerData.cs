@@ -152,6 +152,16 @@ public class PlayerData
     /// </summary>
     public int NumUseGiftBox2025 { get; set; } = 0;
     /// <summary>
+    /// Trường thuộc sự kiện Trung Thu 2026 — tổng số lần mở Hộp quà trung thu THƯỜNG, dùng để xếp
+    /// hạng qua TrungThu2026.TopUseGiftBoxNormal2026.
+    /// </summary>
+    public int NumUseMoonCakeBoxNormal2026 { get; set; } = 0;
+    /// <summary>
+    /// Trường thuộc sự kiện Trung Thu 2026 — tổng số lần mở Hộp quà trung thu VIP, dùng để xếp
+    /// hạng qua TrungThu2026.TopUseGiftBoxVip2026.
+    /// </summary>
+    public int NumUseMoonCakeBoxVip2026 { get; set; } = 0;
+    /// <summary>
     /// Trường thuộc tính năng "Mốc nạp" — ghi lại mốc tổng nạp (user.tongnap, web DB
     /// gopettae_gopet_web) CAO NHẤT đã nhận thưởng, để biết mốc nào trong bảng nap_moc_reward
     /// chưa nhận (threshold > NapMocClaimed). Vì tongnap chỉ tăng dần và admin có thể chỉnh sửa
@@ -271,6 +281,8 @@ public class PlayerData
                             NumEatCylindricalStickyRiceCoin = @NumEatCylindricalStickyRiceCoin,
                             IndexMilistoneBirthdayEvent = @IndexMilistoneBirthdayEvent,
                             NumUseGiftBox2025 = @NumUseGiftBox2025,
+                            NumUseMoonCakeBoxNormal2026 = @NumUseMoonCakeBoxNormal2026,
+                            NumUseMoonCakeBoxVip2026 = @NumUseMoonCakeBoxVip2026,
                             NapMocClaimed = @NapMocClaimed
                             WHERE ID = @ID", playerData);
     }

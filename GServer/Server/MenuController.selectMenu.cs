@@ -19,6 +19,7 @@ using Gopet.Data.user;
 using Gopet.Manager;
 using Gopet.Data.Clan;
 using Gopet.Data.Event.Year2024;
+using Gopet.Data.Event.Year2026;
 using Gopet.Data.pet;
 
 public partial class MenuController
@@ -27,6 +28,51 @@ public partial class MenuController
     {
         switch (menuId)
         {
+            case MENU_CRAFT_BOX_NORMAL_TRUNG_THU_2026:
+                TrungThu2026.Instance.CraftGiftBox(player, false);
+                break;
+            case MENU_CRAFT_BOX_VIP_TRUNG_THU_2026:
+                TrungThu2026.Instance.CraftGiftBox(player, true);
+                break;
+            case MENU_TRUNG_THU_MILESTONE_NORMAL:
+            case MENU_TRUNG_THU_MILESTONE_VIP:
+                {
+                    // index = itemId đã gán = TrungThuMilestone.Id (xem sendMenu.cs case
+                    // MENU_TRUNG_THU_MILESTONE_NORMAL/VIP) — query lại DB để lấy dữ liệu mới nhất.
+                    TrungThuMilestone milestone;
+                    using (var conn = MYSQLManager.create())
+                    {
+                        milestone = conn.QueryFirstOrDefault<TrungThuMilestone>(
+                            "SELECT id, boxType, name, threshold, giftData, usersOfUseThis FROM `trung_thu_milestone` WHERE id = @id", new { id = index });
+                    }
+                    if (milestone == null)
+                    {
+                        player.redDialog(player.Language.ItemWasSell);
+                        return;
+                    }
+                    player.controller.objectPerformed.put(OBJKEY_TRUNG_THU_MILESTONE_REWARD, milestone);
+                    sendMenu(MENU_OPTION_TRUNG_THU_MILESTONE, player);
+                }
+                break;
+            case MENU_OPTION_TRUNG_THU_MILESTONE:
+                {
+                    if (!player.controller.objectPerformed.ContainsKey(OBJKEY_TRUNG_THU_MILESTONE_REWARD))
+                    {
+                        return;
+                    }
+                    TrungThuMilestone milestone = (TrungThuMilestone)player.controller.objectPerformed.get(OBJKEY_TRUNG_THU_MILESTONE_REWARD);
+                    switch (index)
+                    {
+                        case 0:
+                            player.okDialog(string.Format("{0}\n{1}", milestone.Name, player.controller.DescribeGiftData(milestone.GiftData)));
+                            return;
+                        case 1:
+                            player.controller.objectPerformed.Remove(OBJKEY_TRUNG_THU_MILESTONE_REWARD);
+                            player.controller.ClaimTrungThuMilestone(milestone.Id);
+                            return;
+                    }
+                }
+                break;
             case MENU_UNEQUIP_SKIN:
             case MENU_UNEQUIP_PET:
                 {

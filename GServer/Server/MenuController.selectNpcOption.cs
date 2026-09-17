@@ -116,6 +116,37 @@ public partial class MenuController
                 }
                 showShop(SHOP_BOSS_2026_GIFT_BOX, player);
                 break;
+            case OP_CRAFT_BOX_NORMAL_TRUNG_THU_2026:
+                if (!TrungThu2026.Instance.Condition)
+                {
+                    player.redDialog(player.Language.EventHadFinished);
+                    break;
+                }
+                sendMenu(MENU_CRAFT_BOX_NORMAL_TRUNG_THU_2026, player);
+                break;
+            case OP_CRAFT_BOX_VIP_TRUNG_THU_2026:
+                if (!TrungThu2026.Instance.Condition)
+                {
+                    player.redDialog(player.Language.EventHadFinished);
+                    break;
+                }
+                sendMenu(MENU_CRAFT_BOX_VIP_TRUNG_THU_2026, player);
+                break;
+            case OP_XEM_TOP_BOX_NORMAL_TRUNG_THU_2026:
+                showTop(TrungThu2026.TopUseGiftBoxNormal2026.Instance, player);
+                break;
+            case OP_XEM_TOP_BOX_VIP_TRUNG_THU_2026:
+                showTop(TrungThu2026.TopUseGiftBoxVip2026.Instance, player);
+                break;
+            case OP_GUIDE_TRUNG_THU_2026:
+                player.okDialog(player.Language.GuideTrungThu2026);
+                break;
+            case OP_NHAN_QUA_MOC_BOX_NORMAL_TRUNG_THU_2026:
+                sendMenu(MENU_TRUNG_THU_MILESTONE_NORMAL, player);
+                break;
+            case OP_NHAN_QUA_MOC_BOX_VIP_TRUNG_THU_2026:
+                sendMenu(MENU_TRUNG_THU_MILESTONE_VIP, player);
+                break;
             case OP_CHALLENGE:
                 {
                     if (player.checkStar(GopetManager.STAR_JOIN_CHALLENGE))

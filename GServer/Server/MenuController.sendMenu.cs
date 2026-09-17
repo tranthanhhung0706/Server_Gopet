@@ -18,6 +18,7 @@ using Gopet.Data.top;
 using Gopet.Data.dialog;
 using Gopet.Data.Clan;
 using Gopet.Data.Event.Year2024;
+using Gopet.Data.Event.Year2026;
 
 public partial class MenuController
 {
@@ -25,6 +26,71 @@ public partial class MenuController
     {
         switch (menuId)
         {
+            case MENU_CRAFT_BOX_NORMAL_TRUNG_THU_2026:
+            case MENU_CRAFT_BOX_VIP_TRUNG_THU_2026:
+                {
+                    bool isVip = menuId == MENU_CRAFT_BOX_VIP_TRUNG_THU_2026;
+                    int boxItemId = isVip ? TrungThu2026.ID_GIFT_BOX_VIP : TrungThu2026.ID_GIFT_BOX_NORMAL;
+                    string recipeText = TrungThu2026.Instance.GetRecipeText(isVip);
+                    string boxName = GopetManager.itemTemplate.ContainsKey(boxItemId)
+                        ? GopetManager.itemTemplate.get(boxItemId).getName(player)
+                        : (isVip ? "Hộp quà trung thu VIP" : "Hộp quà trung thu thường");
+                    string iconPath = GopetManager.itemTemplate.ContainsKey(boxItemId)
+                        ? GopetManager.itemTemplate.get(boxItemId).iconPath
+                        : "";
+                    JArrayList<MenuItemInfo> menuItemInfos = new();
+                    MenuItemInfo menuItemInfo = new MenuItemInfo(boxName, $"Cần: {recipeText}", iconPath, true);
+                    menuItemInfo.setShowDialog(true);
+                    menuItemInfo.setDialogText(string.Format(player.Language.ConfirmCraftItem, boxName, recipeText));
+                    menuItemInfo.setLeftCmdText(CMD_CENTER_OK);
+                    menuItemInfo.setCloseScreenAfterClick(true);
+                    menuItemInfos.add(menuItemInfo);
+                    player.controller.showMenuItem(menuId, TYPE_MENU_SELECT_ELEMENT, boxName, menuItemInfos);
+                }
+                break;
+            case MENU_TRUNG_THU_MILESTONE_NORMAL:
+            case MENU_TRUNG_THU_MILESTONE_VIP:
+                {
+                    sbyte boxType = menuId == MENU_TRUNG_THU_MILESTONE_VIP ? (sbyte)1 : (sbyte)0;
+                    List<TrungThuMilestone> milestones;
+                    using (var conn = MYSQLManager.create())
+                    {
+                        milestones = conn.Query<TrungThuMilestone>(
+                            "SELECT id, boxType, name, threshold, giftData, usersOfUseThis FROM `trung_thu_milestone` WHERE boxType = @boxType ORDER BY threshold ASC",
+                            new { boxType }).ToList();
+                    }
+
+                    int current = boxType == 1 ? player.playerData.NumUseMoonCakeBoxVip2026 : player.playerData.NumUseMoonCakeBoxNormal2026;
+
+                    JArrayList<MenuItemInfo> menuItemInfos = new();
+                    foreach (TrungThuMilestone milestone in milestones)
+                    {
+                        bool claimed = milestone.UsersOfUseThis.Contains(player.user.user_id);
+                        string status = claimed ? "Đã nhận" : (current >= milestone.Threshold ? "Đủ điều kiện" : "Chưa đủ điều kiện");
+                        MenuItemInfo menuItemInfo = new MenuItemInfo();
+                        menuItemInfo.setCanSelect(true);
+                        menuItemInfo.setTitleMenu(milestone.Name);
+                        menuItemInfo.setDesc(string.Format("Mốc số lần dùng: {0} - {1}", Utilities.FormatNumber(milestone.Threshold), status));
+                        menuItemInfo.setImgPath(boxType == 1 ? "items/240032.png" : "items/240031.png");
+                        menuItemInfo.setCloseScreenAfterClick(true);
+                        menuItemInfo.setLeftCmdText(CMD_CENTER_OK);
+                        menuItemInfo.setHasId(true);
+                        menuItemInfo.setItemId(milestone.Id);
+                        menuItemInfos.add(menuItemInfo);
+                    }
+                    player.controller.showMenuItem(menuId, TYPE_MENU_SELECT_ELEMENT, boxType == 1 ? "Mốc quà hộp VIP" : "Mốc quà hộp thường", menuItemInfos);
+                }
+                break;
+            case MENU_OPTION_TRUNG_THU_MILESTONE:
+                {
+                    JArrayList<Option> trungThuMilestoneOptions = new JArrayList<Option>()
+                    {
+                        new Option(0, "Xem thông tin mốc"),
+                        new Option(1, "Nhận mốc"),
+                    };
+                    player.controller.sendListOption(menuId, "Tuỳ chọn", "", trungThuMilestoneOptions);
+                }
+                break;
             case MENU_SELL_TRASH_ITEM:
                 {
                     List<Item> items = new List<Item>();

@@ -5803,6 +5803,56 @@ public class GameController
         player.okDialog(string.Format(player.Language.GetGiftCodeOK, String.Join(",", textInfo)));
     }
 
+    /// <summary>
+    /// Nhận ĐÚNG 1 mốc dùng hộp quà Trung Thu cụ thể (chọn từ MENU_TRUNG_THU_MILESTONE_NORMAL/VIP)
+    /// — HOÀN TOÀN TÁCH RIÊNG khỏi ClaimNapMocReward (mốc tổng nạp), so mốc với
+    /// player.NumUseMoonCakeBoxNormal2026 (BoxType=0) hoặc NumUseMoonCakeBoxVip2026 (BoxType=1),
+    /// KHÔNG cần query DB web như nap_moc. Điều kiện "đã nhận mốc X chưa" tra qua usersOfUseThis
+    /// của ĐÚNG dòng đó (cho phép nhận không theo thứ tự, giống ClaimNapMocReward).
+    /// </summary>
+    public void ClaimTrungThuMilestone(int milestoneId)
+    {
+        if (player.user.role == UserData.ROLE_NON_ACTIVE)
+        {
+            player.redDialog(player.Language.AccountNonAcitve);
+            return;
+        }
+
+        using var gameConn = MYSQLManager.create();
+
+        TrungThuMilestone milestone = gameConn.QueryFirstOrDefault<TrungThuMilestone>(
+            "SELECT id, boxType, name, threshold, giftData, usersOfUseThis FROM `trung_thu_milestone` WHERE id = @milestoneId", new { milestoneId });
+        if (milestone == null)
+        {
+            player.redDialog(player.Language.ItemWasSell);
+            return;
+        }
+        if (milestone.UsersOfUseThis.Contains(player.user.user_id))
+        {
+            player.redDialog("Bạn đã nhận mốc này rồi");
+            return;
+        }
+
+        int current = milestone.BoxType == 1 ? player.playerData.NumUseMoonCakeBoxVip2026 : player.playerData.NumUseMoonCakeBoxNormal2026;
+        if (current < milestone.Threshold)
+        {
+            player.redDialog(player.Language.TrungThuMilestoneFail, Utilities.FormatNumber(current));
+            return;
+        }
+
+        JArrayList<Popup> popups = player.controller.onReiceiveGift(milestone.GiftData);
+        JArrayList<String> textInfo = new();
+        foreach (Popup popup in popups)
+        {
+            textInfo.add(popup.getText());
+        }
+
+        milestone.UsersOfUseThis.add(player.user.user_id);
+        gameConn.Execute("UPDATE `trung_thu_milestone` SET usersOfUseThis = @UsersOfUseThis WHERE id = @Id", milestone);
+        HistoryManager.addHistory(new History(player).setLog($"Nhận quà mốc Trung Thu \"{milestone.Name}\" (mốc {milestone.Threshold})").setObj(new { milestone.Id }));
+        player.okDialog(string.Format(player.Language.GetGiftCodeOK, String.Join(",", textInfo)));
+    }
+
     public bool TryUseCardSkill(int skillId, int indexSlot, out Pet myPet)
     {
         myPet = player.playerData.petSelected;

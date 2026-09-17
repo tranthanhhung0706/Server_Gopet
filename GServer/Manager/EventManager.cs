@@ -28,6 +28,8 @@ namespace Gopet.Manager
             // Boss2026.Condition đọc bảng event_config qua EventConfigManager — bật/tắt + chỉnh
             // ngày qua trang admin Event, không cần comment/uncomment dòng này hay build lại nữa.
             _events.Add(Boss2026.Instance);
+            // TrungThu2026.Condition cũng đọc bảng event_config (eventKey = "trungthu2026").
+            _events.Add(TrungThu2026.Instance);
         }
 
         public static void AddEvent(EventBase eventBase)
