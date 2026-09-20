@@ -1710,128 +1710,128 @@ public partial class MenuController
                 GopetPlace place = (GopetPlace)player.getPlace();
                 if (player.checkIsAdmin())
                 {
-                    switch (index)
-                    {
-                        case ADMIN_INDEX_SET_PET_INFO:
-                            player.controller.showInputDialog(INPUT_DIALOG_SET_PET_SELECTED_INFo, "Đặt chỉ số pet đang đi theo", new String[] { "LVL:  ", "STAR:  ", "GYM:  " });
-                            break;
-                        case ADMIN_INDEX_COUNT_PLAYER:
-                            player.okDialog(string.Format("Online player: {0}", PlayerManager.players.Count));
-                            break;
-                        case ADMIN_INDEX_COUNT_OF_MAP:
-                            int numPlayerMap = 0;
-                            foreach (Place place1 in place.map.places)
-                            {
-                                numPlayerMap += place1.numPlayer;
-                            }
-                            player.okDialog(Utilities.Format("Online player %s: %s", place.map.mapTemplate.getName(player), numPlayerMap));
-                            break;
-                        case ADMIN_INDEX_TELE_TO_MAP:
-                            sendMenu(MENU_ADMIN_MAP, player);
-                            break;
-                        case ADMIN_INDEX_SELECT_ITEM:
-                            player.controller.showInputDialog(INPUT_DIALOG_ADMIN_GET_ITEM, "Lấy vật phẩm", new String[] { "IdTemplate  :", "Số lượng   :" });
-                            break;
-                        case ADMIN_INDEX_TELE_TO_PLAYER:
-                            player.controller.showInputDialog(INPUT_DIALOG_ADMIN_TELE_TO_PLAYER, "Dịch chuyển tới người chơi", new String[] { "Tên \n người chơi :" });
-                            break;
-                        case ADMIN_INDEX_BAN_PLAYER:
-                            player.controller.showInputDialog(INPUT_DIALOG_ADMIN_LOCK_USER, "Khóa tài khoản người chơi", new String[] { "Tên \n người chơi :", "1 - phút, 2 - vĩnh viễn) :", "Thời gian khóa (phút) :", "Lý do  :" });
-                            break;
-                        case ADMIN_INDEX_UNBAN_PLAYER:
-                            player.controller.showInputDialog(INPUT_DIALOG_ADMIN_UNLOCK_USER, "Gỡ khóa tài khoản người chơi", new String[] { "Tên người chơi :" });
-                            break;
-                        case ADMIN_INDEX_SHOW_BANNER:
-                            player.controller.showInputDialog(INPUT_DIALOG_ADMIN_CHAT_GLOBAL, "Chát thế giới", new String[] { "Văn bản :" });
-                            break;
-                        case ADMIN_INDEX_SHOW_HISTORY:
-                            player.controller.showInputDialog(INPUT_DIALOG_ADMIN_GET_HISTORY, "Lấy lịch sử", new String[] { "Tên nhân vật :", "Ngày/tháng/năm (dd/mm/YYYY) : " });
-                            break;
-                        case ADMIN_INDEX_FIND_ITEM_LVL_10:
-                            sendMenu(MENU_SHOW_ALL_PLAYER_HAVE_ITEM_LVL_10, player);
-                            break;
-                        case ADMIN_INDEX_BUFF_ENCHANT:
-                            player.controller.showInputDialog(INPUT_TYPE_NAME_TO_BUFF_ENCHANT, "Buff đập đồ", new String[] { "Tên nhân vật :" });
-                            break;
-                        case ADMIN_INDEX_GET_ITEM_FROM_PLAYER:
-                            player.controller.adminSelectItemDatas.Clear();
-                            player.controller.showInputDialog(INPUT_TYPE_NAME_PLAYER_TO_GET_ITEM, "Lấy item", new String[] { "Tên nv lấy:" });
-                            break;
-                        case ADMIN_INDEX_GIVE_ITEM_TO_PLAYER:
-                            player.controller.adminSelectItemDatas.Clear();
-                            player.controller.showInputDialog(INPUT_TYPE_NAME_PLAYER_TO_GIVE_ITEM, "Đưa item", new String[] { "Tên nv đưa :" });
-                            break;
-                        case ADMIN_INDEX_COIN:
-                            player.controller.showInputDialog(INPUT_TYPE_NAME_TO_BUFF_COIN, "Cộng từ tiền", new String[] { "Tiền :", "Tài khoản :" });
-                            break;
-                        case ADMIN_INDEX_GET_ZONE_ID:
-                            player.okDialog($"Bạn đang ở khu {player.getPlace().zoneID} của map {player.getPlace().map.mapTemplate.getName(player)} mapId = {player.getPlace().map.mapID}");
-                            break;
-                        case ADMIN_INDEX_DELETE_ALL_EQUIP_PET_ITEM:
-                            {
-                                player.playerData.getInventoryOrCreate(GopetManager.EQUIP_PET_INVENTORY).Clear();
-                                player.okDialog("Dọn thành công");
-                                break;
-                            }
-                        case ADMIN_INDEX_TELEPORT_ALL_PLAYER_TO_ADMIN:
-                            {
-                                foreach (var playerOnline in PlayerManager.players)
-                                {
-                                    if (playerOnline != player)
-                                    {
-                                        place.add(playerOnline);
-                                        playerOnline.okDialog($"{player.playerData.name} đã dịch chuyển bạn đến đấy!");
-                                    }
-                                }
-                                break;
-                            }
-                        case ADMIN_INDEX_ADD_ACHIEVEMENT:
-                            sendMenu(MENU_ADMIN_SHOW_ALL_ACHIEVEMENT, player);
-                            break;
-                        case ADMIN_INDEX_SHOW_LIST_SERVER:
-                            player.showListServer(GopetManager.ServerInfos.ToArray());
-                            break;
-                        case ADMIN_INDEX_DELETE_ALL_WING:
-                            player.playerData.getInventoryOrCreate(GopetManager.WING_INVENTORY).Clear();
-                            player.okDialog("Dọn thành công");
-                            break;
-                        case ADMIN_INDEX_BUFF_ENCHANT_TATTOO:
-                            player.controller.showInputDialog(INPUT_TYPE_NAME_BUFF_ENCHANT_TATTOO, "Buff cường hóa xăm", new String[] { "Tên nhân vật :" });
-                            break;
-                        case ADMIN_INDEX_PLAYER_LOCATION:
-                            player.okDialog($"{player.playerData.x}|{player.playerData.y}   zone {place.zoneID}  map {place.map.mapID}");
-                            break;
-                        case ADMIN_INDEX_SET_MERGE_SERVER:
-                            player.controller.showInputDialog(INPUT_TYPE_NAME_PLAYER_TO_ENBALE_MERGE_SERVER, "Bật gộp cho nhân vật", "Tên nhân vật :");
-                            break;
-                        case ADMIN_INDEX_LOCK_ITEM_PLAYER:
-                            player.controller.showInputDialog(INPUT_TYPE_NAME_LOCK_ITEM_PLAYER, "Khoá item", new String[] { "Tên nv:" });
-                            break;
-                        case ADMIN_INDEX_UNLOCK_ITEM_PLAYER:
-                            player.controller.showInputDialog(INPUT_TYPE_NAME_UNLOCK_ITEM_PLAYER, "Mở khoá item", new String[] { "Tên nv:" });
-                            break;
-                        case ADMIN_INDEX_FAST_UP_ITEM:
-                            player.controller.showInputRevertDialog(INPUT_TYPE_FAST_UP_ITEM, "Đập đồ nhanh", "Id vật phẩm", "Cấp từng món", "Lần tiến hoá", "Số lượng VP", "Max dòng chỉ số", "Cấp cuối", "Dung hợp");
-                            break;
-                        case ADMIN_INDEX_VIEW_CUR_PET_HIDDEN_STAT:
-                            {
-                                if (player.playerData.petSelected != null)
-                                {
-                                    player.playerData.petSelected.applyInfo(player);
-                                    player.okDialog($"Những kích ẩn bao gồm: {string.Join(",", player.playerData.petSelected.TakeAllHiddenStat().Select(x => x.Comment))}");
-                                }
-                                else
-                                {
-                                    player.petNotFollow();
-                                }
-                            }
-                            return;
-                        case ADMIN_INDEX_BUFF_DUNG_HỢP:
-                            {
-                                sendMenu(MENU_ADMIN_BUFF_DUNG_HỢP, player);
-                            }
-                            return;
-                    }
+                    // switch (index)
+                    // {
+                    //     case ADMIN_INDEX_SET_PET_INFO:
+                    //         player.controller.showInputDialog(INPUT_DIALOG_SET_PET_SELECTED_INFo, "Đặt chỉ số pet đang đi theo", new String[] { "LVL:  ", "STAR:  ", "GYM:  " });
+                    //         break;
+                    //     case ADMIN_INDEX_COUNT_PLAYER:
+                    //         player.okDialog(string.Format("Online player: {0}", PlayerManager.players.Count));
+                    //         break;
+                    //     case ADMIN_INDEX_COUNT_OF_MAP:
+                    //         int numPlayerMap = 0;
+                    //         foreach (Place place1 in place.map.places)
+                    //         {
+                    //             numPlayerMap += place1.numPlayer;
+                    //         }
+                    //         player.okDialog(Utilities.Format("Online player %s: %s", place.map.mapTemplate.getName(player), numPlayerMap));
+                    //         break;
+                    //     case ADMIN_INDEX_TELE_TO_MAP:
+                    //         sendMenu(MENU_ADMIN_MAP, player);
+                    //         break;
+                    //     case ADMIN_INDEX_SELECT_ITEM:
+                    //         player.controller.showInputDialog(INPUT_DIALOG_ADMIN_GET_ITEM, "Lấy vật phẩm", new String[] { "IdTemplate  :", "Số lượng   :" });
+                    //         break;
+                    //     case ADMIN_INDEX_TELE_TO_PLAYER:
+                    //         player.controller.showInputDialog(INPUT_DIALOG_ADMIN_TELE_TO_PLAYER, "Dịch chuyển tới người chơi", new String[] { "Tên \n người chơi :" });
+                    //         break;
+                    //     case ADMIN_INDEX_BAN_PLAYER:
+                    //         player.controller.showInputDialog(INPUT_DIALOG_ADMIN_LOCK_USER, "Khóa tài khoản người chơi", new String[] { "Tên \n người chơi :", "1 - phút, 2 - vĩnh viễn) :", "Thời gian khóa (phút) :", "Lý do  :" });
+                    //         break;
+                    //     case ADMIN_INDEX_UNBAN_PLAYER:
+                    //         player.controller.showInputDialog(INPUT_DIALOG_ADMIN_UNLOCK_USER, "Gỡ khóa tài khoản người chơi", new String[] { "Tên người chơi :" });
+                    //         break;
+                    //     case ADMIN_INDEX_SHOW_BANNER:
+                    //         player.controller.showInputDialog(INPUT_DIALOG_ADMIN_CHAT_GLOBAL, "Chát thế giới", new String[] { "Văn bản :" });
+                    //         break;
+                    //     case ADMIN_INDEX_SHOW_HISTORY:
+                    //         player.controller.showInputDialog(INPUT_DIALOG_ADMIN_GET_HISTORY, "Lấy lịch sử", new String[] { "Tên nhân vật :", "Ngày/tháng/năm (dd/mm/YYYY) : " });
+                    //         break;
+                    //     case ADMIN_INDEX_FIND_ITEM_LVL_10:
+                    //         sendMenu(MENU_SHOW_ALL_PLAYER_HAVE_ITEM_LVL_10, player);
+                    //         break;
+                    //     case ADMIN_INDEX_BUFF_ENCHANT:
+                    //         player.controller.showInputDialog(INPUT_TYPE_NAME_TO_BUFF_ENCHANT, "Buff đập đồ", new String[] { "Tên nhân vật :" });
+                    //         break;
+                    //     case ADMIN_INDEX_GET_ITEM_FROM_PLAYER:
+                    //         player.controller.adminSelectItemDatas.Clear();
+                    //         player.controller.showInputDialog(INPUT_TYPE_NAME_PLAYER_TO_GET_ITEM, "Lấy item", new String[] { "Tên nv lấy:" });
+                    //         break;
+                    //     case ADMIN_INDEX_GIVE_ITEM_TO_PLAYER:
+                    //         player.controller.adminSelectItemDatas.Clear();
+                    //         player.controller.showInputDialog(INPUT_TYPE_NAME_PLAYER_TO_GIVE_ITEM, "Đưa item", new String[] { "Tên nv đưa :" });
+                    //         break;
+                    //     case ADMIN_INDEX_COIN:
+                    //         player.controller.showInputDialog(INPUT_TYPE_NAME_TO_BUFF_COIN, "Cộng từ tiền", new String[] { "Tiền :", "Tài khoản :" });
+                    //         break;
+                    //     case ADMIN_INDEX_GET_ZONE_ID:
+                    //         player.okDialog($"Bạn đang ở khu {player.getPlace().zoneID} của map {player.getPlace().map.mapTemplate.getName(player)} mapId = {player.getPlace().map.mapID}");
+                    //         break;
+                    //     case ADMIN_INDEX_DELETE_ALL_EQUIP_PET_ITEM:
+                    //         {
+                    //             player.playerData.getInventoryOrCreate(GopetManager.EQUIP_PET_INVENTORY).Clear();
+                    //             player.okDialog("Dọn thành công");
+                    //             break;
+                    //         }
+                    //     case ADMIN_INDEX_TELEPORT_ALL_PLAYER_TO_ADMIN:
+                    //         {
+                    //             foreach (var playerOnline in PlayerManager.players)
+                    //             {
+                    //                 if (playerOnline != player)
+                    //                 {
+                    //                     place.add(playerOnline);
+                    //                     playerOnline.okDialog($"{player.playerData.name} đã dịch chuyển bạn đến đấy!");
+                    //                 }
+                    //             }
+                    //             break;
+                    //         }
+                    //     case ADMIN_INDEX_ADD_ACHIEVEMENT:
+                    //         sendMenu(MENU_ADMIN_SHOW_ALL_ACHIEVEMENT, player);
+                    //         break;
+                    //     case ADMIN_INDEX_SHOW_LIST_SERVER:
+                    //         player.showListServer(GopetManager.ServerInfos.ToArray());
+                    //         break;
+                    //     case ADMIN_INDEX_DELETE_ALL_WING:
+                    //         player.playerData.getInventoryOrCreate(GopetManager.WING_INVENTORY).Clear();
+                    //         player.okDialog("Dọn thành công");
+                    //         break;
+                    //     case ADMIN_INDEX_BUFF_ENCHANT_TATTOO:
+                    //         player.controller.showInputDialog(INPUT_TYPE_NAME_BUFF_ENCHANT_TATTOO, "Buff cường hóa xăm", new String[] { "Tên nhân vật :" });
+                    //         break;
+                    //     case ADMIN_INDEX_PLAYER_LOCATION:
+                    //         player.okDialog($"{player.playerData.x}|{player.playerData.y}   zone {place.zoneID}  map {place.map.mapID}");
+                    //         break;
+                    //     case ADMIN_INDEX_SET_MERGE_SERVER:
+                    //         player.controller.showInputDialog(INPUT_TYPE_NAME_PLAYER_TO_ENBALE_MERGE_SERVER, "Bật gộp cho nhân vật", "Tên nhân vật :");
+                    //         break;
+                    //     case ADMIN_INDEX_LOCK_ITEM_PLAYER:
+                    //         player.controller.showInputDialog(INPUT_TYPE_NAME_LOCK_ITEM_PLAYER, "Khoá item", new String[] { "Tên nv:" });
+                    //         break;
+                    //     case ADMIN_INDEX_UNLOCK_ITEM_PLAYER:
+                    //         player.controller.showInputDialog(INPUT_TYPE_NAME_UNLOCK_ITEM_PLAYER, "Mở khoá item", new String[] { "Tên nv:" });
+                    //         break;
+                    //     case ADMIN_INDEX_FAST_UP_ITEM:
+                    //         player.controller.showInputRevertDialog(INPUT_TYPE_FAST_UP_ITEM, "Đập đồ nhanh", "Id vật phẩm", "Cấp từng món", "Lần tiến hoá", "Số lượng VP", "Max dòng chỉ số", "Cấp cuối", "Dung hợp");
+                    //         break;
+                    //     case ADMIN_INDEX_VIEW_CUR_PET_HIDDEN_STAT:
+                    //         {
+                    //             if (player.playerData.petSelected != null)
+                    //             {
+                    //                 player.playerData.petSelected.applyInfo(player);
+                    //                 player.okDialog($"Những kích ẩn bao gồm: {string.Join(",", player.playerData.petSelected.TakeAllHiddenStat().Select(x => x.Comment))}");
+                    //             }
+                    //             else
+                    //             {
+                    //                 player.petNotFollow();
+                    //             }
+                    //         }
+                    //         return;
+                    //     case ADMIN_INDEX_BUFF_DUNG_HỢP:
+                    //         {
+                    //             sendMenu(MENU_ADMIN_BUFF_DUNG_HỢP, player);
+                    //         }
+                    //         return;
+                    // }
                 }
                 break;
             case MENU_ADMIN_SHOW_ALL_ACHIEVEMENT:
