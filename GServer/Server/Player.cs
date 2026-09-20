@@ -181,6 +181,16 @@ Thread.Sleep(1000);
         //     redDialog("Chức năng này bị khóa. Để đăng ký tài khoản vui lòng vào trang web\n gopettae.com vào mục diễn đàn.");
         //     return;
         // }
+        // Giới hạn theo IP TRƯỚC mọi bước khác (kể cả kiểm tra định dạng): gói đăng ký báo "trùng tên"
+        // nếu username đã có, nên gửi liên tục là dò được username nào tồn tại; còn chưa có thì tạo luôn
+        // tài khoản nên gửi liên tục còn là spam tài khoản rác. Đếm cả lần bị từ chối để dò cũng tốn lượt.
+        string registerIp = ((IPEndPoint)session.CSocket.RemoteEndPoint).Address.ToString();
+        if (PlayerManager.RegisterAttemptTracker.IsLimited(registerIp) || PlayerManager.RegisterCreateTracker.IsLimited(registerIp))
+        {
+            redDialog("Bạn đăng ký quá nhiều lần. Vui lòng thử lại sau ít phút.");
+            return;
+        }
+        PlayerManager.RegisterAttemptTracker.Add(registerIp);
         if (CheckString(username, "^[a-z0-9]+$"))
         {
             if (username.Length >= 6 && password.Length >= 6 && username.Length < 25 && password.Length < 60)
@@ -210,6 +220,7 @@ Thread.Sleep(1000);
                                 ipv4Create = ((IPEndPoint)session.CSocket.RemoteEndPoint).Address.ToString(),
                                 dayCreate = Utilities.CurrentTimeMillis
                             });
+                        PlayerManager.RegisterCreateTracker.Add(registerIp);
                         okDialog(Language.RegisterOK);
                     }
                 }
@@ -621,6 +632,16 @@ Thread.Sleep(1000);
             return;
         }
         PlayerManager.Ipv4Tracker.Add(iPEndPoint.Address.ToString());
+        // Chặn dò mật khẩu/username: quá nhiều lần đăng nhập SAI từ 1 IP (thử nhiều username khác nhau) hoặc
+        // vào cùng 1 username (nhiều IP cùng dò 1 tài khoản). Kiểm tra TRƯỚC khi đụng DB và thông báo giống
+        // hệt nhau bất kể username có tồn tại hay không (tracker chỉ đếm theo chuỗi username gửi lên) nên
+        // không lộ thêm thông tin gì.
+        string loginIp = iPEndPoint.Address.ToString();
+        if (PlayerManager.LoginFailIpTracker.IsLimited(loginIp) || PlayerManager.LoginFailUserTracker.IsLimited(username))
+        {
+            redDialog("Bạn đã đăng nhập sai quá nhiều lần. Vui lòng thử lại sau ít phút.");
+            return;
+        }
         using (MySqlConnection conn = MYSQLManager.createWebMySqlConnection())
         {
             try
@@ -634,6 +655,12 @@ Thread.Sleep(1000);
                     {
                         userData = null;
                     }
+                }
+                else
+                {
+                    // Username không tồn tại: vẫn tốn thời gian bcrypt y như username có thật, tránh dò
+                    // username bằng cách đo thời gian phản hồi.
+                    GopetHashHelper.BurnVerifyTime(password);
                 }
                 long numTry = conn.QueryFirst("SELECT COUNT(*) as TimeTryLogin FROM `login_history` WHERE IPAddress = @IPAddress AND `login_history`.`LoginTime` > @LoginTime AND UserName = @UserName", new
                 {
@@ -666,6 +693,8 @@ Thread.Sleep(1000);
                 }
                 else
                 {
+                    PlayerManager.LoginFailIpTracker.Add(loginIp);
+                    PlayerManager.LoginFailUserTracker.Add(username);
                     loginFailed(Language.IncorrectUsePassword);
                     Thread.Sleep(1000);
                     this.session.Close();

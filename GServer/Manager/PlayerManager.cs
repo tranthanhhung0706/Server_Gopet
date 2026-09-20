@@ -24,6 +24,16 @@ public class PlayerManager : UpdateThread
     public static readonly TimeTracker<string> OtpTracker = new TimeTracker<string>(TimeSpan.FromMinutes(30), 10);
     public static readonly TimeTracker<string> EmailTracker = new TimeTracker<string>(TimeSpan.FromMinutes(45), 1);
     public static readonly TimeTracker<string> OtpEmailTracker = new TimeTracker<string>(TimeSpan.FromMinutes(45), 1);
+    // Chống spam đăng ký + dò username qua gói đăng ký (server báo "trùng tên" nếu username đã có, còn
+    // chưa có thì TẠO LUÔN tài khoản — nên vừa là cách dò username vừa là cách spam tài khoản rác).
+    // RegisterAttemptTracker đếm MỌI lần gửi gói đăng ký (kể cả bị từ chối vì trùng/sai định dạng) theo
+    // IP; RegisterCreateTracker đếm số tài khoản TẠO THÀNH CÔNG theo IP.
+    public static readonly TimeTracker<string> RegisterAttemptTracker = new TimeTracker<string>(TimeSpan.FromMinutes(10), 10);
+    public static readonly TimeTracker<string> RegisterCreateTracker = new TimeTracker<string>(TimeSpan.FromHours(1), 5);
+    // Đăng nhập SAI theo IP (nhiều username khác nhau từ 1 IP) và theo username (nhiều IP khác nhau cùng
+    // dò 1 tài khoản) — bổ sung cho giới hạn cũ chỉ chặn theo từng cặp (IP, username).
+    public static readonly TimeTracker<string> LoginFailIpTracker = new TimeTracker<string>(TimeSpan.FromMinutes(10), 20);
+    public static readonly TimeTracker<string> LoginFailUserTracker = new TimeTracker<string>(TimeSpan.FromMinutes(30), 30);
     protected PlayerManager() : base("Quản lí người chơi")
     {
         this.TimeSleep = TimeSpan.FromMilliseconds(1000);
@@ -43,6 +53,10 @@ public class PlayerManager : UpdateThread
         OtpTracker.CleanOldTrack();
         EmailTracker.CleanOldTrack();
         OtpEmailTracker.CleanOldTrack();
+        RegisterAttemptTracker.CleanOldTrack();
+        RegisterCreateTracker.CleanOldTrack();
+        LoginFailIpTracker.CleanOldTrack();
+        LoginFailUserTracker.CleanOldTrack();
     }
 
     bool ExecuteWaitPK(WaitUserPK waitUserPK)
