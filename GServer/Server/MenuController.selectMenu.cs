@@ -1264,17 +1264,21 @@ public partial class MenuController
                         /*VUI LÒNG CHÚ Ý HÀM TRỪ VP CUỐI HÀNG*/
                         case GopetManager.ITEM_ADMIN:
                             {
-                                if (player.checkIsAdmin())
-                                {
-                                    sendMenu(MENU_SELECT_ITEM_ADMIN, player);
-                                    return;
-                                }
-                                else
-                                {
-                                    player.user.ban(UserData.BAN_INFINITE, "Dung VP ADMIN", long.MaxValue);
-                                    player.session.Close();
-                                }
+                                // TẠM KHOÁ chức năng dùng Administrator Item — mở lại bằng cách bỏ comment
+                                // đoạn bên dưới và xoá dòng redDialog.
+                                player.redDialog("Chức năng này tạm khóa");
                                 return;
+                                //if (player.checkIsAdmin())
+                                //{
+                                //    sendMenu(MENU_SELECT_ITEM_ADMIN, player);
+                                //    return;
+                                //}
+                                //else
+                                //{
+                                //    player.user.ban(UserData.BAN_INFINITE, "Dung VP ADMIN", long.MaxValue);
+                                //    player.session.Close();
+                                //}
+                                //return;
                             }
                         /*VUI LÒNG CHÚ Ý HÀM TRỪ VP CUỐI HÀNG*/
                         case GopetManager.ITEM_ENERGY:
