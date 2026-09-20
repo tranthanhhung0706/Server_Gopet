@@ -503,6 +503,17 @@ Thread.Sleep(1000);
                 if (playerData.FlowerCoin == -1)
                     playerData.FlowerCoin = Math.Max(0, playerData.NumGiveFlowerGem);
                 PlayerManager.put(this);
+                // Ghi IP đăng nhập gần nhất vào player.LastLoginIp để admin đối chiếu với user.ipCreate (IP lúc
+                // đăng ký). Cột được thêm sau nên bọc try/catch: chưa chạy ALTER TABLE thì chỉ bỏ qua, không làm hỏng đăng nhập.
+                try
+                {
+                    string loginIpAddress = ((IPEndPoint)session.CSocket.RemoteEndPoint).Address.ToString();
+                    gameconn.Execute("UPDATE `player` SET LastLoginIp = @ip WHERE ID = @id", new { ip = loginIpAddress, id = playerData.ID });
+                }
+                catch (Exception ipEx)
+                {
+                    GopetManager.ServerMonitor.LogWarning($"Không ghi được LastLoginIp: {ipEx.Message}");
+                }
                 var connList = gameconn.Query<FriendRequest>("SELECT * FROM `request_add_friend` WHERE `request_add_friend`.`targetId` = @userId;", new { userId = user.user_id });
                 if (connList.Any())
                 {
