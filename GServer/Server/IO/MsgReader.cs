@@ -96,6 +96,17 @@
                         {
                             throw new IOException("Giải mã thất bại");
                         }
+                        // TEA không có checksum: sai key vẫn ra rác chứ không null. Gói đầu tiên phải là CLIENT_INFO;
+                        // nếu không mà giải bằng key cũ ra CLIENT_INFO thì đây là client chưa cập nhật jar.
+                        if (!session.clientOK && plain[0] != GopetCMD.CLIENT_INFO)
+                        {
+                            sbyte[] legacy = new TEA(session.keyNonce).decrypt(data.sbytes());
+                            if (legacy != null && legacy.Length > 0 && legacy[0] == GopetCMD.CLIENT_INFO)
+                            {
+                                session.RejectLegacyClient("Phiên bản game đã cũ. Vui lòng tải bản mới nhất để đăng nhập.");
+                                return null;
+                            }
+                        }
                         msg = new Message(plain);
                     }
                     else

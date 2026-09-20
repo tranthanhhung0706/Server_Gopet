@@ -18,6 +18,8 @@ namespace Gopet.IO
         public int sendsbyteCount;
         public int recvsbyteCount;
         public TEA tea;
+        // Nonce client gửi trong handshake — giữ lại để nhận diện client bản cũ (key = TEA(nonce)).
+        public long keyNonce;
         public String currentIp;
         public int currentPort;
         public bool clientOK = false;
@@ -79,6 +81,7 @@ namespace Gopet.IO
             byte[] keys = new byte[9];
             dis.Read(keys, 0, 9);
             long key = readKey(keys.sbytes());
+            keyNonce = key;
             tea = TEA.FromNonce(key);
         }
 
@@ -101,6 +104,29 @@ namespace Gopet.IO
             time <<= 8;
             time ^= var10000[8] & 255;
             return time;
+        }
+
+        /// <summary>
+        /// Client bản cũ (chưa có secret) mã hoá bằng key cũ nên server không giải mã được. Gửi 1 gói thông báo
+        /// DẠNG THÔ (cờ 0 — client cũ đọc được) rồi đóng kết nối, ghi thẳng xuống stream vì Close() xoá hàng đợi gửi.
+        /// </summary>
+        public void RejectLegacyClient(string text)
+        {
+            try
+            {
+                Message ms = new Message((sbyte)10, false);
+                ms.putString(text);
+                ms.cleanup();
+                sbyte[] data = ms.getBuffer();
+                dos.WriteInt(data.Length + 1);
+                dos.Write(((sbyte)0).toByte());
+                dos.Write(data);
+                dos.Flush();
+            }
+            catch (Exception)
+            {
+            }
+            Close();
         }
 
         public void setHandler(IHandleMessage messageHandler)
