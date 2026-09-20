@@ -26,6 +26,29 @@ namespace Gopet.IO
 
         }
 
+        // Khoá bí mật dùng chung với client (nhúng trong jar client). PHẢI trùng byte-by-byte với
+        // TEA.SECRET trong client vn/me/network/TEA.java. Đổi giá trị này = bắt buộc build lại client.
+        private static readonly sbyte[] SECRET = new sbyte[] { -74, 98, 71, 30, -95, 70, 94, 20, 62, 19, -10, 94, 9, 109, 55, -35 };
+
+        /// <summary>
+        /// Key phiên = TEA_SECRET.encrypt(nonce || ~nonce). Client gửi nonce dạng rõ trong handshake nhưng
+        /// không có SECRET thì không suy ra được key -> sniff handshake không đủ để giải mã gói.
+        /// </summary>
+        public static TEA FromNonce(long nonce)
+        {
+            sbyte[] block = new sbyte[16];
+            generateKey(nonce, block);
+            long inv = ~nonce;
+            for (int i = 0; i < 8; i++)
+            {
+                block[8 + i] = (sbyte)(255L & inv >> (56 - 8 * i));
+            }
+            sbyte[] enc = new TEA(SECRET).encrypt(block);
+            sbyte[] key = new sbyte[16];
+            Array.Copy(enc, 4, key, 0, 16);
+            return new TEA(key);
+        }
+
         public static void generateKey(long value, sbyte[] array)
         {
             int offset = 0;

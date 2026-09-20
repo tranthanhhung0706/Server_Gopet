@@ -399,7 +399,7 @@ public partial class MenuController
                             {
                                 using (var webconn = MYSQLManager.createWebMySqlConnection())
                                 {
-                                    dynamic queryData = gameconn.QueryFirstOrDefault("Select user_id from player where name ='" + namePlayer + "'");
+                                    dynamic queryData = gameconn.QueryFirstOrDefault("Select user_id from player where name = @name", new { name = namePlayer });
                                     if (queryData != null)
                                     {
                                         webconn.Execute("Update `User` set isBaned = 0 where user_id = @user_id", new { user_id = queryData.user_id });
@@ -428,7 +428,7 @@ public partial class MenuController
                             {
                                 using (var webconn = MYSQLManager.createWebMySqlConnection())
                                 {
-                                    dynamic queryData = gameconn.QueryFirstOrDefault("Select user_id from player where name ='" + namePlayer + "'");
+                                    dynamic queryData = gameconn.QueryFirstOrDefault("Select user_id from player where name = @name", new { name = namePlayer });
                                     if (queryData != null)
                                     {
                                         UserData.banBySQL(typeLock, reason, Utilities.CurrentTimeMillis + (min * 1000L * 60), queryData.user_id);

@@ -25,6 +25,7 @@ public class Player : IHandleMessage
 {
     public static readonly string[] BANNAME = new string[] { "admin", "test", "banquantri", "gofarm" };
     public ISession session { get; }
+    private readonly PacketRateLimiter packetLimiter = new PacketRateLimiter();
     public sbyte CLIENT_TYPE;
     public int PROVIDER;
     public Version ApplicationVersion;
@@ -98,6 +99,21 @@ public class Player : IHandleMessage
                 {
                     session.Close();
                     return;
+                }
+
+                // Chống spam gói: vượt trần thì bỏ gói, vượt liên tục vài giây thì ngắt kết nối.
+                switch (packetLimiter.Check(ms.id))
+                {
+                    case PacketRateLimiter.Verdict.Drop:
+                        if (packetLimiter.NewViolation)
+                        {
+                            GopetManager.ServerMonitor.LogWarning($"[RATE-LIMIT] {playerData?.name ?? "?"} ({session.CSocket?.RemoteEndPoint}) spam gói cmd={packetLimiter.LastViolatedId}, bỏ bớt gói");
+                        }
+                        return;
+                    case PacketRateLimiter.Verdict.Kick:
+                        GopetManager.ServerMonitor.LogWarning($"[RATE-LIMIT] {playerData?.name ?? "?"} ({session.CSocket?.RemoteEndPoint}) spam gói cmd={packetLimiter.LastViolatedId} liên tục {packetLimiter.ViolatedWindows + 1}s -> ngắt kết nối");
+                        session.Close();
+                        return;
                 }
 
                 switch (ms.id)

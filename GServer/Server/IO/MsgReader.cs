@@ -64,6 +64,11 @@
                     throw new IOException("Dữ liệu quá lớn");
                 }
                 sbyte isEncrypted = session.dis.ReadSByte();
+                // Bắt buộc mã hoá: gói cờ 0 (tool/bot gửi thô) bị từ chối, đóng kết nối.
+                if (isEncrypted != 1)
+                {
+                    throw new IOException("Gói không mã hoá");
+                }
                 byte[] data = new byte[Length];
                 int len = 0;
                 int sbyteRead = 0;
@@ -86,7 +91,12 @@
                     Message msg;
                     if (isEncrypted == 1)
                     {
-                        msg = new Message(session.tea.decrypt(data.sbytes()));
+                        sbyte[] plain = session.tea.decrypt(data.sbytes());
+                        if (plain == null || plain.Length == 0)
+                        {
+                            throw new IOException("Giải mã thất bại");
+                        }
+                        msg = new Message(plain);
                     }
                     else
                     {

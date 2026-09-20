@@ -8,7 +8,7 @@ namespace Gopet.IO
         public bool isEncrypted;
         public static bool isiWin = false;
 
-        public Message(int command) : this(command, false)
+        public Message(int command) : this(command, true)
         {
 
         }

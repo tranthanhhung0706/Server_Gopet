@@ -79,7 +79,7 @@ namespace Gopet.IO
             byte[] keys = new byte[9];
             dis.Read(keys, 0, 9);
             long key = readKey(keys.sbytes());
-            tea = new TEA(key);
+            tea = TEA.FromNonce(key);
         }
 
         private long readKey(sbyte[] var10000)
