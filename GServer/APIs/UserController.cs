@@ -28,13 +28,27 @@ namespace Gopet.APIs
                      coin AS Coin, tongnap AS TongNap, isBaned AS IsBaned, create_date AS CreateDate
               FROM `user`";
 
+        // Whitelist cột được sắp xếp — tránh SQL injection qua tên cột tự do. Thêm user_id làm khoá
+        // phụ để thứ tự ổn định khi nhiều dòng cùng coin/tongnap (không thì phân trang có thể lặp/mất dòng).
+        private static readonly Dictionary<string, string> UserSortColumns = new()
+        {
+            ["id_desc"] = "user_id DESC",
+            ["id_asc"] = "user_id ASC",
+            ["coin_desc"] = "coin DESC, user_id DESC",
+            ["coin_asc"] = "coin ASC, user_id DESC",
+            ["tongNap_desc"] = "tongnap DESC, user_id DESC",
+            ["tongNap_asc"] = "tongnap ASC, user_id DESC",
+        };
+
         /// <summary>
-        /// Danh sách tài khoản trong bảng `user` — có phân trang, tìm theo username, lọc theo role.
+        /// Danh sách tài khoản trong bảng `user` — có phân trang, tìm theo username, lọc theo role,
+        /// sắp xếp qua sortBy ("id_desc" mặc định; coin_desc/coin_asc; tongNap_desc/tongNap_asc).
         /// </summary>
         [HttpGet("/v1/gopet/api/Users")]
         public IActionResult GetUsers([FromQuery] int page = 1, [FromQuery] int limit = 20,
-            [FromQuery] string? search = null, [FromQuery] int? role = null)
+            [FromQuery] string? search = null, [FromQuery] int? role = null, [FromQuery] string? sortBy = null)
         {
+            string orderBy = sortBy != null && UserSortColumns.TryGetValue(sortBy, out string? col) ? col : UserSortColumns["id_desc"];
             page = Math.Max(1, page);
             limit = Math.Clamp(limit, 1, 100);
             int offset = (page - 1) * limit;
@@ -61,7 +75,7 @@ namespace Gopet.APIs
             parameters.Add("limit", limit);
             parameters.Add("offset", offset);
             var users = conn.Query<UserListItem>(
-                $"{SelectUserListItemSql} {whereSql} ORDER BY user_id DESC LIMIT @limit OFFSET @offset",
+                $"{SelectUserListItemSql} {whereSql} ORDER BY {orderBy} LIMIT @limit OFFSET @offset",
                 parameters).ToList();
 
             var paginated = new PaginatedData<UserListItem>(users, total, page, limit);
