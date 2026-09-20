@@ -3,86 +3,113 @@ using Gopet.Util;
 namespace Gopet.IO
 {
     /// <summary>
-    /// Giới hạn tần suất gói tin của MỘT phiên (mỗi session 1 instance, chỉ đọc-thread của session đó gọi nên
-    /// không cần khoá). Cửa sổ cố định 1 giây, 3 tầng trần:
-    ///  - tổng mọi gói: GLOBAL_PER_SEC
-    ///  - từng loại gói (ms.id): PER_ID_PER_SEC
-    ///  - nhóm gói nhạy cảm (dùng item, nâng cấp, chợ, menu/nhập liệu...): STRICT_PER_SEC
-    /// Gói vượt trần bị BỎ, không xử lý. Bị vượt liên tục KICK_AFTER_WINDOWS giây liền thì đóng kết nối.
-    /// TEA chỉ chống nghe lén; spam từ client thật/tool đã có key vẫn phải chặn ở server.
+    /// Giới hạn tần suất gói tin của MỘT phiên (mỗi session 1 instance, chỉ read-thread của session đó gọi nên
+    /// không cần khoá). Cửa sổ cố định 1 giây:
+    ///  - tổng mọi gói (trừ xin ảnh): GLOBAL_PER_SEC
+    ///  - từng "loại gói": PER_KIND_PER_SEC; nhóm nhạy cảm (dùng item, nâng cấp, chợ, menu/nhập liệu, PK...): STRICT_PER_SEC
+    ///  - xin ảnh (COMMAND_IMAGE / PET_SERVICE.REQUEST_PET_IMG): xô riêng IMAGE_PER_SEC, vì mở rương/bản đồ là
+    ///    client xin hàng chục ảnh cùng lúc và không được làm rớt (mất hình).
+    /// "Loại gói" = id gói; riêng các gói ô dù (PET_SERVICE, COMMAND_GUIDER, SERVER_MESSAGE) tính theo (id, lệnh con)
+    /// vì mã lệnh con chỉ có nghĩa BÊN TRONG gói ô dù và trùng số với id gói khác.
+    /// Gói vượt trần bị BỎ. Vượt liên tục KICK_AFTER_WINDOWS giây liền thì đóng kết nối.
     /// </summary>
     public class PacketRateLimiter
     {
         public const int GLOBAL_PER_SEC = 60;
-        public const int PER_ID_PER_SEC = 20;
+        public const int PER_KIND_PER_SEC = 20;
         public const int STRICT_PER_SEC = 8;
+        public const int IMAGE_PER_SEC = 300;
         public const int KICK_AFTER_WINDOWS = 5;
 
-        // Toàn bộ là id gói cấp cao nhất (case của switch trong GameController.onMessage nên mỗi giá trị duy nhất).
+        // Ô dù -> vùng đếm riêng: [0..255] id gói thường, [256..511] PET_SERVICE.sub, [512..767] COMMAND_GUIDER.sub, [768..1023] SERVER_MESSAGE.sub
+        private const int SLOTS = 1024;
         private static readonly bool[] Strict = BuildStrict();
+
+        private static int Slot(sbyte id, sbyte sub)
+        {
+            if (id == GopetCMD.PET_SERVICE) return 256 + (sub & 0xFF);
+            if (id == GopetCMD.COMMAND_GUIDER) return 512 + (sub & 0xFF);
+            if (id == GopetCMD.SERVER_MESSAGE) return 768 + (sub & 0xFF);
+            return id & 0xFF;
+        }
 
         private static bool[] BuildStrict()
         {
-            var table = new bool[256];
-            sbyte[] ids =
+            var table = new bool[SLOTS];
+            foreach (sbyte sub in new sbyte[]
             {
                 GopetCMD.USE_EQUIP_ITEM, GopetCMD.USE_NORMAL_ITEM_COUNT, GopetCMD.ENCHANT_ITEM,
                 GopetCMD.UP_TIER_ITEM, GopetCMD.ENCHANT_GEM_ITEM, GopetCMD.UP_TIER_GEM_ITEM,
-                GopetCMD.PET_UP_TIER, GopetCMD.SELECT_KIOSK_ITEM, GopetCMD.REMOVE_SELL_ITEM,
-                GopetCMD.TYPE_DIALOG_INPUT, GopetCMD.SEND_YES_NO, GopetCMD.SELECT_OPTION,
-                GopetCMD.SELECT_MENU_ELEMENT, GopetCMD.PLAYER_PK, GopetCMD.GUIDER_TYPE_PAY,
-                GopetCMD.LETTER_COMMAND_SEND_LETTER,
-            };
-            foreach (sbyte id in ids) table[id & 0xFF] = true;
+                GopetCMD.PET_UP_TIER, GopetCMD.SELECT_KIOSK_ITEM, GopetCMD.REMOVE_SELL_ITEM, GopetCMD.PLAYER_PK,
+            })
+            {
+                table[Slot(GopetCMD.PET_SERVICE, sub)] = true;
+            }
+            foreach (sbyte sub in new sbyte[]
+            {
+                GopetCMD.SELECT_OPTION, GopetCMD.SELECT_MENU_ELEMENT, GopetCMD.TYPE_DIALOG_INPUT, GopetCMD.GUIDER_TYPE_PAY,
+            })
+            {
+                table[Slot(GopetCMD.COMMAND_GUIDER, sub)] = true;
+            }
+            table[Slot(GopetCMD.SERVER_MESSAGE, GopetCMD.SEND_YES_NO)] = true;
             return table;
         }
 
         private long windowStart = Utilities.CurrentTimeMillis;
         private int total;
-        private readonly int[] perId = new int[256];
+        private int images;
+        private readonly int[] perKind = new int[SLOTS];
         private bool windowViolated;
         private int violatedWindows;
-        private int firstViolatedId = -1;
+        private int firstViolatedSlot = -1;
 
         public enum Verdict { Allow, Drop, Kick }
 
         /// <summary>true nếu vừa vi phạm lần đầu trong cửa sổ hiện tại (để caller ghi log 1 lần / giây).</summary>
         public bool NewViolation { get; private set; }
-        public int LastViolatedId => firstViolatedId;
+        /// <summary>Mô tả loại gói vi phạm, để ghi log.</summary>
+        public string LastViolated => firstViolatedSlot < 0 ? "?" : (firstViolatedSlot < 256 ? $"cmd={firstViolatedSlot}" : $"cmd={(new[] { GopetCMD.PET_SERVICE, GopetCMD.COMMAND_GUIDER, GopetCMD.SERVER_MESSAGE })[firstViolatedSlot / 256 - 1]}/sub={(sbyte)(firstViolatedSlot & 0xFF)}");
         public int ViolatedWindows => violatedWindows;
 
-        public Verdict Check(sbyte id)
+        public Verdict Check(sbyte id, sbyte sub)
         {
             NewViolation = false;
             long now = Utilities.CurrentTimeMillis;
             if (now - windowStart >= 1000)
             {
-                // Hết cửa sổ: vi phạm liên tiếp thì cộng dồn, cửa sổ sạch thì reset.
                 violatedWindows = windowViolated ? violatedWindows + 1 : 0;
                 windowStart = now;
                 total = 0;
-                Array.Clear(perId);
+                images = 0;
+                Array.Clear(perKind);
                 windowViolated = false;
-                firstViolatedId = -1;
+                firstViolatedSlot = -1;
             }
 
-            int idx = id & 0xFF;
-            total++;
-            perId[idx]++;
-
-            int idCap = Strict[idx] ? STRICT_PER_SEC : PER_ID_PER_SEC;
-            if (total > GLOBAL_PER_SEC || perId[idx] > idCap)
+            bool violated;
+            int slot;
+            if (id == GopetCMD.COMMAND_IMAGE || (id == GopetCMD.PET_SERVICE && sub == GopetCMD.REQUEST_PET_IMG))
             {
-                if (!windowViolated)
-                {
-                    windowViolated = true;
-                    firstViolatedId = idx;
-                    NewViolation = true;
-                }
-                // Cửa sổ hiện tại là lần vi phạm thứ (violatedWindows + 1) liên tiếp.
-                return violatedWindows + 1 >= KICK_AFTER_WINDOWS ? Verdict.Kick : Verdict.Drop;
+                slot = id & 0xFF;
+                violated = ++images > IMAGE_PER_SEC;
             }
-            return Verdict.Allow;
+            else
+            {
+                slot = Slot(id, sub);
+                total++;
+                perKind[slot]++;
+                violated = total > GLOBAL_PER_SEC || perKind[slot] > (Strict[slot] ? STRICT_PER_SEC : PER_KIND_PER_SEC);
+            }
+
+            if (!violated) return Verdict.Allow;
+            if (!windowViolated)
+            {
+                windowViolated = true;
+                firstViolatedSlot = slot;
+                NewViolation = true;
+            }
+            return violatedWindows + 1 >= KICK_AFTER_WINDOWS ? Verdict.Kick : Verdict.Drop;
         }
     }
 }

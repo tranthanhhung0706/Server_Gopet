@@ -6,6 +6,7 @@ namespace Gopet.IO
         private DataOutputStream<MemoryStream> dos;
         private DataInputStream dis;
         public bool isEncrypted;
+        public sbyte FirstByte { get; private set; }
         public static bool isiWin = false;
 
         public Message(int command) : this(command, true)
@@ -26,6 +27,8 @@ namespace Gopet.IO
             sbyte[] msgData = new sbyte[data.Length - 1];
             Buffer.BlockCopy(data, 1, msgData, 0, msgData.Length);
             this.id = data[0];
+            // Byte đầu payload = lệnh con của các gói "ô dù" (PET_SERVICE, COMMAND_GUIDER, SERVER_MESSAGE); dùng để giới hạn tần suất.
+            FirstByte = msgData.Length > 0 ? msgData[0] : (sbyte)0;
             this.dis = new DataInputStream(msgData);
         }
 

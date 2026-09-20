@@ -102,16 +102,16 @@ public class Player : IHandleMessage
                 }
 
                 // Chống spam gói: vượt trần thì bỏ gói, vượt liên tục vài giây thì ngắt kết nối.
-                switch (packetLimiter.Check(ms.id))
+                switch (packetLimiter.Check(ms.id, ms.FirstByte))
                 {
                     case PacketRateLimiter.Verdict.Drop:
                         if (packetLimiter.NewViolation)
                         {
-                            GopetManager.ServerMonitor.LogWarning($"[RATE-LIMIT] {playerData?.name ?? "?"} ({session.CSocket?.RemoteEndPoint}) spam gói cmd={packetLimiter.LastViolatedId}, bỏ bớt gói");
+                            GopetManager.ServerMonitor.LogWarning($"[RATE-LIMIT] {playerData?.name ?? "?"} ({session.CSocket?.RemoteEndPoint}) spam gói {packetLimiter.LastViolated}, bỏ bớt gói");
                         }
                         return;
                     case PacketRateLimiter.Verdict.Kick:
-                        GopetManager.ServerMonitor.LogWarning($"[RATE-LIMIT] {playerData?.name ?? "?"} ({session.CSocket?.RemoteEndPoint}) spam gói cmd={packetLimiter.LastViolatedId} liên tục {packetLimiter.ViolatedWindows + 1}s -> ngắt kết nối");
+                        GopetManager.ServerMonitor.LogWarning($"[RATE-LIMIT] {playerData?.name ?? "?"} ({session.CSocket?.RemoteEndPoint}) spam gói {packetLimiter.LastViolated} liên tục {packetLimiter.ViolatedWindows + 1}s -> ngắt kết nối");
                         session.Close();
                         return;
                 }
