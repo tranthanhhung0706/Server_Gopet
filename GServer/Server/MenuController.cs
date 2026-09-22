@@ -705,6 +705,8 @@ public partial class MenuController
     public const int INPUT_NUM_BUY_RETAIL_ITEM_KIOSK = 38;
     public const int INPUT_USE_NUM_ITEM = 39;
     public const int INPUT_TYPE_BUY_SHOP_ITEM_QUANTITY = 40;
+    // Nhập mã mở khoá Administrator Item (App.config -> AdminItemUnlockKey) — chỉ hiện cho admin.
+    public const int INPUT_DIALOG_ITEM_ADMIN_UNLOCK = 41;
     public const int IMGDIALOG_CAPTCHA = 0;
     #endregion
     public static JArrayList<MenuItemInfo> getPetFreeLst(Player player)
@@ -1358,6 +1360,7 @@ public partial class MenuController
             case INPUT_DIALOG_ADMIN_UNLOCK_USER:
             case INPUT_DIALOG_ADMIN_TELE_TO_PLAYER:
             case INPUT_DIALOG_CHANGE_SLOGAN_CLAN:
+            case INPUT_DIALOG_ITEM_ADMIN_UNLOCK:
                 return new sbyte[] { InputReader.FIELD_STRING };
             case INPUT_DIALOG_ADMIN_LOCK_USER:
                 return new sbyte[] { InputReader.FIELD_STRING, InputReader.FIELD_SBYTE, InputReader.FIELD_INT, InputReader.FIELD_STRING };

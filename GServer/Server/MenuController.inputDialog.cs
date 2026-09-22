@@ -12,6 +12,7 @@ using MySqlConnector;
 using OtpNet;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -387,6 +388,41 @@ public partial class MenuController
                                 player.redDialog(player.Language.PlayerOffline);
                             }
                         }
+                    }
+                    break;
+
+                case INPUT_DIALOG_ITEM_ADMIN_UNLOCK:
+                    {
+                        // Chỉ admin mới tới được đây (MenuController.selectMenu.cs, case GopetManager.ITEM_ADMIN
+                        // đã check checkIsAdmin() trước khi hiện ô nhập), nhưng vẫn check lại cho chắc — phòng
+                        // trường hợp player mất cờ admin ngay giữa lúc đang mở dialog.
+                        if (!player.checkIsAdmin())
+                        {
+                            return;
+                        }
+                        if (PlayerManager.AdminItemKeyFailTracker.IsLimited(player.user.user_id))
+                        {
+                            player.redDialog("Bạn nhập sai mã quá nhiều lần. Vui lòng thử lại sau ít phút.");
+                            return;
+                        }
+                        String enteredKey = reader.readString(0);
+                        String configuredKey = ConfigurationManager.AppSettings["AdminItemUnlockKey"];
+                        if (string.IsNullOrEmpty(configuredKey))
+                        {
+                            // Fail-closed giống RequireApiKeyAttribute: chưa cấu hình key thì không cho dùng,
+                            // tránh trường hợp quên set key rồi ai cũng qua được (so sánh rỗng == rỗng).
+                            player.redDialog("Chưa cấu hình AdminItemUnlockKey trong App.config.");
+                            return;
+                        }
+                        if (!string.Equals(enteredKey?.Trim(), configuredKey, StringComparison.Ordinal))
+                        {
+                            PlayerManager.AdminItemKeyFailTracker.Add(player.user.user_id);
+                            HistoryManager.addHistory(new History(player).setLog("Nhập SAI mã mở khoá Administrator Item"));
+                            player.redDialog("Sai mã. Vui lòng thử lại.");
+                            return;
+                        }
+                        HistoryManager.addHistory(new History(player).setLog("Mở khoá Administrator Item thành công"));
+                        sendMenu(MENU_SELECT_ITEM_ADMIN, player);
                     }
                     break;
 

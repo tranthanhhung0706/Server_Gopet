@@ -34,6 +34,9 @@ public class PlayerManager : UpdateThread
     // dò 1 tài khoản) — bổ sung cho giới hạn cũ chỉ chặn theo từng cặp (IP, username).
     public static readonly TimeTracker<string> LoginFailIpTracker = new TimeTracker<string>(TimeSpan.FromMinutes(10), 20);
     public static readonly TimeTracker<string> LoginFailUserTracker = new TimeTracker<string>(TimeSpan.FromMinutes(30), 30);
+    // Nhập sai mã mở khoá Administrator Item (theo user_id) — 5 lần sai trong 15 phút thì tạm khoá ô
+    // nhập, tránh admin bị lộ tài khoản (hoặc kẻ chiếm được phiên admin) dò dần 8 ký tự của mã.
+    public static readonly TimeTracker<int> AdminItemKeyFailTracker = new TimeTracker<int>(TimeSpan.FromMinutes(15), 5);
     protected PlayerManager() : base("Quản lí người chơi")
     {
         this.TimeSleep = TimeSpan.FromMilliseconds(1000);
@@ -57,6 +60,7 @@ public class PlayerManager : UpdateThread
         RegisterCreateTracker.CleanOldTrack();
         LoginFailIpTracker.CleanOldTrack();
         LoginFailUserTracker.CleanOldTrack();
+        AdminItemKeyFailTracker.CleanOldTrack();
     }
 
     bool ExecuteWaitPK(WaitUserPK waitUserPK)
