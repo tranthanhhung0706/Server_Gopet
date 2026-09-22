@@ -17,6 +17,8 @@ namespace Gopet.APIs
         public bool IsAdmin { get; set; }
         public DateTime LoginDate { get; set; }
         public DateTime LastTimeOnline { get; set; }
+        // IP lần đăng nhập gần nhất (player.LastLoginIp, ghi lúc login). NULL nếu chưa đăng nhập từ khi có cột này.
+        public string? LastLoginIp { get; set; }
         // Điểm Hoa Ngọc cả đời từ sự kiện săn boss (xem Data/Event/Year2026/Boss2026.cs) — không
         // bị trừ khi tiêu Hoa Ngọc mua đồ, dùng để xếp hạng.
         public int NumBossFlowerCoin2026 { get; set; }

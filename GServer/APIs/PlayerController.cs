@@ -36,7 +36,7 @@ namespace Gopet.APIs
         private const string SelectPlayerListItemSql =
             @"SELECT ID AS Id, user_id AS UserId, name AS Name, gender AS Gender, gold AS Gold,
                      coin AS Coin, lua AS Lua, star AS Star, clanId AS ClanId, isAdmin AS IsAdmin,
-                     loginDate AS LoginDate, LastTimeOnline AS LastTimeOnline,
+                     loginDate AS LoginDate, LastTimeOnline AS LastTimeOnline, LastLoginIp AS LastLoginIp,
                      NumBossFlowerCoin2026 AS NumBossFlowerCoin2026,
                      GREATEST(0, FlowerCoin) AS FlowerCoin, spendGold AS SpendGold,
                      NumUseMoonCakeBoxNormal2026 AS NumUseMoonCakeBoxNormal2026,
@@ -52,6 +52,9 @@ namespace Gopet.APIs
             ["spendGold_desc"] = "SpendGold DESC, ID DESC",
             ["moonCakeBoxNormal_desc"] = "NumUseMoonCakeBoxNormal2026 DESC, ID DESC",
             ["moonCakeBoxVip_desc"] = "NumUseMoonCakeBoxVip2026 DESC, ID DESC",
+            // Online gần nhất (cột LastTimeOnline — ghi lúc lưu/thoát game, nên người ĐANG online hiển thị lần lưu gần nhất).
+            ["lastOnline_desc"] = "LastTimeOnline DESC, ID DESC",
+            ["lastOnline_asc"] = "LastTimeOnline ASC, ID DESC",
         };
 
         /// <summary>
@@ -66,7 +69,8 @@ namespace Gopet.APIs
         public IActionResult GetPlayers([FromQuery] int page = 1, [FromQuery] int limit = 20,
             [FromQuery] string? search = null, [FromQuery] string? username = null,
             [FromQuery] int? userId = null, [FromQuery] int? clanId = null, [FromQuery] string? sortBy = null,
-            [FromQuery] string? idsIn = null, [FromQuery] string? idsNotIn = null)
+            [FromQuery] string? idsIn = null, [FromQuery] string? idsNotIn = null,
+            [FromQuery] int? onlineWithinMinutes = null, [FromQuery] int? inactiveOverMinutes = null)
         {
             page = Math.Max(1, page);
             limit = Math.Clamp(limit, 1, 100);
@@ -133,6 +137,18 @@ namespace Gopet.APIs
                 where.Add("user_id IN @matchedUserIds");
                 parameters.Add("matchedUserIds", matchedUserIds);
             }
+            // Lọc theo lần online gần nhất: onlineWithinMinutes = có online trong N phút qua; inactiveOverMinutes =
+            // đã KHÔNG online quá N phút (tài khoản bỏ game). Kẹp 1..5 năm để không tràn DateTime.
+            if (onlineWithinMinutes is > 0)
+            {
+                where.Add("LastTimeOnline >= @onlineSince");
+                parameters.Add("onlineSince", DateTime.Now.AddMinutes(-Math.Min(onlineWithinMinutes.Value, 60 * 24 * 365 * 5)));
+            }
+            if (inactiveOverMinutes is > 0)
+            {
+                where.Add("LastTimeOnline < @inactiveBefore");
+                parameters.Add("inactiveBefore", DateTime.Now.AddMinutes(-Math.Min(inactiveOverMinutes.Value, 60 * 24 * 365 * 5)));
+            }
             if (userId.HasValue)
             {
                 where.Add("user_id = @userId");
@@ -173,7 +189,7 @@ namespace Gopet.APIs
                          isAdmin AS IsAdmin, isOnSky AS IsOnSky, isFirstFree AS IsFirstFree, avatarPath AS AvatarPath,
                          AccumulatedPoint AS AccumulatedPoint, ArenaPoint AS ArenaPoint, EventPoint AS EventPoint,
                          KioskFund AS KioskFund, pkPoint AS PkPoint, CurrentAchievementId AS CurrentAchievementId,
-                         loginDate AS LoginDate, LastTimeOnline AS LastTimeOnline,
+                         loginDate AS LoginDate, LastTimeOnline AS LastTimeOnline, LastLoginIp AS LastLoginIp,
                          items AS ItemsJson, pets AS PetsJson, petSelected AS PetSelectedJson,
                          skin AS SkinJson, wing AS WingJson, achievements AS AchievementsJson
                   FROM `player` WHERE ID = @id",

@@ -25,7 +25,8 @@ namespace Gopet.APIs
         // Hình chiếu an toàn dùng chung cho GET/POST/PATCH — không select password/secretKey/otp.
         private const string SelectUserListItemSql =
             @"SELECT user_id AS Id, username AS Username, email AS Email, role AS Role,
-                     coin AS Coin, tongnap AS TongNap, isBaned AS IsBaned, create_date AS CreateDate
+                     coin AS Coin, tongnap AS TongNap, isBaned AS IsBaned, create_date AS CreateDate,
+                     ipv4Create AS IpCreate
               FROM `user`";
 
         // Whitelist cột được sắp xếp — tránh SQL injection qua tên cột tự do. Thêm user_id làm khoá
@@ -46,7 +47,8 @@ namespace Gopet.APIs
         /// </summary>
         [HttpGet("/v1/gopet/api/Users")]
         public IActionResult GetUsers([FromQuery] int page = 1, [FromQuery] int limit = 20,
-            [FromQuery] string? search = null, [FromQuery] int? role = null, [FromQuery] string? sortBy = null)
+            [FromQuery] string? search = null, [FromQuery] int? role = null, [FromQuery] string? sortBy = null,
+            [FromQuery] string? ip = null)
         {
             string orderBy = sortBy != null && UserSortColumns.TryGetValue(sortBy, out string? col) ? col : UserSortColumns["id_desc"];
             page = Math.Max(1, page);
@@ -60,6 +62,14 @@ namespace Gopet.APIs
             {
                 where.Add("username LIKE @search");
                 parameters.Add("search", $"%{search.Trim()}%");
+            }
+            if (!string.IsNullOrWhiteSpace(ip))
+            {
+                // Khớp TIỀN TỐ (vd "171.248." tìm cả dải) — không dùng %ip% để khỏi quét toàn bảng vô ích và vì
+                // IP luôn bắt đầu từ octet đầu. Escape % _ \ để ký tự người dùng gõ không thành wildcard.
+                string escaped = ip.Trim().Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
+                where.Add("ipv4Create LIKE @ip");
+                parameters.Add("ip", escaped + "%");
             }
             if (role.HasValue)
             {
@@ -109,6 +119,37 @@ namespace Gopet.APIs
             }
 
             return Ok(new BaseResponse<UserDetail>(1, "Thành công", user));
+        }
+
+        /// <summary>
+        /// Danh sách IP đã đăng nhập vào tài khoản (gộp theo IP từ bảng login_history, mới nhất trước) —
+        /// để phát hiện 1 tài khoản dùng nhiều IP khác nhau / IP khác IP lúc đăng ký. Chỉ xét `days` ngày
+        /// gần nhất (mặc định 90, tối đa 365) và tối đa 100 IP để truy vấn nhẹ. login_history lưu theo
+        /// UserName nên tra username từ user_id trước.
+        /// </summary>
+        [HttpGet("/v1/gopet/api/Users/{id:int}/login-ips")]
+        public IActionResult GetUserLoginIps(int id, [FromQuery] int days = 90)
+        {
+            days = Math.Clamp(days, 1, 365);
+            using var conn = MYSQLManager.createWebMySqlConnection();
+
+            string? username = conn.QueryFirstOrDefault<string>("SELECT username FROM `user` WHERE user_id = @id", new { id });
+            if (username == null)
+            {
+                return NotFound(new BaseResponse<object?>(0, "Không tìm thấy user", null));
+            }
+
+            var rows = conn.Query<LoginIpDto>(
+                @"SELECT IPAddress AS IpAddress, COUNT(*) AS TotalCount, SUM(IsSuccess) AS SuccessCount,
+                         SUM(IsWebLogin) AS WebCount, MIN(LoginTime) AS FirstSeen, MAX(LoginTime) AS LastSeen
+                  FROM `login_history`
+                  WHERE UserName = @username AND LoginTime >= @since
+                  GROUP BY IPAddress
+                  ORDER BY LastSeen DESC
+                  LIMIT 100",
+                new { username, since = DateTime.Now.AddDays(-days) }, commandTimeout: 20).ToList();
+
+            return Ok(new BaseResponse<List<LoginIpDto>>(1, "Thành công", rows));
         }
 
         /// <summary>

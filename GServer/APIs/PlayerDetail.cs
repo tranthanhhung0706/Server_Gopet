@@ -34,6 +34,8 @@ namespace Gopet.APIs
         public int CurrentAchievementId { get; set; }
         public DateTime LoginDate { get; set; }
         public DateTime LastTimeOnline { get; set; }
+        // IP của lần đăng nhập gần nhất (ghi lúc login) — đối chiếu với UserDetail.ipCreate (IP lúc đăng ký). NULL nếu chưa đăng nhập từ khi có cột này.
+        public string? LastLoginIp { get; set; }
 
         // Nguyên văn JSON trong DB — chỉ đọc.
         public string? ItemsJson { get; set; }

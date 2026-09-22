@@ -63,6 +63,7 @@ namespace Gopet.IO
         private bool windowViolated;
         private int violatedWindows;
         private int firstViolatedSlot = -1;
+        private long lastSoftLog;
 
         public enum Verdict { Allow, Drop, Kick }
 
@@ -88,6 +89,7 @@ namespace Gopet.IO
             }
 
             bool violated;
+            bool severe = true;
             int slot;
             if (id == GopetCMD.COMMAND_IMAGE || (id == GopetCMD.PET_SERVICE && sub == GopetCMD.REQUEST_PET_IMG))
             {
@@ -99,10 +101,26 @@ namespace Gopet.IO
                 slot = Slot(id, sub);
                 total++;
                 perKind[slot]++;
-                violated = total > GLOBAL_PER_SEC || perKind[slot] > (Strict[slot] ? STRICT_PER_SEC : PER_KIND_PER_SEC);
+                bool strict = Strict[slot];
+                bool globalOver = total > GLOBAL_PER_SEC;
+                violated = globalOver || perKind[slot] > (strict ? STRICT_PER_SEC : PER_KIND_PER_SEC);
+                // Vượt trần riêng của 1 loại gói thường (không nhạy cảm, vd bật/tắt hồi HP pet) chỉ bị BỎ BỚT,
+                // không tính vào kick: client mod/tool auto hay gửi dồn loại này mà không gây hại gì.
+                severe = globalOver || strict;
             }
 
             if (!violated) return Verdict.Allow;
+            if (!severe)
+            {
+                // Log tối đa 1 lần / 60s mỗi phiên để khỏi ngập console.
+                if (now - lastSoftLog >= 60000)
+                {
+                    lastSoftLog = now;
+                    firstViolatedSlot = slot;
+                    NewViolation = true;
+                }
+                return Verdict.Drop;
+            }
             if (!windowViolated)
             {
                 windowViolated = true;

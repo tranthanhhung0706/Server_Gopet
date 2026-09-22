@@ -15,5 +15,7 @@ namespace Gopet.APIs
         public int TongNap { get; set; }
         public int IsBaned { get; set; }
         public DateTime CreateDate { get; set; }
+        // IP lúc đăng ký (user.ipv4Create). NULL nếu tài khoản cũ không ghi.
+        public string? IpCreate { get; set; }
     }
 }
