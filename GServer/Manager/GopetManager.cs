@@ -896,6 +896,69 @@ public class GopetManager
         }
     }
 
+    /// <summary>
+    /// conn.Query&lt;T&gt;(sql) nhưng nếu Dapper báo lỗi ép kiểu (vd DataException/OverflowException do 1
+    /// dòng có số vượt giới hạn Int32, hoặc cột JSON bị gõ nhầm thành cột số...) thì tự chạy lại đúng câu
+    /// SQL đó bằng raw reader để LOG RA đúng dòng/cột/giá trị gây lỗi trước khi rethrow — khỏi phải đoán
+    /// mò từng bảng qua SQL thủ công (1 dòng dữ liệu hỏng ở BẤT KỲ bảng nào GopetManager.init() đọc lúc
+    /// khởi động đều làm crash toàn bộ server, vì các bảng này bắt buộc phải có để server chạy được).
+    /// </summary>
+    private static List<T> QuerySafe<T>(MySqlConnection conn, string sql, string tableLabel)
+    {
+        try
+        {
+            return conn.Query<T>(sql).ToList();
+        }
+        catch (Exception)
+        {
+            ServerMonitor.LogError($"[init] Lỗi khi tải bảng '{tableLabel}' (sql: {sql}) — đang dò dòng/cột gây lỗi...");
+            DumpSuspiciousColumns(conn, sql, tableLabel);
+            throw;
+        }
+    }
+
+    /// <summary>Quét raw từng dòng/cột của <paramref name="sql"/>, log ra cột nào có giá trị số vượt
+    /// giới hạn Int32 (nguyên nhân phổ biến nhất của lỗi "Error parsing column N (type=System.Int32)").
+    /// Không thấy cột nào vượt thì lỗi nhiều khả năng do LỆCH KIỂU cột (vd cột JSON bị tạo nhầm thành số)
+    /// chứ không phải do giá trị quá lớn — xem tiếp exception gốc phía trên dòng log này.</summary>
+    private static void DumpSuspiciousColumns(MySqlConnection conn, string sql, string tableLabel)
+    {
+        try
+        {
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = sql;
+            using var reader = cmd.ExecuteReader();
+            int rowIndex = 0;
+            int reported = 0;
+            while (reader.Read())
+            {
+                rowIndex++;
+                for (int i = 0; i < reader.FieldCount; i++)
+                {
+                    object raw = reader.GetValue(i);
+                    if (raw == null || raw is DBNull || raw is string || raw is byte[] || raw is bool)
+                    {
+                        continue;
+                    }
+                    if (decimal.TryParse(raw.ToString(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal num)
+                        && (num > int.MaxValue || num < int.MinValue))
+                    {
+                        reported++;
+                        ServerMonitor.LogError($"[init] {tableLabel}: dòng thứ {rowIndex} (cột đầu tiên = {reader.GetValue(0)}), cột '{reader.GetName(i)}' = {num} (kiểu thật {raw.GetType().Name}) — vượt giới hạn Int32.");
+                    }
+                }
+            }
+            if (reported == 0)
+            {
+                ServerMonitor.LogError($"[init] {tableLabel}: quét hết {rowIndex} dòng không thấy cột nào vượt giới hạn Int32 — có thể lỗi do LỆCH KIỂU cột (vd cột JSON/chuỗi bị tạo nhầm thành cột số), xem exception gốc phía trên.");
+            }
+        }
+        catch (Exception dumpEx)
+        {
+            ServerMonitor.LogError($"[init] {tableLabel}: không dò được do lỗi khác khi quét raw: {dumpEx.Message}");
+        }
+    }
+
     public static void init()
     {
         ServerMonitor.LogInfo($"Trình dọn rác: {GCSettings.IsServerGC}");
@@ -921,7 +984,7 @@ public class GopetManager
         }
         using (var conn = MYSQLManager.create())
         {
-            PET_TEMPLATES.AddRange(conn.Query<PetTemplate>("SELECT * FROM `gopet_pet`"));
+            PET_TEMPLATES.AddRange(QuerySafe<PetTemplate>(conn, "SELECT * FROM `gopet_pet`", "gopet_pet"));
             PET_TEMPLATES.ForEach(petTemplate =>
             {
                 petEnable.add(petTemplate);
@@ -933,7 +996,7 @@ public class GopetManager
                 PETTEMPLATE_HASH_MAP.put(petTemplate.petId, petTemplate);
             });
             ServerMonitor.LogInfo("Tải dữ liệu thú cưng từ cơ sở dữ liệu OK");
-            itemTemplates.AddRange(conn.Query<ItemTemplate>("SELECT * FROM `item`"));
+            itemTemplates.AddRange(QuerySafe<ItemTemplate>(conn, "SELECT * FROM `item`", "item"));
             int assetsId = 1;
             itemTemplates.ForEach(itemTemp =>
             {
@@ -947,19 +1010,19 @@ public class GopetManager
                 assetsId++;
             });
             ServerMonitor.LogInfo("Tải dữ liệu vật phẩm từ cơ sở dữ liệu OK");
-            IEnumerable<MobLvInfo> data = conn.Query<MobLvInfo>("SELECT * FROM `gopet_mob`");
+            IEnumerable<MobLvInfo> data = QuerySafe<MobLvInfo>(conn, "SELECT * FROM `gopet_mob`", "gopet_mob");
             foreach (var mobLvInfo in data)
             {
                 MOBLVLINFO_HASH_MAP[mobLvInfo.lvl] = mobLvInfo;
             }
             ServerMonitor.LogInfo("Tải dữ liệu quái từ cơ sở dữ liệu OK");
-            IEnumerable<EnchantWingData> enchantWing = conn.Query<EnchantWingData>("SELECT * FROM `enchant_wing_data`");
+            IEnumerable<EnchantWingData> enchantWing = QuerySafe<EnchantWingData>(conn, "SELECT * FROM `enchant_wing_data`", "enchant_wing_data");
             foreach (var wingData in enchantWing)
             {
                 EnchantWingData[wingData.Level] = wingData;
             }
             ServerMonitor.LogInfo("Tải dữ liệu cường hóa cánh từ cơ sở dữ liệu OK");
-            IEnumerable<ShopTemplateItem> shopitemTemplate = conn.Query<ShopTemplateItem>("SELECT * FROM `shop`");
+            IEnumerable<ShopTemplateItem> shopitemTemplate = QuerySafe<ShopTemplateItem>(conn, "SELECT * FROM `shop`", "shop");
             foreach (var shopTemplate1 in shopitemTemplate)
             {
                 if (shopTemplate.ContainsKey(shopTemplate1.shopId))
@@ -972,24 +1035,24 @@ public class GopetManager
                 }
             }
             ServerMonitor.LogInfo("Tải dữ liệu cửa hàng từ cơ sở dữ liệu OK");
-            IEnumerable<BossTemplate> bossTemArr = conn.Query<BossTemplate>("SELECT * FROM `boss`");
+            IEnumerable<BossTemplate> bossTemArr = QuerySafe<BossTemplate>(conn, "SELECT * FROM `boss`", "boss");
             foreach (var bossTemplate in bossTemArr)
             {
                 boss[bossTemplate.bossId] = bossTemplate;
             }
             HourDailyBoss = bossTemArr.Where(x => x.typeBoss == 4).ToArray();
             ServerMonitor.LogInfo("Tải dữ liệu boss từ cơ sở dữ liệu OK");
-            IEnumerable<MapTemplate> mapTemplates = conn.Query<MapTemplate>("SELECT * FROM `map` WHERE `map`.`enable` = true;");
+            IEnumerable<MapTemplate> mapTemplates = QuerySafe<MapTemplate>(conn, "SELECT * FROM `map` WHERE `map`.`enable` = true;", "map");
             foreach (var mTem in mapTemplates)
             {
                 mapTemplate[mTem.mapId] = mTem;
             }
             ServerMonitor.LogInfo("Tải dữ liệu map từ cơ sở dữ liệu OK");
-            TradeGift[TradeGiftTemplate.TYPE_COIN] = conn.Query<TradeGiftTemplate>("SELECT * FROM `trade_gift` where Type = " + TradeGiftTemplate.TYPE_COIN).ToArray();
-            TradeGift[TradeGiftTemplate.TYPE_GOLD] = conn.Query<TradeGiftTemplate>("SELECT * FROM `trade_gift` where Type = " + TradeGiftTemplate.TYPE_GOLD).ToArray();
+            TradeGift[TradeGiftTemplate.TYPE_COIN] = QuerySafe<TradeGiftTemplate>(conn, "SELECT * FROM `trade_gift` where Type = " + TradeGiftTemplate.TYPE_COIN, "trade_gift(coin)").ToArray();
+            TradeGift[TradeGiftTemplate.TYPE_GOLD] = QuerySafe<TradeGiftTemplate>(conn, "SELECT * FROM `trade_gift` where Type = " + TradeGiftTemplate.TYPE_GOLD, "trade_gift(gold)").ToArray();
             TradeGift[TradeGiftTemplate.TYPE_LUA] = TradeGift[TradeGiftTemplate.TYPE_COIN];
             ServerMonitor.LogInfo("Tải dữ liệu trao đổi thưởng từ cơ sở dữ liệu OK");
-            SHOP_ARENA_TEMPLATE = conn.Query<ShopArenaTemplate>("SELECT * FROM `shoparena`").ToArray();
+            SHOP_ARENA_TEMPLATE = QuerySafe<ShopArenaTemplate>(conn, "SELECT * FROM `shoparena`", "shoparena").ToArray();
             ServerMonitor.LogInfo("Tải dữ liệu shop đấu trường từ cơ sở dữ liệu OK");
             var listExp = conn.Query("SELECT * FROM `petexp`");
             foreach (var exp in listExp)
