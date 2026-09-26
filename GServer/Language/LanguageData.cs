@@ -136,6 +136,9 @@ namespace Gopet.Language
         public string FastRemoveItemEquipNoneFound { get; set; } = "Không còn vật phẩm nào cùng loại (chưa trang bị) để xoá nhanh.";
         // {0} = số lượng đã xoá.
         public string FastRemoveItemEquipDone { get; set; } = "Đã xoá nhanh {0} vật phẩm.";
+        // {0} = số lượng đã đánh dấu chọn (client) / hợp lệ để xoá (server xác nhận lại).
+        public string ConfirmCustomRemoveItemEquip { get; set; } = "Bạn đã chọn {0} vật phẩm để xoá nhanh. Xoá hết {0} vật phẩm này?";
+        public string CustomRemoveItemEquipNoneValid { get; set; } = "Không còn vật phẩm nào bạn đã chọn còn hợp lệ để xoá (có thể đã gắn pet hoặc đã bị xoá).";
         public string ItemWasSell { get; set; } = "Người khác mua vật phẩm này rồi";
         public string CancelItemKiosk { get; set; } = "Gỡ vật phẩm về túi thành công";
         public string Item { get; set; } = "Vật phẩm";

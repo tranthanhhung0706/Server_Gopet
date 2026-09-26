@@ -256,14 +256,16 @@ public class Pet : GameObject, IBinaryObject<Pet>
     public void lvlUP()
     {
         this.lvl++;
-        if (Template.gymUpLevel > this.pointTiemNangLvl)
-        {
-            this.tiemnang_point += Template.gymUpLevel;
-        }
-        else
-        {
-            this.tiemnang_point += this.pointTiemNangLvl;
-        }
+        // pointTiemNangLvl là tốc độ cộng điểm tiềm năng THẬT SỰ của con pet này — set = Template.gymUpLevel
+        // lúc tạo pet, hoặc bị GHI ĐÈ CÓ CHỦ ĐÍCH khi trùng sinh (= 50, xem MenuController.selectMenu.cs case
+        // MENU_OPTION_PET_REINCARNATION) / lên bậc (= 30-50 theo tổng sao, GameController.cs). Trước đây so
+        // sánh lấy max(Template.gymUpLevel, pointTiemNangLvl) để phòng pet cũ (tạo trước khi field này tồn
+        // tại) mặc định pointTiemNangLvl=3 quá thấp — nhưng cách này VÔ TÌNH VÔ HIỆU HOÁ mức trần 50 của
+        // trùng sinh với bất kỳ loài nào có gymUpLevel gốc > 50 (vd Giáp Rồng = 80): pet trùng sinh vẫn cộng
+        // 80 điểm/cấp thay vì đúng 50 như thiết kế, vì 80 > 50 nên nhánh if luôn thắng. Sửa: chỉ fallback về
+        // Template khi pointTiemNangLvl thật sự chưa được set (<=0 — không xảy ra với pet tạo sau khi field
+        // này ra đời), còn lại LUÔN tôn trọng giá trị đã lưu, kể cả khi nó THẤP HƠN gymUpLevel gốc của loài.
+        this.tiemnang_point += this.pointTiemNangLvl > 0 ? this.pointTiemNangLvl : Template.gymUpLevel;
 
         if (this.lvl == 3 || this.lvl == 5 || this.lvl == 10)
         {

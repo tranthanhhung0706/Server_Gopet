@@ -197,6 +197,10 @@ public class GopetCMD
     /// trang bị KHÁC cùng itemTemplateId, cũng chưa gắn pet, hỏi xác nhận rồi huỷ hết 1 lượt (giống
     /// REMOVE_ITEM_EQUIP nhưng theo LOẠI thay vì từng món 1) — xem GameController.confirmFastRemoveItemEquip.</summary>
     public const sbyte FAST_REMOVE_ITEM_EQUIP = 106;
+    /// <summary>"Xoá nhanh theo tuỳ chọn": client tự đánh dấu nhiều trang bị (chưa gắn pet) qua menu
+    /// từng món rồi gửi 1 gói duy nhất — (số lượng, itemId 1, itemId 2, ...). Server lọc lại từng
+    /// itemId (đúng chủ, chưa gắn pet) rồi hỏi xác nhận huỷ hết — xem GameController.confirmCustomRemoveItemEquip.</summary>
+    public const sbyte CUSTOM_REMOVE_ITEM_EQUIP = 107;
     public const sbyte REMOVE_BATTLE_BY_MOB_ID = 96;
     public const sbyte UPDATE_HP_BOSS = 89;
 

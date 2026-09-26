@@ -1114,6 +1114,21 @@ public class GameController
             case GopetCMD.FAST_REMOVE_ITEM_EQUIP:
                 confirmFastRemoveItemEquip(message.readInt());
                 break;
+            case GopetCMD.CUSTOM_REMOVE_ITEM_EQUIP:
+                {
+                    // Kẹp số lượng đọc theo đúng số client khai báo, tối đa 200 (rương đồ không thể nhiều
+                    // hơn thế) — tránh client/tool khai báo số khống rồi server cố đọc tràn quá dữ liệu
+                    // thật sự được gửi (readInt() lúc đó ném exception, đã có try/catch tổng ở onMessage
+                    // bắt được, nhưng kẹp trước cho gọn thay vì để rơi vào exception).
+                    int count = Math.Clamp(message.readInt(), 0, 200);
+                    var itemIds = new List<int>(count);
+                    for (int i = 0; i < count; i++)
+                    {
+                        itemIds.Add(message.readInt());
+                    }
+                    confirmCustomRemoveItemEquip(itemIds);
+                }
+                break;
             case GopetCMD.SELECT_PET_UPGRADE:
                 if (petUpgradeInfo != null)
                 {
@@ -3145,6 +3160,55 @@ public class GameController
             player.session.sendMessage(message);
         }
         HistoryManager.addHistory(new History(player).setLog($"Xoá nhanh {toRemove.Count} vật phẩm {itemName}"));
+        player.okDialog(string.Format(player.Language.FastRemoveItemEquipDone, toRemove.Count));
+    }
+
+    /// <summary>
+    /// "Xoá nhanh theo tuỳ chọn" — client tự đánh dấu N món cụ thể (bất kỳ loại nào, không nhất thiết
+    /// cùng loại như "Xoá nhanh") qua menu từng món rồi gửi hết itemId lên đây 1 lượt. Server KHÔNG tin
+    /// itemId nào client gửi mà tự lọc lại theo đúng field cũ (đúng chủ inventory này, là trang bị, và
+    /// chưa gắn pet) — client đánh dấu 1 món rồi lỡ tay gắn/xoá/bán nó trước khi bấm xác nhận vẫn an
+    /// toàn (món đó tự động bị loại khỏi danh sách xoá thật, không văng lỗi).
+    /// </summary>
+    private void confirmCustomRemoveItemEquip(List<int> itemIds)
+    {
+        List<int> validIds = itemIds.Distinct()
+            .Select(id => selectItemByItemId(id, GopetManager.EQUIP_PET_INVENTORY))
+            .Where(it => it != null && Pet.canEuip(it) && it.petEuipId < 0)
+            .Select(it => it.itemId)
+            .ToList();
+        if (validIds.Count == 0)
+        {
+            player.redDialog(player.Language.CustomRemoveItemEquipNoneValid);
+            return;
+        }
+        objectPerformed.put(MenuController.OBJKEY_CUSTOM_REMOVE_ITEM_EQUIP, validIds);
+        MenuController.showYNDialog(MenuController.DIALOG_CONFIRM_CUSTOM_REMOVE_ITEM_EQUIP,
+            string.Format(player.Language.ConfirmCustomRemoveItemEquip, validIds.Count), player);
+    }
+
+    /// <summary>Xác nhận "Xoá nhanh theo tuỳ chọn" (gọi từ answerYesNo). Lọc lại LẦN NỮA giống hệt
+    /// confirmCustomRemoveItemEquip — giữa lúc hỏi Yes/No và lúc bấm Yes, item có thể đã bị gắn/bán.</summary>
+    public void customRemoveItemEquip(List<int> itemIds)
+    {
+        List<Item> toRemove = itemIds
+            .Select(id => selectItemByItemId(id, GopetManager.EQUIP_PET_INVENTORY))
+            .Where(it => it != null && Pet.canEuip(it) && it.petEuipId < 0)
+            .ToList();
+        if (toRemove.Count == 0)
+        {
+            player.redDialog(player.Language.CustomRemoveItemEquipNoneValid);
+            return;
+        }
+        foreach (Item item in toRemove)
+        {
+            player.playerData.removeItem(GopetManager.EQUIP_PET_INVENTORY, item);
+            Message message = messagePetService(GopetCMD.REMOVE_ITEM_EQUIP);
+            message.putInt(item.itemId);
+            message.cleanup();
+            player.session.sendMessage(message);
+        }
+        HistoryManager.addHistory(new History(player).setLog($"Xoá nhanh theo tuỳ chọn {toRemove.Count} vật phẩm").setObj(toRemove));
         player.okDialog(string.Format(player.Language.FastRemoveItemEquipDone, toRemove.Count));
     }
 
