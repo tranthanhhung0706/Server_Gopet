@@ -193,6 +193,10 @@ public class GopetCMD
     /// (UP_TIEM_NANG) nhưng theo chiều ngược lại (tẩy bớt), server tự lặp trừ vàng/điểm rồi trả
     /// về đúng 1 dialog kết quả duy nhất.</summary>
     public const sbyte DELETE_TIEM_NANG_COUNT = 105;
+    /// <summary>Client gửi itemId của 1 trang bị (chưa gắn pet) trong Rương đồ — server tìm mọi
+    /// trang bị KHÁC cùng itemTemplateId, cũng chưa gắn pet, hỏi xác nhận rồi huỷ hết 1 lượt (giống
+    /// REMOVE_ITEM_EQUIP nhưng theo LOẠI thay vì từng món 1) — xem GameController.confirmFastRemoveItemEquip.</summary>
+    public const sbyte FAST_REMOVE_ITEM_EQUIP = 106;
     public const sbyte REMOVE_BATTLE_BY_MOB_ID = 96;
     public const sbyte UPDATE_HP_BOSS = 89;
 

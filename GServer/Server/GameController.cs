@@ -1111,6 +1111,9 @@ public class GameController
             case GopetCMD.REMOVE_ITEM_EQUIP:
                 confirmRemoveItemEquip(message.readInt());
                 break;
+            case GopetCMD.FAST_REMOVE_ITEM_EQUIP:
+                confirmFastRemoveItemEquip(message.readInt());
+                break;
             case GopetCMD.SELECT_PET_UPGRADE:
                 if (petUpgradeInfo != null)
                 {
@@ -3078,6 +3081,71 @@ public class GameController
         {
             throw new IndexOutOfRangeException("Chọn vật phẩm không có trong danh sách");
         }
+    }
+
+    /// <summary>
+    /// "Xoá nhanh" — client gửi itemId của 1 trang bị bất kỳ (chưa gắn pet) trong Rương đồ, server đếm
+    /// mọi trang bị KHÁC cùng itemTemplateId (cùng loại, vd cùng là "Kiếm Hải Tặc") mà cũng chưa gắn pet,
+    /// rồi hỏi xác nhận huỷ hết 1 lượt — đỡ phải bấm Hủy từng món khi trùng loại quá nhiều. Chỉ đếm/huỷ
+    /// đúng field lọc như confirmRemoveItemEquip/removeItemEquip (petEuipId < 0) để hành vi nhất quán với
+    /// huỷ từng món — không tự thêm điều kiện lọc mới (vd đang treo chợ) mà 2 đường huỷ lại khác nhau.
+    /// </summary>
+    private void confirmFastRemoveItemEquip(int itemid)
+    {
+        Item item = selectItemByItemId(itemid, GopetManager.EQUIP_PET_INVENTORY);
+        if (item == null)
+        {
+            throw new IndexOutOfRangeException("Chọn vật phẩm không có trong danh sách");
+        }
+        if (!Pet.canEuip(item))
+        {
+            player.redDialog(player.Language.ItemIsNotEquip);
+            return;
+        }
+        if (item.petEuipId >= 0)
+        {
+            player.redDialog(player.Language.ItemHasPetEquip);
+            return;
+        }
+        int templateId = item.itemTemplateId;
+        CopyOnWriteArrayList<Item> inventory = player.playerData.getInventoryOrCreate(GopetManager.EQUIP_PET_INVENTORY);
+        int count = inventory.Count(it => it.itemTemplateId == templateId && it.petEuipId < 0);
+        if (count == 0)
+        {
+            // Không nên xảy ra (item vừa tìm thấy ở trên tự nó đã khớp điều kiện) — phòng hờ race condition
+            // (thread khác vừa xoá/gắn đúng lúc này).
+            player.redDialog(player.Language.FastRemoveItemEquipNoneFound);
+            return;
+        }
+        objectPerformed.put(MenuController.OBJKEY_FAST_REMOVE_ITEM_EQUIP_TEMPLATE, templateId);
+        MenuController.showYNDialog(MenuController.DIALOG_CONFIRM_FAST_REMOVE_ITEM_EQUIP,
+            string.Format(player.Language.ConfirmFastRemoveItemEquip, count, item.getTemp().getName(player)), player);
+    }
+
+    /// <summary>Xác nhận "Xoá nhanh" (gọi từ answerYesNo) — huỷ mọi trang bị cùng itemTemplateId đang
+    /// chưa gắn pet nào. Chụp danh sách ra mảng riêng trước khi xoá để tránh sửa đổi ngay trong lúc
+    /// duyệt, và để mỗi món vẫn được ghi 1 gói REMOVE_ITEM_EQUIP + xử lý giống hệt huỷ từng món (client
+    /// không cần thêm packet handler mới cho phần phản hồi).</summary>
+    public void fastRemoveItemEquip(int templateId)
+    {
+        CopyOnWriteArrayList<Item> inventory = player.playerData.getInventoryOrCreate(GopetManager.EQUIP_PET_INVENTORY);
+        List<Item> toRemove = inventory.Where(it => it.itemTemplateId == templateId && it.petEuipId < 0).ToList();
+        if (toRemove.Count == 0)
+        {
+            player.redDialog(player.Language.FastRemoveItemEquipNoneFound);
+            return;
+        }
+        string itemName = toRemove[0].getName(player);
+        foreach (Item item in toRemove)
+        {
+            player.playerData.removeItem(GopetManager.EQUIP_PET_INVENTORY, item);
+            Message message = messagePetService(GopetCMD.REMOVE_ITEM_EQUIP);
+            message.putInt(item.itemId);
+            message.cleanup();
+            player.session.sendMessage(message);
+        }
+        HistoryManager.addHistory(new History(player).setLog($"Xoá nhanh {toRemove.Count} vật phẩm {itemName}"));
+        player.okDialog(string.Format(player.Language.FastRemoveItemEquipDone, toRemove.Count));
     }
 
     public Item selectItemEquipByItemId(int itemId)

@@ -131,6 +131,11 @@ namespace Gopet.Language
         public string ClanSeniorMember { get; set; } = "Trưởng lão";
         public string NeedUnequipItemIfWantDestroyItem { get; set; } = "Tháo trang bị mới hủy vật phẩm này được";
         public string DoYouWantDestroyItem { get; set; } = "Bạn có chắc muốn hủy vật phẩm";
+        // {0} = số lượng, {1} = tên vật phẩm.
+        public string ConfirmFastRemoveItemEquip { get; set; } = "Bạn đang có {0} vật phẩm \"{1}\" chưa trang bị cho pet. Xoá hết {0} vật phẩm này?";
+        public string FastRemoveItemEquipNoneFound { get; set; } = "Không còn vật phẩm nào cùng loại (chưa trang bị) để xoá nhanh.";
+        // {0} = số lượng đã xoá.
+        public string FastRemoveItemEquipDone { get; set; } = "Đã xoá nhanh {0} vật phẩm.";
         public string ItemWasSell { get; set; } = "Người khác mua vật phẩm này rồi";
         public string CancelItemKiosk { get; set; } = "Gỡ vật phẩm về túi thành công";
         public string Item { get; set; } = "Vật phẩm";

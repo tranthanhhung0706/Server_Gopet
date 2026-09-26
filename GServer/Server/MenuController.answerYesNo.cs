@@ -29,6 +29,16 @@ public partial class MenuController
                         }
                     }
                     break;
+                case DIALOG_CONFIRM_FAST_REMOVE_ITEM_EQUIP:
+                    {
+                        obj = player.controller.objectPerformed.get(OBJKEY_FAST_REMOVE_ITEM_EQUIP_TEMPLATE);
+                        if (obj != null)
+                        {
+                            player.controller.fastRemoveItemEquip((int)obj);
+                            player.controller.objectPerformed.Remove(OBJKEY_FAST_REMOVE_ITEM_EQUIP_TEMPLATE);
+                        }
+                    }
+                    break;
                 case DIALOG_CONFIRM_BUY_KIOSK_ITEM:
                     {
                         obj = player.controller.objectPerformed.get(OBJKEY_KIOSK_ITEM);

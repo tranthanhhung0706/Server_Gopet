@@ -647,6 +647,8 @@ public partial class MenuController
     public const int OBJKEY_BUY_SHOP_ITEM_PAYMENT_INDEX = 77;
     /// <summary>Khoá để lưu mốc Trung Thu (TrungThuMilestone) đang được chọn từ MENU_TRUNG_THU_MILESTONE_NORMAL/VIP.</summary>
     public const int OBJKEY_TRUNG_THU_MILESTONE_REWARD = 78;
+    /// <summary>Khoá lưu itemTemplateId đang chờ xác nhận "Xoá nhanh" (huỷ hàng loạt) — xem GameController.confirmFastRemoveItemEquip.</summary>
+    public const int OBJKEY_FAST_REMOVE_ITEM_EQUIP_TEMPLATE = 79;
     public const int DIALOG_CONFIRM_REMOVE_ITEM_EQUIP = 0;
     public const int DIALOG_CONFIRM_BUY_KIOSK_ITEM = 1;
     public const int DIALOG_ENCHANT = 3;
@@ -665,6 +667,7 @@ public partial class MenuController
     public const int DIALOG_ASK_ENCHANT_WING = 16;
     public const int DIALOG_ASK_ENCHANT_TATTO = 17;
     public const int DIALOG_ASK_UNLOCK_SLOT_SKILL_CLAN = 18;
+    public const int DIALOG_CONFIRM_FAST_REMOVE_ITEM_EQUIP = 19;
     public const int INPUT_DIALOG_KIOSK = 0;
     public const int INPUT_DIALOG_CHALLENGE_INVITE = 2;
     public const int INPUT_DIALOG_COUNT_OF_KISOK_ITEM = 3;
