@@ -569,7 +569,7 @@ public class GopetManager
     public const float PERCENT_ITEM_TIER_INFO = 70f;
     public const int PART_NEED_MERGE_PET = 160;
     public const int PRICE_UP_TIER_PET = 10000;
-    public const long MAX_TIME_BUFF_EXP = 1000 * 60 * 60 * 3;
+    public const long MAX_TIME_BUFF_EXP = 1000 * 60 * 60 * 6;
     public const long TIME_BUFF_EXP = 1000 * 60 * 30;
     public const int LVL_PET_REQUIER_UP_TIER = 15;
     public const float KIOSK_PER_SELL = 5f;
