@@ -267,7 +267,10 @@ public class Pet : GameObject, IBinaryObject<Pet>
         // này ra đời), còn lại LUÔN tôn trọng giá trị đã lưu, kể cả khi nó THẤP HƠN gymUpLevel gốc của loài.
         this.tiemnang_point += this.pointTiemNangLvl > 0 ? this.pointTiemNangLvl : Template.gymUpLevel;
 
-        if (this.lvl == 3 || this.lvl == 5 || this.lvl == 10)
+        // Mốc thứ 4 (lv15) chỉ thật sự dùng được với pet có Template.MaxSkillSlot = 4 (mặc định 3 —
+        // cả 2 đường học kỹ năng đều chặn theo MaxSkillSlot nên pet thường có điểm dư cũng không học
+        // thêm được, vô hại). Xem PetTemplate.MaxSkillSlot.
+        if (this.lvl == 3 || this.lvl == 5 || this.lvl == 10 || this.lvl == 15)
         {
             this.skillPoint++;
         }

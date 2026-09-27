@@ -941,13 +941,18 @@ public partial class MenuController
                 break;
             case MENU_SELECT_SLOT_USE_SKILL_CARD:
                 {
-                    JArrayList<Option> options = new JArrayList<Option>()
+                    // Trước đây hardcode đúng 3 ô — pet có Template.MaxSkillSlot = 4 (xem tính năng "1 số
+                    // pet học 4 skill") không bao giờ thay được skill ở ô thứ 4 qua thẻ kỹ năng vì menu
+                    // không có lựa chọn "Ô 4". Giờ dựng số ô theo đúng pet đang chọn (khớp với check "index
+                    // == slotCount là Huỷ" trong MenuController.selectMenu.cs case MENU_SELECT_SLOT_USE_SKILL_CARD).
+                    Pet petForSlot = player.getPet();
+                    int slotCount = petForSlot != null ? petForSlot.Template.MaxSkillSlot : 3;
+                    JArrayList<Option> options = new JArrayList<Option>();
+                    for (int i = 0; i < slotCount; i++)
                     {
-                        new Option(0, "Ô 1"),
-                        new Option(1, "Ô 2"),
-                        new Option(2, "Ô 3"),
-                        new Option(3, "Huỷ"),
-                    };
+                        options.add(new Option(i, $"Ô {i + 1}"));
+                    }
+                    options.add(new Option(slotCount, "Huỷ"));
                     player.controller.sendListOption(menuId, "Chọn ô kỹ năng để học kỹ năng", "", options);
                 }
                 break;

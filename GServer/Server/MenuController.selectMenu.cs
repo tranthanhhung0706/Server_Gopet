@@ -373,7 +373,11 @@ public partial class MenuController
                             }
                         }
 
-                        if (pet.skillPoint > 0 && player.skillId_learn == -1)
+                        // Trước đây chỉ check còn điểm học kỹ năng hay không, KHÔNG check pet.skill.Length —
+                        // đường "thẻ kỹ năng" (TryUseCardSkill) đã chặn đúng theo Template.MaxSkillSlot từ
+                        // trước, nhưng đường học phép trả vàng này thì chưa, nay thêm cho pet 3 ô + pet 4 ô
+                        // đều bị chặn đúng, không học tràn ô.
+                        if (pet.skillPoint > 0 && player.skillId_learn == -1 && pet.skill.Length < pet.Template.MaxSkillSlot)
                         {
                             pet.skillPoint--;
                             pet.addSkill(petSkills[index].skillID, 1);
@@ -2512,12 +2516,18 @@ public partial class MenuController
                     }
                     if (player.controller.objectPerformed.ContainsKey(OBJKEY_ITEM_SKILL_CARD_USE))
                     {
+                        // "Huỷ" luôn là lựa chọn cuối, index = số ô kỹ năng của pet (khớp cách dựng menu
+                        // trong MenuController.sendMenu.cs case MENU_SELECT_SLOT_USE_SKILL_CARD).
+                        int slotCount = p.Template.MaxSkillSlot;
+                        if (index == slotCount)
+                        {
+                            return;
+                        }
                         switch (index)
                         {
-                            case 3: return;
                             default:
                                 {
-                                    if (index >= 0 && index < 3)
+                                    if (index >= 0 && index < slotCount)
                                     {
                                         Item item = player.controller.selectItemsbytemp(player.controller.objectPerformed[OBJKEY_ITEM_SKILL_CARD_USE], GopetManager.NORMAL_INVENTORY);
                                         if (item != null && GameController.checkCount(item, 1))

@@ -35,7 +35,8 @@ namespace Gopet.APIs
         private const string SelectPetTemplateSql =
             @"SELECT petId AS PetId, name AS Name, icon AS Icon, frameImg AS FrameImg, frameNum AS FrameNum,
                      vY AS VY, hp AS Hp, mp AS Mp, str AS Str, _int AS `Int`, agi AS Agi, type AS Type,
-                     nclass AS Nclass, element AS Element, gymUpLevel AS GymUpLevel, FusionScore AS FusionScore
+                     nclass AS Nclass, element AS Element, gymUpLevel AS GymUpLevel, FusionScore AS FusionScore,
+                     MaxSkillSlot AS MaxSkillSlot
               FROM `gopet_pet`";
 
         private const string IconFolder = "icons";
@@ -157,7 +158,8 @@ namespace Gopet.APIs
             int Nclass = 0,
             int Element = 0,
             int GymUpLevel = 3,
-            int FusionScore = 0);
+            int FusionScore = 0,
+            int MaxSkillSlot = 3);
 
         /// <summary>Tạo pet template mới. petId do admin chỉ định (không auto-increment, giống dữ liệu gốc).</summary>
         [HttpPost("/v1/gopet/api/Pets")]
@@ -194,15 +196,16 @@ namespace Gopet.APIs
                 req.Element,
                 req.GymUpLevel,
                 req.FusionScore,
+                req.MaxSkillSlot,
             };
 
             try
             {
                 conn.Execute(
                     @"INSERT INTO `gopet_pet`
-                        (petId, name, icon, frameImg, frameNum, vY, hp, mp, str, _int, agi, type, nclass, element, gymUpLevel, FusionScore)
+                        (petId, name, icon, frameImg, frameNum, vY, hp, mp, str, _int, agi, type, nclass, element, gymUpLevel, FusionScore, MaxSkillSlot)
                       VALUES
-                        (@PetId, @Name, @Icon, @FrameImg, @FrameNum, @VY, @Hp, @Mp, @Str, @Int, @Agi, @Type, @Nclass, @Element, @GymUpLevel, @FusionScore)",
+                        (@PetId, @Name, @Icon, @FrameImg, @FrameNum, @VY, @Hp, @Mp, @Str, @Int, @Agi, @Type, @Nclass, @Element, @GymUpLevel, @FusionScore, @MaxSkillSlot)",
                     insertParams);
             }
             catch (MySqlException ex) when (ex.Number == 1452)
@@ -216,7 +219,7 @@ namespace Gopet.APIs
 
         public record UpdatePetRequest(string? Name, string? Icon, string? FrameImg, int? FrameNum, int? VY,
             int? Hp, int? Mp, int? Str, int? Int, int? Agi, int? Type, int? Nclass, int? Element,
-            int? GymUpLevel, int? FusionScore);
+            int? GymUpLevel, int? FusionScore, int? MaxSkillSlot);
 
         /// <summary>Cập nhật 1 phần pet template. Không cho đổi petId (khoá chính, bị boss/pet_tier tham chiếu).</summary>
         [HttpPatch("/v1/gopet/api/Pets/{id:int}")]
@@ -249,6 +252,7 @@ namespace Gopet.APIs
             if (req?.Element is int element) { setClauses.Add("element = @element"); parameters.Add("element", element); }
             if (req?.GymUpLevel is int gymUpLevel) { setClauses.Add("gymUpLevel = @gymUpLevel"); parameters.Add("gymUpLevel", gymUpLevel); }
             if (req?.FusionScore is int fusionScore) { setClauses.Add("FusionScore = @fusionScore"); parameters.Add("fusionScore", fusionScore); }
+            if (req?.MaxSkillSlot is int maxSkillSlot) { setClauses.Add("MaxSkillSlot = @maxSkillSlot"); parameters.Add("maxSkillSlot", maxSkillSlot); }
 
             if (setClauses.Count == 0)
             {

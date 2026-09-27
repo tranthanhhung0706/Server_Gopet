@@ -24,5 +24,8 @@ namespace Gopet.APIs
         public int Element { get; set; }
         public int GymUpLevel { get; set; }
         public int FusionScore { get; set; }
+        // Số ô kỹ năng tối đa loài pet này học được — mặc định 3, đặt 4 để pet học thêm 1 skill (xem
+        // Data/pet/PetTemplate.cs).
+        public int MaxSkillSlot { get; set; } = 3;
     }
 }

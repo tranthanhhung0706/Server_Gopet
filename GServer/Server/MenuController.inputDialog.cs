@@ -885,10 +885,22 @@ public partial class MenuController
                                 player.petNotFollow();
                                 return;
                             }
-                            player.playerData.petSelected.lvl = lvl;
-                            player.playerData.petSelected.tiemnang_point = gym;
-                            player.playerData.petSelected.star = star;
-                            player.okDialog("Set pet cấp {0} có {1} gym và {2} (sao) thành công", lvl, gym, star);
+                            // Trước đây gán thẳng .lvl = lvl — bỏ qua hết các mốc cộng điểm học kỹ năng
+                            // (lv3/5/10/15, xem Pet.lvlUP()) mà pet lên cấp bình thường qua farm sẽ được
+                            // cộng. Giờ chạy lvlUP() từng cấp một cho tới khi đạt lvl (giống hệt farm thật,
+                            // pet nhận đủ mốc skillPoint đi qua), rồi mới ghi đè tiemnang_point/star theo
+                            // đúng số admin nhập — không đổi ý nghĩa 2 field đó, chỉ sửa mỗi cách lên cấp.
+                            // Clamp lvl để phòng nhập nhầm số khổng lồ (lvlUP() không tự giới hạn cấp).
+                            int targetLvl = Math.Clamp(lvl, 1, 999);
+                            Pet petToSet = player.playerData.petSelected;
+                            while (petToSet.lvl < targetLvl)
+                            {
+                                petToSet.lvlUP();
+                            }
+                            petToSet.lvl = targetLvl;
+                            petToSet.tiemnang_point = gym;
+                            petToSet.star = star;
+                            player.okDialog("Set pet cấp {0} có {1} gym và {2} (sao) thành công", targetLvl, gym, star);
                         }
                     }
                     break;

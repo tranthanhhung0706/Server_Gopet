@@ -6025,7 +6025,8 @@ public class GameController
                 return false;
             }
 
-            if (indexSlot < 0 && myPet.skill.Length < 3)
+            // 3 = số ô mặc định, một số pet (Template.MaxSkillSlot = 4) học được thêm 1 skill nữa.
+            if (indexSlot < 0 && myPet.skill.Length < myPet.Template.MaxSkillSlot)
             {
                 if (myPet.skillPoint > 0)
                 {
@@ -6035,7 +6036,7 @@ public class GameController
                 }
             }
 
-            if (indexSlot >= 0 && indexSlot < 3 && indexSlot < myPet.skill.Length)
+            if (indexSlot >= 0 && indexSlot < myPet.Template.MaxSkillSlot && indexSlot < myPet.skill.Length)
             {
                 myPet.skill[indexSlot][0] = skillId;
                 myPet.skill[indexSlot][1] = 1;
