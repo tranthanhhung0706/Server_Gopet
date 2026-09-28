@@ -2554,7 +2554,10 @@ public class GameController
                         subCountItem(item1, 1, GopetManager.NORMAL_INVENTORY);
                         subCountItem(item2, 1, GopetManager.NORMAL_INVENTORY);
 
-                        bool isSucces = Utilities.NextFloatPer() < GopetManager.PERCENT_OF_ENCHANT_TATOO[first.lvl] || IsBuffEnchantTatto;
+                        // Tỉ lệ = bảng theo cấp xăm + điểm % cộng thêm của mực (itemOptionValue[0]), tối đa 100.
+                        // Dùng chung hàm với hộp xác nhận để tỉ lệ hiện ra và tỉ lệ quay thật luôn giống nhau
+                        // (item1 đã bị trừ 1 ở trên nhưng tham chiếu vẫn còn nên đọc được Template).
+                        bool isSucces = Utilities.NextFloatPer() < GetTattoEnchantPercent(first.lvl, item1) || IsBuffEnchantTatto;
 
                         if (isSucces)
                         {
@@ -2591,6 +2594,20 @@ public class GameController
         {
             player.petNotFollow();
         }
+    }
+
+    /// <summary>
+    /// Tỉ lệ cường hóa xăm thành công (đơn vị %, 0-100): bảng PERCENT_OF_ENCHANT_TATOO theo cấp xăm hiện
+    /// tại, CỘNG THẲNG số điểm phần trăm ghi ở itemOptionValue[0] của mực cường hóa (item type
+    /// ITEM_MATERIAL_ENCHANT_TATOO) — vd mực [10] thì xăm cấp 0: 60% -> 70%. Mực không cấu hình (NULL/rỗng)
+    /// hoặc giá trị âm thì không cộng gì. Dùng chung cho hộp xác nhận và lúc quay thật.
+    /// </summary>
+    public static float GetTattoEnchantPercent(int tattooLvl, Item? ink)
+    {
+        float basePercent = GopetManager.PERCENT_OF_ENCHANT_TATOO[tattooLvl];
+        int[]? optionValue = ink?.Template?.itemOptionValue;
+        float bonus = optionValue != null && optionValue.Length > 0 ? Math.Max(0, optionValue[0]) : 0;
+        return Math.Min(100f, basePercent + bonus);
     }
 
     private void sendConfirmEnchantTatto(int tattotId, int itemId1, int itemId2)
