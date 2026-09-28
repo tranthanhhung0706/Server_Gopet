@@ -240,6 +240,13 @@ namespace Gopet.Data.GopetItem
                         return Utilities.Format("+%s (atk) +%s (def) +%s (hp) +%s (mp)", atk, def, hp, mp) + strExpire;
 
                     }
+                case GopetManager.ITEM_ACCESSORY:
+                    {
+                        string strExpire = expire > 0
+                            ? "(" + player.Language.ExpireDescrption + Utilities.ToDateString(Utilities.GetDate(expire)) + " )"
+                            : player.Language.ExpireItemInfinityDescription;
+                        return itemTemplate.getDescription(player) + player.Language.ItemInfoApply + Utilities.Format(" +%s (atk) +%s (def) +%s (hp) +%s (mp) ", getAtk(), getDef(), getHp(), getMp()) + strExpire;
+                    }
                 case GopetManager.WING_ITEM:
                     {
                         string strExpire = "";

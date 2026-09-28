@@ -157,6 +157,14 @@ namespace Gopet.Data.GopetItem
             public const int OPTION_BATTLE_IS_FOR_ACTIVE = 16;
             public const int OPTION_HOURS_UP_COIN = 17;
             public const int OPTION_ANTI_PK = 18;
+            /// <summary>
+            /// Trang sức: dịch ngang (px) so với vị trí mặc định sát bên phải thân nhân vật (âm = lại gần/sang trái)
+            /// </summary>
+            public const int OPTION_ACCESSORY_OFFSET_X = 19;
+            /// <summary>
+            /// Trang sức: dịch dọc (px) so với giữa thân nhân vật (âm = lên trên)
+            /// </summary>
+            public const int OPTION_ACCESSORY_OFFSET_Y = 20;
         }
     }
 }

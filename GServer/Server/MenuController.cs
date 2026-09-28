@@ -1275,6 +1275,17 @@ public partial class MenuController
                     }
                 }
                 break;
+            case GopetManager.NORMAL_INVENTORY:
+                {
+                    // Trang sức đang đeo hiện đầu Rương đồ (id -1, "Đang sử dụng"); chọn để tháo
+                    Item? it = player.playerData.Accessory;
+                    if (it != null)
+                    {
+                        i = -1;
+                        items.add(0, it);
+                    }
+                }
+                break;
         }
         foreach (Item item in items)
         {

@@ -37,6 +37,18 @@ public class PlayerData
     public int star { get; set; } = 0;
     public Item skin { get; set; }
     public Item wing { get; set; }
+    /// <summary>
+    /// Trang sức đang đeo (nếu có) — lưu trong ngăn ACCESSORY_EQUIPPED_INVENTORY của `items`
+    /// (không thêm cột DB).
+    /// </summary>
+    [JsonIgnore]
+    public Item? Accessory
+    {
+        get
+        {
+            return items.ContainsKey(GopetManager.ACCESSORY_EQUIPPED_INVENTORY) ? items.get(GopetManager.ACCESSORY_EQUIPPED_INVENTORY).FirstOrDefault() : null;
+        }
+    }
     public bool isOnSky { get; set; } = false;
     public BuffExp? buffExp { get; set; } = new BuffExp();
     public int pkPoint { get; set; } = 0;

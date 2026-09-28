@@ -192,6 +192,11 @@ public class GopetManager
     public const int ITEM_NATIVE_TITLE = 26;
     public const int ITEM_THẺ_KỸ_NĂNG = 27;
     public const int ITEM_CARD_REINCARNATION = 28;
+    /// <summary>
+    /// Trang sức treo sát bên phải nhân vật: dùng từ Rương đồ để đeo/thay, animation nhiều khung
+    /// (frameImgPath + wingFrameNum), có cộng chỉ số như cánh/skin. Xem GameController.EquipAccessory.
+    /// </summary>
+    public const int ITEM_ACCESSORY = 29;
     public const int GIFT_GOLD = 0;
     public const int GIFT_COIN = 1;
     public const int GIFT_ITEM = 2;
@@ -460,6 +465,11 @@ public class GopetManager
     public const sbyte WING_INVENTORY = 3;
     public const sbyte GEM_INVENTORY = 4;
     public const sbyte MONEY_INVENTORY = 5;
+    /// <summary>
+    /// Ngăn chứa trang sức ĐANG ĐEO (0 hoặc 1 item). Nằm chung dictionary `items` (cột `items`
+    /// đã có sẵn) nên không cần thêm cột DB; không hiển thị như một túi đồ riêng ở client.
+    /// </summary>
+    public const sbyte ACCESSORY_EQUIPPED_INVENTORY = 6;
     /// <summary>
     /// Ngọc
     /// </summary>

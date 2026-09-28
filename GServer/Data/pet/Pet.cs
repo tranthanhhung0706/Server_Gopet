@@ -412,6 +412,11 @@ public class Pet : GameObject, IBinaryObject<Pet>
         {
             otherItems.add(wingItem);
         }
+        Item accessoryItem = player.playerData.Accessory;
+        if (accessoryItem != null)
+        {
+            otherItems.add(accessoryItem);
+        }
 
 
         var ach = player.controller.FindSeach(player.playerData.CurrentAchievementId);

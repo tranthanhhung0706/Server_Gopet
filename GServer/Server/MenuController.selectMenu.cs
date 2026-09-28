@@ -1249,11 +1249,20 @@ public partial class MenuController
             case MENU_NORMAL_INVENTORY:
                 /*VUI LÒNG CHÚ Ý HÀM TRỪ VP CUỐI HÀNG*/
                 CopyOnWriteArrayList<Item> listItemNormal = player.playerData.getInventoryOrCreate(GopetManager.NORMAL_INVENTORY);
+                if (index == -1 && player.playerData.Accessory != null)
+                {
+                    // Mục "(Đang sử dụng)" đứng đầu Rương đồ = trang sức đang đeo → chọn để tháo
+                    player.controller.UnequipAccessory();
+                    return;
+                }
                 if (index >= 0 && listItemNormal.Count > index)
                 {
                     Item itemSelect = listItemNormal.get(index);
                     switch (itemSelect.getTemp().getType())
                     {
+                        case GopetManager.ITEM_ACCESSORY:
+                            player.controller.EquipAccessory(itemSelect);
+                            return;
                         /*VUI LÒNG CHÚ Ý HÀM TRỪ VP CUỐI HÀNG*/
                         case GopetManager.ITEM_BUFF_EXP:
                             {

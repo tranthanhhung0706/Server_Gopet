@@ -68,8 +68,81 @@ public class GameController
                     list.Add(new Animation(achievement.Template.FrameNum, achievement.Template.FramePath, achievement.Template.vX, achievement.Template.vY, false, false, Animation.TYPE_ARCHIVENMENT));
                 }
             }
+            Item? accessory = player.playerData.Accessory;
+            if (accessory != null)
+            {
+                ItemTemplate accessoryTemplate = accessory.Template;
+                int offsetX = 0, offsetY = 0;
+                for (int i = 0; i < accessoryTemplate.itemOption.Length && i < accessoryTemplate.itemOptionValue.Length; i++)
+                {
+                    switch (accessoryTemplate.itemOption[i])
+                    {
+                        case ItemInfo.OptionType.OPTION_ACCESSORY_OFFSET_X:
+                            offsetX = accessoryTemplate.itemOptionValue[i];
+                            break;
+                        case ItemInfo.OptionType.OPTION_ACCESSORY_OFFSET_Y:
+                            offsetY = accessoryTemplate.itemOptionValue[i];
+                            break;
+                    }
+                }
+                // isDrawEnd = true: vẽ SAU thân nhân vật để trang sức không bị thân che mất
+                list.Add(new Animation(accessoryTemplate.wingFrameNum > 0 ? accessoryTemplate.wingFrameNum : (sbyte)2, accessoryTemplate.frameImgPath, offsetX, offsetY, true, false, Animation.TYPE_ACCESSORY));
+            }
             return list.ToArray();
         }
+    }
+
+    /// <summary>
+    /// Đeo trang sức từ Rương đồ (thay cái đang đeo nếu có, cái cũ quay về Rương đồ)
+    /// </summary>
+    public void EquipAccessory(Item accessory)
+    {
+        CopyOnWriteArrayList<Item> normalInventory = player.playerData.getInventoryOrCreate(GopetManager.NORMAL_INVENTORY);
+        if (!normalInventory.Contains(accessory) || accessory.Template.type != GopetManager.ITEM_ACCESSORY)
+        {
+            player.redDialog(player.Language.CannotUseThisItem);
+            return;
+        }
+        CopyOnWriteArrayList<Item> equipped = player.playerData.getInventoryOrCreate(GopetManager.ACCESSORY_EQUIPPED_INVENTORY);
+        Item? old = equipped.FirstOrDefault();
+        normalInventory.remove(accessory);
+        equipped.Clear();
+        equipped.Add(accessory);
+        if (old != null)
+        {
+            player.addItemToNormalInventory(old);
+        }
+        RefreshAccessory();
+        player.okDialog(player.Language.EquipOK);
+        HistoryManager.addHistory(new History(player).setLog("Đeo trang sức " + accessory.getName(player)).setObj(accessory));
+    }
+
+    /// <summary>
+    /// Tháo trang sức đang đeo về Rương đồ
+    /// </summary>
+    public void UnequipAccessory()
+    {
+        CopyOnWriteArrayList<Item> equipped = player.playerData.getInventoryOrCreate(GopetManager.ACCESSORY_EQUIPPED_INVENTORY);
+        Item? old = equipped.FirstOrDefault();
+        if (old == null)
+        {
+            return;
+        }
+        equipped.Clear();
+        player.addItemToNormalInventory(old);
+        RefreshAccessory();
+        player.okDialog(player.Language.ManipulateOK);
+        HistoryManager.addHistory(new History(player).setLog("Tháo trang sức " + old.getName(player)).setObj(old));
+    }
+
+    private void RefreshAccessory()
+    {
+        Pet? p = player.getPet();
+        if (p != null)
+        {
+            p.applyInfo(player);
+        }
+        (player.getPlace() as GopetPlace)?.updatePlayerAnimation(player);
     }
 
     public Achievement FindSeach(int Id)
@@ -2230,6 +2303,11 @@ public class GameController
         {
             EventManager.FindAndUseItemEvent(itemSelect.itemTemplateId, player, count);
             return;
+        }
+        if (itemSelect.getTemp().getType() == GopetManager.ITEM_ACCESSORY)
+        {
+            // Đeo là thao tác 1 lần; lặp theo count sẽ dùng nhầm vật phẩm khác dồn vào cùng vị trí
+            count = 1;
         }
         for (int i = 0; i < count; i++)
         {
