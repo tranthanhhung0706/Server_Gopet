@@ -1383,7 +1383,11 @@ public partial class MenuController
                                         player.redDialog(player.Language.IncorrectPetUseSkillCard);
                                         return;
                                     }
-                                    if (pet.skillPoint > 0)
+                                    // Phải còn điểm VÀ còn ô trống mới học vào ô mới; hết ô (dù còn điểm dư từ mốc
+                                    // lv15 với pet chỉ 3 ô) thì rơi xuống nhánh else bên dưới để chọn ô thay skill —
+                                    // trước đây chỉ check skillPoint nên pet 3 ô đã đủ skill mà còn điểm dư sẽ luôn
+                                    // báo lỗi, không bao giờ thay được skill bằng thẻ.
+                                    if (pet.skillPoint > 0 && pet.skill.Length < pet.Template.MaxSkillSlot)
                                     {
                                         int[] skillCanLearn = itemSelect.Template.itemOptionValue.Where(x => !pet.skill.Select(m => m[0]).Contains(x)).ToArray();
                                         if (skillCanLearn.Length <= 0)
