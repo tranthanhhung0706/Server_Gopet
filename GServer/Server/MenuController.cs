@@ -40,6 +40,8 @@ public partial class MenuController
      */
     public const int MENU_DELETE_TIEM_NANG = 800;
     public const int MENU_WING_INVENTORY = 81040;
+    /// <summary>Menu "Trang sức của tôi" (ngăn ACCESSORY_INVENTORY), giống Cánh/Tủ quần áo</summary>
+    public const int MENU_ACCESSORY_INVENTORY = 81041;
     public const int MENU_NORMAL_INVENTORY = 81004;
     public const int MENU_SKIN_INVENTORY = 803;
     public const int MENU_SELECT_PET_UPGRADE_ACTIVE = 804;
@@ -1275,9 +1277,9 @@ public partial class MenuController
                     }
                 }
                 break;
-            case GopetManager.NORMAL_INVENTORY:
+            case GopetManager.ACCESSORY_INVENTORY:
                 {
-                    // Trang sức đang đeo hiện đầu Rương đồ (id -1, "Đang sử dụng"); chọn để tháo
+                    // Trang sức đang đeo hiện đầu danh sách (id -1, "Đang sử dụng"); chọn để tháo
                     Item? it = player.playerData.Accessory;
                     if (it != null)
                     {

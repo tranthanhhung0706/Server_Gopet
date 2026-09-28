@@ -1004,6 +1004,9 @@ Thread.Sleep(1000);
             case GopetManager.SKIN_ITEM:
                 playerData.addItem(GopetManager.SKIN_INVENTORY, Item);
                 break;
+            case GopetManager.ITEM_ACCESSORY:
+                playerData.addItem(GopetManager.ACCESSORY_INVENTORY, Item);
+                break;
             case GopetManager.ITEM_MONEY:
                 playerData.addItem(GopetManager.MONEY_INVENTORY, Item);
                 break;

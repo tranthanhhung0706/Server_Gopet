@@ -1246,21 +1246,31 @@ public partial class MenuController
                 }
                 break;
 
+            case MENU_ACCESSORY_INVENTORY:
+                {
+                    if (index == -1)
+                    {
+                        // Mục "(Đang sử dụng)" đứng đầu danh sách = trang sức đang đeo → chọn để tháo
+                        player.controller.UnequipAccessory();
+                        return;
+                    }
+                    CopyOnWriteArrayList<Item> listAccessoryItems = player.playerData.getInventoryOrCreate(GopetManager.ACCESSORY_INVENTORY);
+                    if (index >= 0 && index < listAccessoryItems.Count)
+                    {
+                        player.controller.EquipAccessory(listAccessoryItems.get(index));
+                    }
+                }
+                break;
             case MENU_NORMAL_INVENTORY:
                 /*VUI LÒNG CHÚ Ý HÀM TRỪ VP CUỐI HÀNG*/
                 CopyOnWriteArrayList<Item> listItemNormal = player.playerData.getInventoryOrCreate(GopetManager.NORMAL_INVENTORY);
-                if (index == -1 && player.playerData.Accessory != null)
-                {
-                    // Mục "(Đang sử dụng)" đứng đầu Rương đồ = trang sức đang đeo → chọn để tháo
-                    player.controller.UnequipAccessory();
-                    return;
-                }
                 if (index >= 0 && listItemNormal.Count > index)
                 {
                     Item itemSelect = listItemNormal.get(index);
                     switch (itemSelect.getTemp().getType())
                     {
                         case GopetManager.ITEM_ACCESSORY:
+                            // Trang sức lẻ còn sót trong Rương đồ (từ trước khi có menu riêng) vẫn đeo được
                             player.controller.EquipAccessory(itemSelect);
                             return;
                         /*VUI LÒNG CHÚ Ý HÀM TRỪ VP CUỐI HÀNG*/

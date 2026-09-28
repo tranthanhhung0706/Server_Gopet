@@ -93,24 +93,29 @@ public class GameController
     }
 
     /// <summary>
-    /// Đeo trang sức từ Rương đồ (thay cái đang đeo nếu có, cái cũ quay về Rương đồ)
+    /// Đeo trang sức từ túi trang sức (thay cái đang đeo nếu có, cái cũ quay về túi trang sức).
+    /// Chấp nhận cả trang sức còn sót trong Rương đồ từ trước khi có menu riêng.
     /// </summary>
     public void EquipAccessory(Item accessory)
     {
-        CopyOnWriteArrayList<Item> normalInventory = player.playerData.getInventoryOrCreate(GopetManager.NORMAL_INVENTORY);
-        if (!normalInventory.Contains(accessory) || accessory.Template.type != GopetManager.ITEM_ACCESSORY)
+        CopyOnWriteArrayList<Item> source = player.playerData.getInventoryOrCreate(GopetManager.ACCESSORY_INVENTORY);
+        if (!source.Contains(accessory))
+        {
+            source = player.playerData.getInventoryOrCreate(GopetManager.NORMAL_INVENTORY);
+        }
+        if (!source.Contains(accessory) || accessory.Template.type != GopetManager.ITEM_ACCESSORY)
         {
             player.redDialog(player.Language.CannotUseThisItem);
             return;
         }
         CopyOnWriteArrayList<Item> equipped = player.playerData.getInventoryOrCreate(GopetManager.ACCESSORY_EQUIPPED_INVENTORY);
         Item? old = equipped.FirstOrDefault();
-        normalInventory.remove(accessory);
+        source.remove(accessory);
         equipped.Clear();
         equipped.Add(accessory);
         if (old != null)
         {
-            player.addItemToNormalInventory(old);
+            player.addItemToInventory(old);
         }
         RefreshAccessory();
         player.okDialog(player.Language.EquipOK);
@@ -118,7 +123,7 @@ public class GameController
     }
 
     /// <summary>
-    /// Tháo trang sức đang đeo về Rương đồ
+    /// Tháo trang sức đang đeo về túi trang sức
     /// </summary>
     public void UnequipAccessory()
     {
@@ -129,7 +134,7 @@ public class GameController
             return;
         }
         equipped.Clear();
-        player.addItemToNormalInventory(old);
+        player.addItemToInventory(old);
         RefreshAccessory();
         player.okDialog(player.Language.ManipulateOK);
         HistoryManager.addHistory(new History(player).setLog("Tháo trang sức " + old.getName(player)).setObj(old));
@@ -1118,6 +1123,9 @@ public class GameController
                 break;
             case GopetCMD.SKIN_INVENTORY:
                 MenuController.sendMenu(MenuController.MENU_SKIN_INVENTORY, player);
+                break;
+            case GopetCMD.ACCESSORY_INVENTORY:
+                MenuController.sendMenu(MenuController.MENU_ACCESSORY_INVENTORY, player);
                 break;
             case GopetCMD.WING:
                 {

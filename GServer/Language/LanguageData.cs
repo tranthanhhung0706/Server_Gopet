@@ -356,6 +356,7 @@ namespace Gopet.Language
         public string TeleToMap { get; set; } = "Dịch chuyển tới map";
         public string DeleteGymTitle { get; set; } = "Tẩy gym";
         public string MyWing { get; set; } = "Cánh của tôi";
+        public string MyAccessory { get; set; } = "Trang sức của tôi";
         public string Inventory { get; set; } = "Hành trang";
         public string SkinInventory { get; set; } = "Tủ quần ảo";
         public string SelectMaterial { get; set; } = "Chọn nguyên liệu";

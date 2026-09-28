@@ -593,6 +593,9 @@ public partial class MenuController
             case MENU_WING_INVENTORY:
                 showInventory(player, GopetManager.WING_INVENTORY, menuId, player.Language.MyWing);
                 break;
+            case MENU_ACCESSORY_INVENTORY:
+                showInventory(player, GopetManager.ACCESSORY_INVENTORY, menuId, player.Language.MyAccessory);
+                break;
             case MENU_NORMAL_INVENTORY:
                 showInventory(player, GopetManager.NORMAL_INVENTORY, menuId, player.Language.Inventory);
                 break;

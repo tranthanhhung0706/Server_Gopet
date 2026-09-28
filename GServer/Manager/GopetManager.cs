@@ -471,6 +471,10 @@ public class GopetManager
     /// </summary>
     public const sbyte ACCESSORY_EQUIPPED_INVENTORY = 6;
     /// <summary>
+    /// Túi trang sức (chưa đeo) — mở qua menu "Trang sức của tôi", không nằm trong Rương đồ.
+    /// </summary>
+    public const sbyte ACCESSORY_INVENTORY = 7;
+    /// <summary>
     /// Ngọc
     /// </summary>
     public const sbyte MONEY_TYPE_COIN = 1;

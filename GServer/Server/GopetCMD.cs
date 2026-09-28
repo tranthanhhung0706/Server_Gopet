@@ -82,6 +82,8 @@ public class GopetCMD
     public const sbyte WING = 92;
     public const sbyte SEND_SKIN = 61;
     public const sbyte SKIN_INVENTORY = 62;
+    /// <summary>Client mở menu "Trang sức của tôi" (81/108) — xem MenuController.MENU_ACCESSORY_INVENTORY</summary>
+    public const sbyte ACCESSORY_INVENTORY = 108;
     public const sbyte PRICE_UPGRADE_PET = 72;
     public const sbyte SELECT_PET_UPGRADE = 68;
     public const sbyte REMOVE_ITEM_EQUIP = 56;
