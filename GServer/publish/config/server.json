@@ -1,0 +1,15 @@
+{
+  "portGopetServer": 19180,
+  "portHttpServer": 8082,
+  "domainName": "gopetvn.me",
+  "initLog": false,
+  "outputFileName": "output.txt",
+  "errorFileName": "error.txt",
+  "hourMaintenance": 5,
+  "minMaintenance": 0,
+  "isOnlyAdminLogin": false,
+  "isServerTest": false,
+  "isShowMessageWhenLogin": false,
+  "messageWhenLogin": "Bảo trì cập nhật chỉ số boss, chỉ số đồ, tháo trang phục, không cho pet đi theo",
+  "apiKey": ""
+}
