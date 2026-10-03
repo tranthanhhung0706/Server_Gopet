@@ -147,6 +147,12 @@ public partial class MenuController
             case OP_NHAN_QUA_MOC_BOX_VIP_TRUNG_THU_2026:
                 sendMenu(MENU_TRUNG_THU_MILESTONE_VIP, player);
                 break;
+            case OP_XEM_TOP_CHALLENGE_2026:
+                showTop(ChallengeEvent2026.TopChallengeScore2026.Instance, player);
+                break;
+            case OP_GUIDE_CHALLENGE_2026:
+                player.okDialog(player.Language.GuideChallenge2026);
+                break;
             case OP_CHALLENGE:
                 {
                     if (player.checkStar(GopetManager.STAR_JOIN_CHALLENGE))

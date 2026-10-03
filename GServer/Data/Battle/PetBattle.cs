@@ -933,7 +933,12 @@ namespace Gopet.Battle
                         activePlayer.controller.getTaskCalculator().onKillMob(mob.getPetTemplate().petId);
                         if (place is ChallengePlace)
                         {
-                            //activePlayer.playerData.AccumulatedPoint++;
+                            // Sự kiện Vượt Ải 2026: điểm = level quái (chỉ tính khi sự kiện đang mở)
+                            int eventPoints = Gopet.Data.Event.Year2026.ChallengeEvent2026.Instance.OnKillMob(activePlayer, mob);
+                            if (eventPoints > 0)
+                            {
+                                petBattleTexts.add(new Popup($"+{Utilities.FormatNumber(eventPoints)} điểm sự kiện"));
+                            }
                         }
                     }
                     else
@@ -943,6 +948,15 @@ namespace Gopet.Battle
                         {
                             petBattleTexts.AddRange(activePlayer.controller.onReiceiveGift(boss.Template.gift));
                             place.mobDie(mob);
+                            if (place is ChallengePlace)
+                            {
+                                // Sự kiện Vượt Ải 2026: điểm = level boss × hệ số, chia cho mọi người đã đánh boss
+                                int eventPoints = Gopet.Data.Event.Year2026.ChallengeEvent2026.Instance.OnKillBoss(activePlayer, boss);
+                                if (eventPoints > 0)
+                                {
+                                    petBattleTexts.add(new Popup($"+{Utilities.FormatNumber(eventPoints)} điểm sự kiện"));
+                                }
+                            }
                             JArrayList<string> txtInfo = new();
                             foreach (Popup petBattleText in petBattleTexts)
                             {
@@ -950,10 +964,6 @@ namespace Gopet.Battle
                             }
                             activePlayer.okDialog(Utilities.Format("Chức mừng bạn kích sát %s nhận được :\n%s", boss.Template.getName(activePlayer), string.Join(",", txtInfo)));
                             activePlayer.controller.getTaskCalculator().onKillBoss(boss);
-                            if (place is ChallengePlace)
-                            {
-                                //activePlayer.playerData.AccumulatedPoint += 5;
-                            }
                             place.RemoveBattleByMobId(boss.GetId());
                         }
                     }

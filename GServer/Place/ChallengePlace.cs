@@ -17,6 +17,10 @@ public class ChallengePlace : GopetPlace
     public bool isWait = true;
     public bool isFinish = false;
     public bool isWaitForNewTurn = false;
+    /// <summary>
+    /// Boss lượt này hết giờ mà chưa bị hạ → thử thách thất bại, phòng kết thúc (không sang lượt tiếp)
+    /// </summary>
+    public bool isFailed = false;
     public int turn = 0;
     public static readonly int[][] MOB_XY = new int[][]{
         new int[]{240, 161},
@@ -91,7 +95,22 @@ public class ChallengePlace : GopetPlace
 
     public override void update()
     {
+        // Phải kiểm tra TRƯỚC base.update(): base.update() tự xoá boss quá TimeOut khỏi `mobs`, khi đó
+        // mobs.Count == 0 sẽ bị hiểu nhầm là "đã dọn sạch lượt" và cho sang lượt kế mà không cần hạ boss.
+        if (!isWait && !isFinish && !isFailed && mobs.Any(m => m is Boss boss && boss.TimeOut < DateTime.Now))
+        {
+            isFailed = true;
+            placeTime = Utilities.CurrentTimeMillis - 1; // needRemove() → true, ChallengeMap đóng phòng
+            foreach (Player player in players)
+            {
+                player.redDialog("Hết giờ mà chưa hạ được boss, thử thách đã kết thúc!");
+            }
+        }
         base.update();
+        if (isFailed)
+        {
+            return;
+        }
         if (isWait)
         {
             if (placeTime < Utilities.CurrentTimeMillis)

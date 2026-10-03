@@ -480,6 +480,10 @@ public partial class MenuController
     public const int OP_NHAN_QUA_MOC_BOX_NORMAL_TRUNG_THU_2026 = 110;
     /// <summary>Nhận quà theo mốc số lần dùng Hộp quà trung thu VIP — sự kiện Trung Thu 2026.</summary>
     public const int OP_NHAN_QUA_MOC_BOX_VIP_TRUNG_THU_2026 = 111;
+    /// <summary>Xem bảng xếp hạng điểm sự kiện Vượt Ải 2026 (ChallengeEvent2026) — gắn tự động vào NPC Đấu Trường.</summary>
+    public const int OP_XEM_TOP_CHALLENGE_2026 = 112;
+    /// <summary>Hướng dẫn cách tính điểm sự kiện Vượt Ải 2026 (ChallengeEvent2026).</summary>
+    public const int OP_GUIDE_CHALLENGE_2026 = 113;
     /// <summary>
     /// Option Custom
     /// Trao đổi thưởng bằng

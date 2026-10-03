@@ -32,6 +32,8 @@ namespace Gopet.Manager
             _events.Add(TrungThu2026.Instance);
             // Vòng lặp hồi sinh Boss Trung Thu (typeBoss=2) — dùng chung công tắc "trungthu2026".
             _events.Add(BossTrungThu2026.Instance);
+            // Sự kiện Vượt Ải 2026 — tính điểm theo cấp quái/boss trong ChallengePlace (eventKey = "challenge2026").
+            _events.Add(ChallengeEvent2026.Instance);
         }
 
         public static void AddEvent(EventBase eventBase)
