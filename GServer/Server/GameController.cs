@@ -3533,15 +3533,48 @@ public class GameController
         }
     }
 
+    /// <summary>
+    /// Loại nguyên liệu cường hoá TRANG BỊ theo trang bị đó thuộc hạ giới hay thiên đình:
+    /// - Hạ giới (isOnSky = false): bùa cường hoá (type 6) + pha lê (type 8) — như cũ.
+    /// - Thiên đình (isOnSky = true): nguyên liệu cường hoá thiên đình (type 7) + pha lê thiên đình (type 30).
+    /// Trả về loại nguyên liệu chính (bùa), <paramref name="crystalType"/> là loại pha lê.
+    /// </summary>
+    public static int GetEnchantMaterialTypes(Item? equip, out int crystalType)
+    {
+        if (equip != null && equip.Template.isOnSky)
+        {
+            crystalType = GopetManager.ENCHANT_MATERIAL_CRYSTAL_SKY;
+            return GopetManager.MATERIAL_ENCHANT_ITEM_SKY;
+        }
+        crystalType = GopetManager.ENCHANT_MATERIAL_CRYSTAL;
+        return GopetManager.MATERIAL_ENCHANT_ITEM;
+    }
+
+    /// <summary>
+    /// Như trên nhưng theo trang bị client đang chọn ở màn cường hoá (lưu ở selectMaterialEnchantItem) —
+    /// dùng để menu chọn nguyên liệu chỉ liệt kê đúng loại.
+    /// </summary>
+    public int GetEnchantMaterialTypes(out int crystalType)
+    {
+        Item? equip = null;
+        if (objectPerformed.ContainsKey(MenuController.OBJKEY_ENCHANT_SELECTED_EQUIP_ID))
+        {
+            equip = selectItemEquipByItemId((int)objectPerformed[MenuController.OBJKEY_ENCHANT_SELECTED_EQUIP_ID]);
+        }
+        return GetEnchantMaterialTypes(equip, out crystalType);
+    }
+
     private void selectMaterialEnchantItem(int itemEnchantId, int itemSelectType)
     {
         Item echanItem = selectItemEquipByItemId(itemEnchantId);
         switch (itemSelectType)
         {
             case GopetManager.TYPE_SELECT_ENCHANT_MATERIAL1:
+                objectPerformed.put(MenuController.OBJKEY_ENCHANT_SELECTED_EQUIP_ID, itemEnchantId);
                 MenuController.sendMenu(MenuController.MENU_SELECT_ENCHANT_MATERIAL1, player);
                 break;
             case GopetManager.TYPE_SELECT_ENCHANT_MATERIAL2:
+                objectPerformed.put(MenuController.OBJKEY_ENCHANT_SELECTED_EQUIP_ID, itemEnchantId);
                 MenuController.sendMenu(MenuController.MENU_SELECT_ENCHANT_MATERIAL2, player);
                 break;
             case GopetManager.TYPE_SELECT_ITEM_UP_TIER:
@@ -3764,6 +3797,20 @@ public class GameController
                 {
                     player.redDialog(player.Language.PleaseUnequipWing);
                     return;
+                }
+
+                if (!isGem)
+                {
+                    // Trang bị hạ giới: bùa (type 6) + pha lê (type 8). Trang bị thiên đình: nguyên liệu thiên đình
+                    // (type 7) + pha lê thiên đình (type 30). Kiểm tra lại phía server vì gói tin chỉ gửi template id.
+                    int requiredMaterialType = GetEnchantMaterialTypes(itemEuip, out int requiredCrystalType);
+                    if (materialItem.Template.type != requiredMaterialType || materialCrystal.Template.type != requiredCrystalType)
+                    {
+                        player.redDialog(itemEuip.Template.isOnSky
+                            ? "Trang bị thiên đình cần nguyên liệu cường hoá thiên đình và pha lê cường hoá thiên đình"
+                            : "Trang bị hạ giới cần bùa cường hoá và pha lê cường hoá thường");
+                        return;
+                    }
                 }
 
                 objectPerformed.put(MenuController.OBJKEY_EQUIP_ITEM_ENCHANT, itemEuip);

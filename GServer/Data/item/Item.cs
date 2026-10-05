@@ -516,6 +516,11 @@ namespace Gopet.Data.GopetItem
                     }
                 }
             }
+            if (getTemp().isOnSky && getTemp().IsEquip)
+            {
+                // Trang bị thiên đình cường hoá bằng nguyên liệu/pha lê riêng — cho người chơi biết ngay trên tên
+                infoStrings.add("(thiên đình)");
+            }
             return getName(player) + "  " + getTemp().getDescription(player) + " " + Utilities.Format("up: %s ", lvl) + string.Join(" ", infoStrings.Concat(strs)) + (gemInfo == null ? "" : " " + gemInfo.getElementIcon());
         }
 

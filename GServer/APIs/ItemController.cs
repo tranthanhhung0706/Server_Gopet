@@ -104,7 +104,7 @@ namespace Gopet.APIs
         /// </summary>
         [HttpGet("/v1/gopet/api/Items")]
         public IActionResult GetItems([FromQuery] int page = 1, [FromQuery] int limit = 20,
-            [FromQuery] string? search = null, [FromQuery] int? type = null)
+            [FromQuery] string? search = null, [FromQuery] int? type = null, [FromQuery] bool? isOnSky = null)
         {
             page = Math.Max(1, page);
             limit = Math.Clamp(limit, 1, 100);
@@ -112,6 +112,13 @@ namespace Gopet.APIs
 
             var where = new List<string>();
             var parameters = new DynamicParameters();
+
+            // true = đồ thiên đình, false = đồ hạ giới, bỏ trống = tất cả
+            if (isOnSky.HasValue)
+            {
+                where.Add("isOnSky = @isOnSky");
+                parameters.Add("isOnSky", isOnSky.Value ? 1 : 0);
+            }
 
             if (!string.IsNullOrWhiteSpace(search))
             {

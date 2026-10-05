@@ -167,6 +167,13 @@ public class GopetManager
     public const int MATERIAL_ENCHANT_ITEM = 6;
     public const int MATERIAL_ENCHANT_ITEM_SKY = 7;
     public const int ENCHANT_MATERIAL_CRYSTAL = 8;
+    /// <summary>
+    /// Pha lê cường hoá dành riêng cho trang bị THIÊN ĐÌNH (ItemTemplate.isOnSky = true) — thay cho pha lê
+    /// thường (type 8). Dùng y hệt type 8: itemOptionValue[0] = % tỉ lệ thành công cộng thêm.
+    /// Trang bị thiên đình cường hoá bằng ITEM type 7 (MATERIAL_ENCHANT_ITEM_SKY) + type này; trang bị hạ
+    /// giới vẫn dùng type 6 + type 8 như cũ. Xem GameController.GetEnchantMaterialTypes.
+    /// </summary>
+    public const int ENCHANT_MATERIAL_CRYSTAL_SKY = 30;
     public const int ITEM_PART_PET = 9;
     public const int ITEM_BUFF_EXP = 10;
     public const int ITEM_UP_SKILL_PET = 11;

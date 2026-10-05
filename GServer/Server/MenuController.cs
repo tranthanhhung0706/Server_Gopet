@@ -657,6 +657,8 @@ public partial class MenuController
     public const int OBJKEY_FAST_REMOVE_ITEM_EQUIP_TEMPLATE = 79;
     /// <summary>Khoá lưu List&lt;int&gt; itemId đang chờ xác nhận "Xoá nhanh theo tuỳ chọn" — xem GameController.confirmCustomRemoveItemEquip.</summary>
     public const int OBJKEY_CUSTOM_REMOVE_ITEM_EQUIP = 80;
+    /// <summary>Khoá lưu itemId trang bị đang được chọn ở màn cường hoá — để menu chọn nguyên liệu lọc đúng loại (hạ giới/thiên đình). Xem GameController.selectMaterialEnchantItem.</summary>
+    public const int OBJKEY_ENCHANT_SELECTED_EQUIP_ID = 81;
     public const int DIALOG_CONFIRM_REMOVE_ITEM_EQUIP = 0;
     public const int DIALOG_CONFIRM_BUY_KIOSK_ITEM = 1;
     public const int DIALOG_ENCHANT = 3;
@@ -826,11 +828,15 @@ public partial class MenuController
         {
             case MENU_SELECT_MATERIAL2_TO_ENCHANT_TATOO:
             case MENU_SELECT_GEM_ENCHANT_MATERIAL1:
-            case MENU_SELECT_ENCHANT_MATERIAL1:
                 arrayList.add(GopetManager.MATERIAL_ENCHANT_ITEM);
                 break;
+            case MENU_SELECT_ENCHANT_MATERIAL1:
+                // Trang bị thiên đình cần nguyên liệu thiên đình (type 7), hạ giới vẫn dùng bùa (type 6)
+                arrayList.add(player.controller.GetEnchantMaterialTypes(out _));
+                break;
             case MENU_SELECT_ENCHANT_MATERIAL2:
-                arrayList.add(GopetManager.ENCHANT_MATERIAL_CRYSTAL);
+                player.controller.GetEnchantMaterialTypes(out int crystalType);
+                arrayList.add(crystalType);
                 break;
             case MENU_MERGE_PART_PET:
                 arrayList.add(GopetManager.ITEM_PART_PET);
