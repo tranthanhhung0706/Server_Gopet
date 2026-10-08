@@ -23,6 +23,11 @@ namespace Gopet.Battle
         public const sbyte SKILL_NORMAL = 0;
         public const sbyte SKILL_MISS = 1;
         public const sbyte SKILL_CRIT = 2;
+        /// <summary>
+        /// Dấu "kỹ năng chí mạng": gửi thêm 1 dòng (skillId = 3, hp = 0) ngay sau hiệu ứng kỹ năng để client vẽ tia
+        /// chí mạng trên mục tiêu. Client cũ bỏ qua mã 3 (chỉ xử lý 0..2, 101..124, >= 125) nên không lỗi.
+        /// </summary>
+        public const sbyte SKILL_CRIT_MARK = 3;
         public const sbyte NONE = 0;
 
         public static TurnEffect createNormalAttack(int mp, int hp, int petId)

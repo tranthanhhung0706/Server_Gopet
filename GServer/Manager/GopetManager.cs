@@ -1081,6 +1081,19 @@ public class GopetManager
                 PetExp.put(exp.petLvl, exp.exp);
             }
             ServerMonitor.LogInfo("Tải dữ liệu exps từ cơ sở dữ liệu OK");
+            // Tên 2 option chí mạng (ItemInfo.Type.CRIT_RATE/CRIT_DAMAGE) — bảng có UNIQUE KEY(ID) nên INSERT IGNORE
+            // an toàn, chạy lại nhiều lần không trùng và không ghi đè tên admin đã sửa tay.
+            try
+            {
+                conn.Execute(
+                    @"INSERT IGNORE INTO `iteminfo` (`ID`, `name`, `isPercent`) VALUES
+                      (50, '+ %s/ tỉ lệ chí mạng', 1),
+                      (51, '+ %s/ sát thương chí mạng', 1)");
+            }
+            catch (Exception e)
+            {
+                ServerMonitor.LogError("Không thêm được option chí mạng vào iteminfo: " + e.Message);
+            }
             var listIteminfo = conn.Query("SELECT * FROM `iteminfo`");
             foreach (var item in listIteminfo)
             {

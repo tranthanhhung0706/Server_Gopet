@@ -101,7 +101,8 @@ namespace Gopet.Battle
 
         public ItemInfo[] getBuff()
         {
-            ItemInfo[] itemInfos = new ItemInfo[GopetManager.itemInfoName.Count()];
+            // Đủ chỗ cho mọi ItemInfo.Type dù bảng iteminfo thiếu dòng (trước đây id >= số dòng → IndexOutOfRange)
+            ItemInfo[] itemInfos = new ItemInfo[Math.Max(GopetManager.itemInfoName.Count(), ItemInfo.Type.MAX_ID + 1)];
             for (int i = 0; i < itemInfos.Length; i++)
             {
                 itemInfos[i] = new ItemInfo(i, 0);

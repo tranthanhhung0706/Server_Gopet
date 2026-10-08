@@ -54,6 +54,8 @@ namespace Gopet.Battle
             ApplyHiddenStat(passivePet, passiveBattleInfo);
             AddTattoBattleBuff(activePet, activeBattleInfo, passiveBattleInfo);
             AddTattoBattleBuff(passivePet, passiveBattleInfo, activeBattleInfo);
+            AddEquipBattleBuff(activePlayer, activePet, activeBattleInfo, passiveBattleInfo);
+            AddEquipBattleBuff(passivePlayer, passivePet, passiveBattleInfo, activeBattleInfo);
         }
 
         public PetBattle(Mob mob, GopetPlace place, Player activePlayer)
@@ -73,6 +75,73 @@ namespace Gopet.Battle
             if (place == null) throw new ArgumentNullException(nameof(place));
             ApplyHiddenStat(activePet, activeBattleInfo);
             AddTattoBattleBuff(activePet, activeBattleInfo, passiveBattleInfo);
+            AddEquipBattleBuff(activePlayer, activePet, activeBattleInfo, passiveBattleInfo);
+        }
+
+        /// <summary>
+        /// Áp hiệu ứng combat (chí mạng, v.v.) của TRANG BỊ pet đang mặc, skin và trang sức — cùng cơ chế
+        /// ItemInfo như cánh (addWingBuff): admin đặt trong itemOption/itemOptionValue của item template theo bộ 4
+        /// [OPTION_BATTLE(13), lượt(14), giá trị(15), cho-người-mặc(16)] với giá trị đầu là ItemInfo.Type
+        /// (vd tỉ lệ chí mạng +5%: itemOption [13,14,15,16], itemOptionValue [50, 99999, 500, 1]).
+        /// </summary>
+        private void AddEquipBattleBuff(Player player, Pet pet, PetBattleInfo petBattleInfo, PetBattleInfo nonpetBattleInfo)
+        {
+            if (player == null || pet == null)
+            {
+                return;
+            }
+            var items = new List<Item>();
+            foreach (int equipId in pet.equip.ToArray())
+            {
+                Item equipItem = player.controller.selectItemEquipByItemId(equipId);
+                if (equipItem != null && equipItem.petEuipId == pet.petId)
+                {
+                    items.Add(equipItem);
+                }
+            }
+            if (player.playerData.skin != null) items.Add(player.playerData.skin);
+            if (player.playerData.Accessory != null) items.Add(player.playerData.Accessory);
+            foreach (Item item in items)
+            {
+                try
+                {
+                    foreach (var buff in item.ExtractBattleOptions())
+                    {
+                        if (buff.OptionId < 0 || buff.OptionId > ItemInfo.Type.MAX_ID)
+                        {
+                            continue;
+                        }
+                        (buff.IsActive ? petBattleInfo : nonpetBattleInfo).addBuff(new Buff(new ItemInfo[] { new ItemInfo(buff.OptionId, buff.OptionValue) }, buff.Turn));
+                    }
+                }
+                catch (Exception e)
+                {
+                    // Cấu hình option sai của 1 item (thiếu phần tử trong itemOptionValue...) không được làm hỏng cả trận đấu
+                    GopetManager.ServerMonitor.LogError($"Option chiến đấu lỗi ở item template {item.itemTemplateId}: {e.Message}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Có chí mạng hay không: giữ nguyên tỉ lệ gốc theo chỉ số (GameObject.isCrit) rồi cộng THÊM tỉ lệ
+        /// chí mạng từ ItemInfo.Type.CRIT_RATE (1/100 %, cộng dồn mọi nguồn, tối đa 100%) — 2 lần tung độc lập.
+        /// Không có bonus thì hành vi y hệt trước đây.
+        /// </summary>
+        private static bool RollCrit(GameObject attacker, PetBattleInfo attackerInfo)
+        {
+            bool baseCrit = attacker.isCrit();
+            float bonusPercent = Math.Min(100f, Math.Max(0, ItemInfo.getValueById(attackerInfo.getBuff(), ItemInfo.Type.CRIT_RATE)) / 100f);
+            return baseCrit || (bonusPercent > 0 && Utilities.NextFloatPer() < bonusPercent);
+        }
+
+        /// <summary>
+        /// Hệ số sát thương khi chí mạng: mặc định x2, cộng thêm ItemInfo.Type.CRIT_DAMAGE (1/100 %, vd 5000 = +50%
+        /// → x2.5). Giới hạn x10 để tránh cấu hình sai làm sát thương tràn số.
+        /// </summary>
+        private static float GetCritMultiplier(PetBattleInfo attackerInfo)
+        {
+            float bonus = Math.Max(0, ItemInfo.getValueById(attackerInfo.getBuff(), ItemInfo.Type.CRIT_DAMAGE)) / 10000f;
+            return Math.Min(10f, 2f + bonus);
         }
 
         private void ApplyHiddenStat(Pet pet, PetBattleInfo petBattleInfo)
@@ -287,9 +356,9 @@ namespace Gopet.Battle
                 if (!isMiss)
                 {
                     PetDamgeInfo damge = makeDamage(getUserPetBattleInfo(), getNonUserPetBattleInfo(), null);
-                    if (getPet().IsCrit)
+                    if (RollCrit(getPet(), getUserPetBattleInfo()))
                     {
-                        damge.setDamge(damge.getDamge() * 2);
+                        damge.setDamge(Utilities.round(damge.getDamge() * GetCritMultiplier(getUserPetBattleInfo())));
                         turnEffects.add(new TurnEffect(TurnEffect.SKILL_CRIT, getFocus(), TurnEffect.SKILL_CRIT, -damge.getDamge(), 0));
                     }
                     else
@@ -1146,6 +1215,14 @@ namespace Gopet.Battle
                             bool isMiss = randMiss(nonPetBattleInfo);
                             applySkill(petSkillLv, petBattleInfo, nonPetBattleInfo);
                             PetDamgeInfo damageInfo = makeDamage(petBattleInfo, nonPetBattleInfo, petSkillLv);
+                            // Kỹ năng gây sát thương cũng có thể chí mạng (cùng tỉ lệ/hệ số như đòn đánh thường —
+                            // RollCrit/GetCritMultiplier). Không áp cho kỹ năng buff và không nhân sát thương chuẩn (true damage).
+                            bool isSkillCrit = false;
+                            if (!petSkill.isSkillBuff() && !isMiss && !damageInfo.isSkillMiss() && damageInfo.getDamge() > 0 && RollCrit(pet, petBattleInfo))
+                            {
+                                damageInfo.setDamge(Utilities.round(damageInfo.getDamge() * GetCritMultiplier(petBattleInfo)));
+                                isSkillCrit = true;
+                            }
                             if (dotmana(petSkillLv))
                             {
                                 if (isPetAttackMob())
@@ -1213,6 +1290,11 @@ namespace Gopet.Battle
                             }
                             TurnEffect turnEffect = new TurnEffect(TurnEffect.NONE, petSkill.isSkillBuff() ? getUserTurnId() : getFocus(), skillId, -(damageInfo.getDamge() + damageInfo.getTrueDamge()), -mpdelta);
                             turnEffects.add(turnEffect);
+                            if (isSkillCrit)
+                            {
+                                // Client mới vẽ tia chí mạng trên mục tiêu (hp = 0, không trừ máu lần nữa)
+                                turnEffects.add(new TurnEffect(TurnEffect.NONE, getFocus(), TurnEffect.SKILL_CRIT_MARK, 0, 0));
+                            }
                             if (damageInfo.isSkillMiss() || isMiss)
                             {
                                 turnEffects.add(new TurnEffect(TurnEffect.SKILL_MISS, getFocus(), TurnEffect.SKILL_MISS, 0, 0));
@@ -1391,10 +1473,10 @@ namespace Gopet.Battle
                 }
                 if (!isMiss)
                 {
-                    bool crit = mob.IsCrit;
+                    bool crit = RollCrit(mob, passiveBattleInfo);
                     if (crit)
                     {
-                        sum *= 2;
+                        sum = Utilities.round(sum * GetCritMultiplier(passiveBattleInfo));
                     }
                     foreach (ItemInfo itemInfo in passiveBattleInfo.getBuff())
                     {

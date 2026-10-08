@@ -292,6 +292,12 @@ namespace Gopet.Data.GopetItem
                                         case ItemInfo.Type.RECOVERY_HP:
                                             wingBuffDesc += player.Language.PercentBloodSuckingItemDesc + Utilities.round(buff.OptionValue / 100f) + "%";
                                             break;
+                                        case ItemInfo.Type.CRIT_RATE:
+                                            wingBuffDesc += " +" + Utilities.round(buff.OptionValue / 100f) + "% chí mạng";
+                                            break;
+                                        case ItemInfo.Type.CRIT_DAMAGE:
+                                            wingBuffDesc += " +" + Utilities.round(buff.OptionValue / 100f) + "% sát thương chí mạng";
+                                            break;
                                     }
                                 }
                             }
@@ -466,6 +472,33 @@ namespace Gopet.Data.GopetItem
                 infoStrings.add(getMp() + " (mp) ");
             }
 
+            if (getTemp().IsEquip)
+            {
+                // Hiện chỉ số chí mạng của trang bị (ItemInfo.Type.CRIT_RATE / CRIT_DAMAGE, 1/100 %)
+                try
+                {
+                    foreach (var buff in ExtractBattleOptions())
+                    {
+                        if (buff.OptionValue <= 0)
+                        {
+                            continue;
+                        }
+                        if (buff.OptionId == ItemInfo.Type.CRIT_RATE)
+                        {
+                            infoStrings.add("+" + Utilities.round(buff.OptionValue / 100f) + "% chí mạng ");
+                        }
+                        else if (buff.OptionId == ItemInfo.Type.CRIT_DAMAGE)
+                        {
+                            infoStrings.add("+" + Utilities.round(buff.OptionValue / 100f) + "% sát thương chí mạng ");
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    // option cấu hình sai thì bỏ qua phần hiển thị, không làm hỏng danh sách trang bị
+                }
+            }
+
             switch (getTemp().getType())
             {
                 case GopetManager.ITEM_GEM:
@@ -567,25 +600,32 @@ namespace Gopet.Data.GopetItem
 
         public ItemBattleOptionBuff[] ExtractBattleOptions()
         {
-            if (this.Template.itemOption.Contains(ItemInfo.OptionType.OPTION_BATTLE))
+            int[] options = this.Template.itemOption ?? new int[0];
+            if (!options.Contains(ItemInfo.OptionType.OPTION_BATTLE))
             {
-                int flag = 0;
-                ItemBattleOptionBuff[] itemBattleOptionBuffs = new ItemBattleOptionBuff[this.Template.itemOption.Where(p => p == ItemInfo.OptionType.OPTION_BATTLE).Count()];
-                for (global::System.Int32 i = 0; i < this.Template.itemOption.Length;)
-                {
-                    if (this.Template.itemOption[i] == ItemInfo.OptionType.OPTION_BATTLE)
-                    {
-                        itemBattleOptionBuffs[flag] = new ItemBattleOptionBuff(this.optionValue[i], this.optionValue[i + 2], this.optionValue[i + 3] == 1, this.optionValue[i + 1] > 100 ? int.MaxValue - 10 : this.optionValue[i + 1]);
-                        i += 3;
-                    }
-                    else
-                    {
-                        i++;
-                    }
-                }
-                return itemBattleOptionBuffs;
+                return new ItemBattleOptionBuff[0];
             }
-            return new ItemBattleOptionBuff[0];
+            // Giá trị lấy theo TEMPLATE (admin sửa là áp ngay cho mọi item đã có). Trước đây đọc this.optionValue —
+            // bản copy lúc item được tạo — nên template thêm option sau đó làm mảng copy ngắn hơn → IndexOutOfRange
+            // (vd mở "Cánh của tôi"). Template thiếu giá trị thì mới dùng tạm bản copy của item.
+            int[] templateValues = this.Template.itemOptionValue ?? new int[0];
+            int[] values = templateValues.Length >= options.Length ? templateValues : (this.optionValue ?? new int[0]);
+            var buffs = new List<ItemBattleOptionBuff>();
+            for (int i = 0; i < options.Length; i++)
+            {
+                if (options[i] != ItemInfo.OptionType.OPTION_BATTLE)
+                {
+                    continue;
+                }
+                if (i + 3 >= values.Length)
+                {
+                    break; // cấu hình thiếu số trong bộ 4 → bỏ qua phần còn lại thay vì crash
+                }
+                buffs.Add(new ItemBattleOptionBuff(values[i], values[i + 2], values[i + 3] == 1, values[i + 1] > 100 ? int.MaxValue - 10 : values[i + 1]));
+                i += 3;
+            }
+            // (Bản cũ còn không tăng chỉ số mảng kết quả nên item có từ 2 option chiến đấu trở lên bị phần tử null.)
+            return buffs.ToArray();
         }
 
         public int GetId()

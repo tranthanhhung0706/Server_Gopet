@@ -140,6 +140,18 @@ namespace Gopet.Data.GopetItem
             public const int KÍCH_ẨN_ĐỊNH_THÂN = 47;
             public const int KÍCH_ẨN_HÚT_MÁU = 48;
             public const int TỈ_LỆ_ĐỊNH_THÂN_KHI_ĐÁNH_TRÚNG = 49;
+            /// <summary>
+            /// Tỉ lệ chí mạng cộng thêm (đơn vị 1/100 %: 500 = +5%). Cộng dồn với tỉ lệ chí mạng gốc theo
+            /// chỉ số pet (GameObject.isCrit) — xem PetBattle.RollCrit.
+            /// </summary>
+            public const int CRIT_RATE = 50;
+            /// <summary>
+            /// Sát thương chí mạng cộng thêm (đơn vị 1/100 %: 5000 = +50%). Hệ số chí mạng mặc định là x2,
+            /// nên +50% thành x2.5 — xem PetBattle.GetCritMultiplier.
+            /// </summary>
+            public const int CRIT_DAMAGE = 51;
+            /// <summary>ID lớn nhất của ItemInfo.Type — bảng `iteminfo` phải có đủ [0..MAX_ID] (xem PetBattleInfo.getBuff).</summary>
+            public const int MAX_ID = CRIT_DAMAGE;
         }
 
         public static class OptionType
