@@ -127,21 +127,24 @@ namespace Gopet.Battle
         /// chí mạng từ ItemInfo.Type.CRIT_RATE (1/100 %, cộng dồn mọi nguồn, tối đa 100%) — 2 lần tung độc lập.
         /// Không có bonus thì hành vi y hệt trước đây.
         /// </summary>
-        private static bool RollCrit(GameObject attacker, PetBattleInfo attackerInfo)
+        private static bool RollCrit(GameObject attacker, PetBattleInfo attackerInfo, int extraCritRate = 0)
         {
             bool baseCrit = attacker.isCrit();
-            float bonusPercent = Math.Min(100f, Math.Max(0, ItemInfo.getValueById(attackerInfo.getBuff(), ItemInfo.Type.CRIT_RATE)) / 100f);
+            float bonusPercent = Math.Min(100f, Math.Max(0, ItemInfo.getValueById(attackerInfo.getBuff(), ItemInfo.Type.CRIT_RATE) + extraCritRate) / 100f);
             return baseCrit || (bonusPercent > 0 && Utilities.NextFloatPer() < bonusPercent);
         }
 
         /// <summary>
-        /// Hệ số sát thương khi chí mạng: mặc định x2, cộng thêm ItemInfo.Type.CRIT_DAMAGE (1/100 %, vd 5000 = +50%
-        /// → x2.5). Giới hạn x10 để tránh cấu hình sai làm sát thương tràn số.
+        /// Hệ số sát thương khi chí mạng: mặc định x2, cộng thêm ItemInfo.Type.CRIT_DAMAGE từ trang bị/cánh (1/100 %,
+        /// vd 5000 = +50% → x2.5). Kỹ năng có khai báo CRIT_DAMAGE trong skillInfo (<paramref name="skillCritDamage"/>)
+        /// thì hệ số GỐC của kỹ năng đó là giá trị này (15000 = 150% = x1.5) thay cho x2, bonus trang bị vẫn cộng thêm.
+        /// Giới hạn x1 → x10 để tránh cấu hình sai.
         /// </summary>
-        private static float GetCritMultiplier(PetBattleInfo attackerInfo)
+        private static float GetCritMultiplier(PetBattleInfo attackerInfo, int skillCritDamage = 0)
         {
             float bonus = Math.Max(0, ItemInfo.getValueById(attackerInfo.getBuff(), ItemInfo.Type.CRIT_DAMAGE)) / 10000f;
-            return Math.Min(10f, 2f + bonus);
+            float baseMultiplier = skillCritDamage > 0 ? skillCritDamage / 10000f : 2f;
+            return Math.Min(10f, Math.Max(1f, baseMultiplier + bonus));
         }
 
         private void ApplyHiddenStat(Pet pet, PetBattleInfo petBattleInfo)
@@ -1217,10 +1220,15 @@ namespace Gopet.Battle
                             PetDamgeInfo damageInfo = makeDamage(petBattleInfo, nonPetBattleInfo, petSkillLv);
                             // Kỹ năng gây sát thương cũng có thể chí mạng (cùng tỉ lệ/hệ số như đòn đánh thường —
                             // RollCrit/GetCritMultiplier). Không áp cho kỹ năng buff và không nhân sát thương chuẩn (true damage).
+                            // Kỹ năng có thể tự khai báo chí mạng riêng trong skillInfo (bảng skilllv):
+                            // id 50 (CRIT_RATE) = tỉ lệ chí mạng cộng thêm cho kỹ năng này (1000 = 10%),
+                            // id 51 (CRIT_DAMAGE) = hệ số chí mạng của kỹ năng này (15000 = 150% sát thương).
+                            int skillCritRate = ItemInfo.getValueById(petSkillLv.skillInfo, ItemInfo.Type.CRIT_RATE);
+                            int skillCritDamage = ItemInfo.getValueById(petSkillLv.skillInfo, ItemInfo.Type.CRIT_DAMAGE);
                             bool isSkillCrit = false;
-                            if (!petSkill.isSkillBuff() && !isMiss && !damageInfo.isSkillMiss() && damageInfo.getDamge() > 0 && RollCrit(pet, petBattleInfo))
+                            if (!petSkill.isSkillBuff() && !isMiss && !damageInfo.isSkillMiss() && damageInfo.getDamge() > 0 && RollCrit(pet, petBattleInfo, skillCritRate))
                             {
-                                damageInfo.setDamge(Utilities.round(damageInfo.getDamge() * GetCritMultiplier(petBattleInfo)));
+                                damageInfo.setDamge(Utilities.round(damageInfo.getDamge() * GetCritMultiplier(petBattleInfo, skillCritDamage)));
                                 isSkillCrit = true;
                             }
                             if (dotmana(petSkillLv))
