@@ -417,9 +417,15 @@ namespace Gopet.Data.GopetClan
                 }
             }
 
+            // Cột `SkillRent` rỗng ('' — vd bang tạo bằng create() chỉ INSERT name/leaderId/members) đọc ra null →
+            // trước đây NullReferenceException mỗi nhịp, chặn luôn update của các bang đứng sau trong ClanMap.
+            if (this.SkillRent == null)
+            {
+                this.SkillRent = new CopyOnWriteArrayList<ClanSkill>();
+            }
             foreach (var skillRent_ in SkillRent)
             {
-                if (skillRent_.Expire < DateTime.Now)
+                if (skillRent_ == null || skillRent_.Expire < DateTime.Now)
                     this.SkillRent.Remove(skillRent_);
             }
         }

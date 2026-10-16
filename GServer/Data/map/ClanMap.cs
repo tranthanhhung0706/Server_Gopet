@@ -27,7 +27,15 @@ namespace Gopet.Data.Map
             {
                 foreach (var clan in ClanManager.clans)
                 {
-                    clan.update();
+                    // try riêng từng bang: 1 bang lỗi dữ liệu không được chặn update của các bang còn lại
+                    try
+                    {
+                        clan.update();
+                    }
+                    catch (Exception e)
+                    {
+                        e.printStackTrace();
+                    }
                 }
             }
             catch (Exception e)
