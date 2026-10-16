@@ -217,6 +217,8 @@ namespace Gopet.App
         {
             RuntimeServer.instance.runtimes.add(new AutoSave());
             RuntimeServer.instance.runtimes.add(new DBBackup());
+            // Xoá lịch sử thao tác (gp_log.history) cũ hơn 10 ngày — bảng này từng đầy ổ đĩa (~17,5 GB)
+            RuntimeServer.instance.runtimes.add(new Gopet.Runtime.HistoryCleanup());
             RuntimeServer.instance.runtimes.add(Maintenance.gI());
         }
 

@@ -15,6 +15,8 @@ public class HistoryManager
 
     public static HistoryManager Instance = new HistoryManager();
     private ConcurrentQueue<History> historys = new();
+    /// <summary>Số dòng lịch sử tối đa giữ chờ trong RAM khi DB không ghi được (vượt thì bỏ dòng cũ nhất).</summary>
+    private const int MAX_PENDING_HISTORY = 50000;
     private AutoResetEvent AutoResetEvent = new AutoResetEvent(false);
     public Thread HistoryThread;
     public HistoryManager()
@@ -61,22 +63,34 @@ public class HistoryManager
                 }
                 */
 
-                using (var conn = MYSQLManager.createLogConnection())
+                // try/catch NẰM TRONG vòng lặp: trước đây 1 lần ghi lỗi (vd ổ đĩa đầy → "table 'history' is full")
+                // làm thoát hẳn vòng lặp → luồng ghi lịch sử chết vĩnh viễn, hàng đợi phình mãi trong RAM.
+                try
                 {
-                    using (var gameMySqlConnection = MYSQLManager.create())
+                    using (var conn = MYSQLManager.createLogConnection())
                     {
-                        while (this.historys.TryDequeue(out var history))
+                        using (var gameMySqlConnection = MYSQLManager.create())
                         {
-                            conn.Execute("INSERT INTO `history`(`targetId`, `log`, `obj`, `charname`) VALUES (@targetId,@log,@obj,@charname)", new
+                            while (this.historys.TryDequeue(out var history))
                             {
-                                targetId = history.user_id,
-                                log = history.log,
-                                obj = JsonConvert.SerializeObject(history.obj),
-                                charname = history.charName(gameMySqlConnection)
-                            });
+                                conn.Execute("INSERT INTO `history`(`targetId`, `log`, `obj`, `charname`) VALUES (@targetId,@log,@obj,@charname)", new
+                                {
+                                    targetId = history.user_id,
+                                    log = history.log,
+                                    obj = JsonConvert.SerializeObject(history.obj),
+                                    charname = history.charName(gameMySqlConnection)
+                                });
+                            }
                         }
                     }
-                } 
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                    // Không ghi được (DB/ổ đĩa lỗi): bỏ bớt hàng đợi nếu quá dài để không ngốn hết RAM, rồi thử lại sau
+                    while (this.historys.Count > MAX_PENDING_HISTORY && this.historys.TryDequeue(out _)) { }
+                    Thread.Sleep(10000);
+                }
                 AutoResetEvent.WaitOne(2000);
             }
         }

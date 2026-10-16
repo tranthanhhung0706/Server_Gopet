@@ -85,7 +85,17 @@ namespace Gopet.Logging
             }
             catch (Exception e)
             {
-                e.printStackTrace();
+                // KHÔNG được gọi lại logger ở đây (e.printStackTrace() → LogError → Write): nếu chính việc ghi log
+                // bị lỗi (vd ổ đĩa đầy làm Writer.Flush ném IOException) thì sẽ đệ quy vô hạn → stack overflow →
+                // Windows đóng Gopet.exe ("A new guard page for the stack cannot be created").
+                try
+                {
+                    Console.Error.WriteLine("[Logger] Không ghi được log: " + e.Message);
+                }
+                catch
+                {
+                    // console cũng hỏng thì bỏ qua — thà mất 1 dòng log còn hơn sập server
+                }
             }
             finally
             {
