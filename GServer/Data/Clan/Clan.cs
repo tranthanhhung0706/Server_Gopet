@@ -434,7 +434,10 @@ namespace Gopet.Data.GopetClan
         {
             using (var connection = MYSQLManager.create())
             {
-                connection.Execute("INSERT INTO `clan`( `name`, `leaderId`, `members`) VALUES (@name, @leaderId, @members)", new { name = name, leaderId = leaderId, members = members });
+                // SkillRent / SkillInfo / Options là cột NOT NULL KHÔNG có giá trị mặc định → phải ghi luôn lúc tạo,
+                // nếu không MariaDB (strict mode) báo "Field 'SkillRent' doesn't have a default value" và tạo bang thất bại.
+                connection.Execute("INSERT INTO `clan`( `name`, `leaderId`, `members`, `SkillRent`, `SkillInfo`, `Options`) VALUES (@name, @leaderId, @members, @SkillRent, @SkillInfo, @Options)",
+                    new { name = name, leaderId = leaderId, members = members, SkillRent = SkillRent, SkillInfo = SkillInfo, Options = Options });
                 var clanData = connection.QueryFirstOrDefault("SELECT * FROM `clan` WHERE leaderId = @leaderId", new { leaderId = leaderId });
                 if (clanData != null)
                 {
@@ -503,10 +506,15 @@ namespace Gopet.Data.GopetClan
             get
             {
                 List<PetSkillInfo> petSkillInfos = new List<PetSkillInfo>();
+                if (this.SkillRent == null)
+                {
+                    return petSkillInfos.ToArray();
+                }
 
                 foreach (var skill in this.SkillRent)
                 {
-                    if (skill.Expire < DateTime.Now)
+                    // bỏ qua kỹ năng hỏng dữ liệu (null / id không còn trong clan_skill) thay vì làm lỗi trận đấu
+                    if (skill == null || skill.Expire < DateTime.Now || !GopetManager.ClanSkillViaId.ContainsKey(skill.SkillId))
                         continue;
                     foreach (var item1 in skill.PetSkillInfos)
                     {

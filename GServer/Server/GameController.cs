@@ -5569,12 +5569,15 @@ public class GameController
 
     private void rentSkill(int index)
     {
-        if (index < 3)
+        // index âm trước đây lọt qua (chỉ check < 3) → vượt mảng LVL_CLAN_NEED_TO_ADD_SLOT_SKILL
+        if (index >= 0 && index < 3)
         {
             ClanMember clanMember = getClan();
-            bool canEdit = clanMember.duty == Clan.TYPE_LEADER || clanMember.duty == Clan.TYPE_LEADER;
             if (clanMember != null)
             {
+                // Bang chủ hoặc phó bang (giống menu thuê MENU_SELECT_SKILL_CLAN_TO_RENT dùng IsLeader). Bản cũ
+                // so TYPE_LEADER 2 lần (phó bang bị chặn) và đọc clanMember.duty TRƯỚC khi kiểm tra null.
+                bool canEdit = clanMember.IsLeader;
                 Clan clan = clanMember.getClan();
                 bool canRent = false;
                 if (clan.getLvl() >= GopetManager.LVL_CLAN_NEED_TO_ADD_SLOT_SKILL[GopetManager.LVL_CLAN_NEED_TO_ADD_SLOT_SKILL.Length - 1])

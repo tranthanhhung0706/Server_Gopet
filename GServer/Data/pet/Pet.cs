@@ -443,15 +443,20 @@ public class Pet : GameObject, IBinaryObject<Pet>
             this.maxMp += ach.Template.Mp;
         }*/
 
-        /*ClanMember clanMember = player.controller.getClan();
+        // Kỹ năng bang "Tăng tất cả chỉ số" (ItemInfo.Type.PERCENT_ALL_INFO, đang thuê và còn hạn):
+        // giá trị / 100 = % (vd 1000 = +10%). Chia số thực — bản cũ chia số nguyên (valueBuff / 100).
+        ClanMember clanMember = player.controller.getClan();
         if (clanMember != null)
         {
-            int valueBuff = clanMember.clan.Search(ItemInfo.Type.PERCENT_ALL_INFO).value;
-            this.atk += (int)Utilities.GetValueFromPercent(this.atk, valueBuff / 100);
-            this.def += (int)Utilities.GetValueFromPercent(this.def, valueBuff / 100);
-            this.maxHp += (int)Utilities.GetValueFromPercent(this.maxHp, valueBuff / 100);
-            this.maxMp += (int)Utilities.GetValueFromPercent(this.maxMp, valueBuff / 100);
-        }*/
+            float percentAllInfo = clanMember.clan.Search(ItemInfo.Type.PERCENT_ALL_INFO).value / 100f;
+            if (percentAllInfo > 0)
+            {
+                this.atk += (int)Utilities.GetValueFromPercent(this.atk, percentAllInfo);
+                this.def += (int)Utilities.GetValueFromPercent(this.def, percentAllInfo);
+                this.maxHp += (int)Utilities.GetValueFromPercent(this.maxHp, percentAllInfo);
+                this.maxMp += (int)Utilities.GetValueFromPercent(this.maxMp, percentAllInfo);
+            }
+        }
         foreach (Item it in otherItems)
         {
             this.atk += it.getAtk();

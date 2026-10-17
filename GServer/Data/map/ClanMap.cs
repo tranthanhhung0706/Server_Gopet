@@ -17,6 +17,14 @@ namespace Gopet.Data.Map
 
         public override void addRandom(Player player)
         {
+            // Đi qua cổng vào map 30 (vd từ map Boss lãnh địa 36) → đưa vào đúng khu của bang mình, giống option
+            // "Vào lãnh địa bang" ở NPC. Không có bang thì từ chối như trước.
+            var clanMember = player.controller.getClan();
+            if (clanMember != null)
+            {
+                clanMember.getClan().getClanPlace().add(player);
+                return;
+            }
             player.redDialog(player.Language.MapRequireYouHaveClan);
         }
 
