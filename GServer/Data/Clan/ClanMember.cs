@@ -18,6 +18,29 @@ namespace Gopet.Data.GopetClan
         [JsonIgnore]
         public Clan clan;
 
+        /// <summary>Số lần mỗi thành viên được đánh boss lãnh địa bang (map 36) trong 1 ngày.</summary>
+        public const int CLAN_BOSS_DAILY_LIMIT = 3;
+        /// <summary>Số lần đã đánh boss lãnh địa trong ngày <see cref="clanBossFightDay"/> (lưu cùng danh sách thành viên bang).</summary>
+        public int clanBossFights = 0;
+        public DateTime clanBossFightDay = DateTime.MinValue;
+
+        /// <summary>Số lần đánh boss lãnh địa còn lại hôm nay (qua ngày mới tự đầy lại).</summary>
+        public int ClanBossFightsLeft()
+        {
+            return clanBossFightDay.Date != DateTime.Today ? CLAN_BOSS_DAILY_LIMIT : Math.Max(0, CLAN_BOSS_DAILY_LIMIT - clanBossFights);
+        }
+
+        /// <summary>Ghi nhận 1 lần đánh boss lãnh địa (sang ngày mới thì đếm lại từ đầu).</summary>
+        public void UseClanBossFight()
+        {
+            if (clanBossFightDay.Date != DateTime.Today)
+            {
+                clanBossFightDay = DateTime.Today;
+                clanBossFights = 0;
+            }
+            clanBossFights++;
+        }
+
         public void reset()
         {
             timeResetData = DateTime.Now;

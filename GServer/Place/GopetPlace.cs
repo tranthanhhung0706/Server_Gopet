@@ -461,9 +461,21 @@ public class GopetPlace : Place
                                 player.Popup($"Boss này không thuộc bang hội của bạn. Boss này thuộc bang {boss.OwnerClan.name}");
                                 return;
                             }
+                            // Boss lãnh địa bang (OwnerClan != null): mỗi thành viên tối đa ClanMember.CLAN_BOSS_DAILY_LIMIT lần/ngày
+                            ClanMember? clanBossMember = boss.OwnerClan != null ? player.controller.getClan() : null;
+                            if (clanBossMember != null && clanBossMember.ClanBossFightsLeft() <= 0)
+                            {
+                                player.Popup($"Mỗi thành viên chỉ được đánh boss lãnh địa tối đa {ClanMember.CLAN_BOSS_DAILY_LIMIT} lần mỗi ngày. Hãy quay lại vào ngày mai!");
+                                return;
+                            }
                             if (player.playerData.star - 1 >= 0)
                             {
                                 player.playerData.star--;
+                                clanBossMember?.UseClanBossFight();
+                                if (clanBossMember != null)
+                                {
+                                    player.Popup($"Còn {clanBossMember.ClanBossFightsLeft()} lần đánh boss lãnh địa hôm nay.");
+                                }
                                 player.controller.getTaskCalculator().onAttackBoss((Boss)mob);
                             }
                             else
