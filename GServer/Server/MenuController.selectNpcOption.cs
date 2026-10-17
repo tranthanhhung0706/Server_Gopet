@@ -150,6 +150,9 @@ public partial class MenuController
             case OP_XEM_TOP_CHALLENGE_2026:
                 showTop(ChallengeEvent2026.TopChallengeScore2026.Instance, player);
                 break;
+            case OP_XEM_TOP_CLAN_EVENT_2026:
+                showTop(Gopet.Data.Event.Year2026.ClanEvent2026.TopClanEvent2026.Instance, player);
+                break;
             case OP_GUIDE_CHALLENGE_2026:
                 player.okDialog(player.Language.GuideChallenge2026);
                 break;

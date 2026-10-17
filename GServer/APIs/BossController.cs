@@ -29,7 +29,7 @@ namespace Gopet.APIs
                      _int AS _int, agi AS Agi, lvl AS Lvl, typeBoss AS TypeBoss, gift AS Gift,
                      exp AS Exp, hp AS Hp, atk AS Atk, HourSummon AS HourSummon,
                      BossMapSummon AS BossMapSummon, SkillIds AS SkillIds, SummonCount AS SummonCount,
-                     SummonIntervalMinutes AS SummonIntervalMinutes
+                     SummonIntervalMinutes AS SummonIntervalMinutes, TrueDamage AS TrueDamage
               FROM `boss`";
 
         /// <summary>Danh sách boss — có phân trang, lọc theo typeBoss nếu truyền vào.</summary>
@@ -72,7 +72,7 @@ namespace Gopet.APIs
 
         public record CreateBossRequest(string Name, int PetTemplateId, int Str, int _int, int Agi, int Lvl,
             sbyte TypeBoss, string Gift, int Exp, int Hp, int Atk, string? HourSummon, string? BossMapSummon, string? SkillIds,
-            int SummonCount = 0, int SummonIntervalMinutes = 0);
+            int SummonCount = 0, int SummonIntervalMinutes = 0, bool TrueDamage = false);
 
         /// <summary>Tạo boss mới. bossId tự tăng.</summary>
         [HttpPost("/v1/gopet/api/Bosses")]
@@ -106,8 +106,8 @@ namespace Gopet.APIs
             using var conn = MYSQLManager.create();
 
             int newId = conn.ExecuteScalar<int>(
-                @"INSERT INTO `boss` (name, petTemplateId, str, _int, agi, lvl, typeBoss, gift, exp, hp, atk, HourSummon, BossMapSummon, SkillIds, SummonCount, SummonIntervalMinutes)
-                  VALUES (@Name, @PetTemplateId, @Str, @_int, @Agi, @Lvl, @TypeBoss, @Gift, @Exp, @Hp, @Atk, @HourSummon, @BossMapSummon, @SkillIds, @SummonCount, @SummonIntervalMinutes);
+                @"INSERT INTO `boss` (name, petTemplateId, str, _int, agi, lvl, typeBoss, gift, exp, hp, atk, HourSummon, BossMapSummon, SkillIds, SummonCount, SummonIntervalMinutes, TrueDamage)
+                  VALUES (@Name, @PetTemplateId, @Str, @_int, @Agi, @Lvl, @TypeBoss, @Gift, @Exp, @Hp, @Atk, @HourSummon, @BossMapSummon, @SkillIds, @SummonCount, @SummonIntervalMinutes, @TrueDamage);
                   SELECT LAST_INSERT_ID();",
                 new
                 {
@@ -127,6 +127,7 @@ namespace Gopet.APIs
                     SkillIds = req.SkillIds ?? "[]",
                     req.SummonCount,
                     req.SummonIntervalMinutes,
+                    req.TrueDamage,
                 });
 
             var created = conn.QueryFirstOrDefault<BossDto>($"{SelectBossSql} WHERE bossId = @id", new { id = newId });
@@ -135,7 +136,7 @@ namespace Gopet.APIs
 
         public record UpdateBossRequest(string? Name, int? PetTemplateId, int? Str, int? _int, int? Agi, int? Lvl,
             sbyte? TypeBoss, string? Gift, int? Exp, int? Hp, int? Atk, string? HourSummon, string? BossMapSummon, string? SkillIds,
-            int? SummonCount, int? SummonIntervalMinutes);
+            int? SummonCount, int? SummonIntervalMinutes, bool? TrueDamage = null);
 
         /// <summary>Cập nhật 1 phần boss. Không cho đổi bossId (khoá chính).</summary>
         [HttpPatch("/v1/gopet/api/Bosses/{id:int}")]
@@ -189,6 +190,7 @@ namespace Gopet.APIs
             if (req?.BossMapSummon != null) { setClauses.Add("BossMapSummon = @bossMapSummon"); parameters.Add("bossMapSummon", req.BossMapSummon); }
             if (req?.SkillIds != null) { setClauses.Add("SkillIds = @skillIds"); parameters.Add("skillIds", req.SkillIds); }
             if (req?.SummonCount is int summonCount) { setClauses.Add("SummonCount = @summonCount"); parameters.Add("summonCount", summonCount); }
+            if (req?.TrueDamage is bool trueDamage) { setClauses.Add("TrueDamage = @trueDamage"); parameters.Add("trueDamage", trueDamage ? 1 : 0); }
             if (req?.SummonIntervalMinutes is int summonIntervalMinutes) { setClauses.Add("SummonIntervalMinutes = @summonIntervalMinutes"); parameters.Add("summonIntervalMinutes", summonIntervalMinutes); }
 
             if (setClauses.Count == 0)

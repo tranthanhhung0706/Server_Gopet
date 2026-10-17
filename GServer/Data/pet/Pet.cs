@@ -446,16 +446,19 @@ public class Pet : GameObject, IBinaryObject<Pet>
         // Kỹ năng bang "Tăng tất cả chỉ số" (ItemInfo.Type.PERCENT_ALL_INFO, đang thuê và còn hạn):
         // giá trị / 100 = % (vd 1000 = +10%). Chia số thực — bản cũ chia số nguyên (valueBuff / 100).
         ClanMember clanMember = player.controller.getClan();
+        float percentAllInfo = 0f;
         if (clanMember != null)
         {
-            float percentAllInfo = clanMember.clan.Search(ItemInfo.Type.PERCENT_ALL_INFO).value / 100f;
-            if (percentAllInfo > 0)
-            {
-                this.atk += (int)Utilities.GetValueFromPercent(this.atk, percentAllInfo);
-                this.def += (int)Utilities.GetValueFromPercent(this.def, percentAllInfo);
-                this.maxHp += (int)Utilities.GetValueFromPercent(this.maxHp, percentAllInfo);
-                this.maxMp += (int)Utilities.GetValueFromPercent(this.maxMp, percentAllInfo);
-            }
+            percentAllInfo = clanMember.clan.Search(ItemInfo.Type.PERCENT_ALL_INFO).value / 100f;
+        }
+        // Buff vòng bảo hộ Boss Hộ Vệ Bang (sự kiện bang hội): +10% chỉ số khi còn hạn, cộng chung với kỹ năng bang
+        percentAllInfo += Gopet.Data.Event.Year2026.ClanEvent2026.GetStatBuffPercent(player);
+        if (percentAllInfo > 0)
+        {
+            this.atk += (int)Utilities.GetValueFromPercent(this.atk, percentAllInfo);
+            this.def += (int)Utilities.GetValueFromPercent(this.def, percentAllInfo);
+            this.maxHp += (int)Utilities.GetValueFromPercent(this.maxHp, percentAllInfo);
+            this.maxMp += (int)Utilities.GetValueFromPercent(this.maxMp, percentAllInfo);
         }
         foreach (Item it in otherItems)
         {

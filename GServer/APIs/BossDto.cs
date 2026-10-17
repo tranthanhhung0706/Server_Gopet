@@ -38,5 +38,7 @@ namespace Gopet.APIs
         // > 0: hồi lặp lại đều đặn mỗi ngần ấy phút (vd 30), bỏ qua HourSummon. = 0: dùng HourSummon
         // (hồi đúng giờ cố định trong ngày) như bình thường. Chỉ áp dụng typeBoss=2.
         public int SummonIntervalMinutes { get; set; }
+        // Boss sát thương chuẩn: đòn gây đúng bằng atk, không bị giáp/né/giảm atk/chí mạng.
+        public bool TrueDamage { get; set; }
     }
 }

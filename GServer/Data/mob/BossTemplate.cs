@@ -33,6 +33,12 @@
         /// = 0 (mặc định): dùng HourSummon (hồi đúng những giờ cấu hình trong ngày) như bình thường.
         /// </summary>
         public int SummonIntervalMinutes { get; private set; }
+        /// <summary>
+        /// Boss "sát thương chuẩn": đòn của boss gây đúng bằng atk (kỹ năng thì theo % kỹ năng) — KHÔNG bị giáp, né,
+        /// cánh/skill giảm atk, giảm giáp, và không chí mạng. Vd atk 100k thì mỗi đòn đúng 100k. Cột DB `TrueDamage`
+        /// (tự thêm lúc khởi động, mặc định 0 = boss như cũ). Xem PetBattle.IsTrueDamageBoss.
+        /// </summary>
+        public bool TrueDamage { get; private set; }
         #region CONST
         /// <summary>
         /// Loại boss là boss sự kiện sinh nhật hoặc chỉ đánh giảm đc 1 máu

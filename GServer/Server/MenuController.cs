@@ -484,6 +484,8 @@ public partial class MenuController
     public const int OP_XEM_TOP_CHALLENGE_2026 = 112;
     /// <summary>Hướng dẫn cách tính điểm sự kiện Vượt Ải 2026 (ChallengeEvent2026).</summary>
     public const int OP_GUIDE_CHALLENGE_2026 = 113;
+    /// <summary>Xem bảng xếp hạng bang theo điểm Sự kiện bang hội 2026 (ClanEvent2026.TopClanEvent2026).</summary>
+    public const int OP_XEM_TOP_CLAN_EVENT_2026 = 114;
     /// <summary>
     /// Option Custom
     /// Trao đổi thưởng bằng

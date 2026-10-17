@@ -1056,6 +1056,15 @@ public class GopetManager
                 }
             }
             ServerMonitor.LogInfo("Tải dữ liệu cửa hàng từ cơ sở dữ liệu OK");
+            // Cột `TrueDamage` (boss sát thương chuẩn) thêm sau này: tự thêm nếu DB chưa có để khỏi phải chạy ALTER tay
+            try
+            {
+                conn.Execute("ALTER TABLE `boss` ADD COLUMN IF NOT EXISTS `TrueDamage` TINYINT(1) NOT NULL DEFAULT 0");
+            }
+            catch (Exception e)
+            {
+                ServerMonitor.LogError("Không thêm được cột boss.TrueDamage: " + e.Message);
+            }
             IEnumerable<BossTemplate> bossTemArr = QuerySafe<BossTemplate>(conn, "SELECT * FROM `boss`", "boss");
             foreach (var bossTemplate in bossTemArr)
             {

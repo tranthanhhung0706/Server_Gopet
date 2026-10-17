@@ -1998,6 +1998,7 @@ public class GameController
             HistoryManager.addHistory(new History(player).setLog("Đăng nhập vào trò chơi và tải nhân vật thành công"));
             checkBugEquipItem();
             showExp();
+            Gopet.Data.Event.Year2026.ClanEvent2026.Instance.SendBuffIcon(player);
             sendHasLetter();
         }
     }

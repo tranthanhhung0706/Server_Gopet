@@ -459,6 +459,55 @@ namespace Gopet.APIs
             return Ok(new BaseResponse<object?>(1, $"Đã xoá cấp {lvl}", null));
         }
 
+        public record SummonClanEventRequest(int? MapId, int? Zone);
+
+        /// <summary>
+        /// Triệu hồi NGAY 1 đợt Boss Hộ Vệ Bang + hộ vệ để test (chạy được cả khi sự kiện đang tắt). Để trống mapId/zone
+        /// thì chọn ngẫu nhiên như đợt hằng giờ; có banner toàn server. Khác /test/set_boss (chỉ đặt 1 boss, không hộ vệ,
+        /// không báo client đang đứng trong map).
+        /// </summary>
+        [HttpPost("/v1/gopet/api/ClanEvent/summon")]
+        public IActionResult SummonClanEvent([FromBody] SummonClanEventRequest? req)
+        {
+            string message = Gopet.Data.Event.Year2026.ClanEvent2026.Instance.SummonNow(req?.MapId, req?.Zone);
+            bool ok = message.StartsWith("Đã triệu hồi");
+            return ok ? Ok(new BaseResponse<string>(1, message, message)) : BadRequest(new BaseResponse<object?>(0, message, null));
+        }
+
+        public record ClanEventClanScoreDto(int Rank, int ClanId, string ClanName, long Points, int BossKills, int GuardKills, int Contributors);
+
+        public record ClanEventPlayerScoreDto(int UserId, string Name, int ClanId, string ClanName, long Points, int BossKills, int GuardKills, DateTime? UpdatedAt);
+
+        public record ClanEventLeaderboardDto(List<ClanEventClanScoreDto> Clans, List<ClanEventPlayerScoreDto> Players);
+
+        /// <summary>
+        /// Điểm Sự kiện bang hội 2026 (bảng `event_clan_score`): xếp hạng BANG (tổng điểm thành viên, bang đứng đầu = đang dẫn)
+        /// và xếp hạng người chơi, sắp theo điểm giảm dần. Query thẳng DB nên điểm vừa cộng hiện ngay.
+        /// </summary>
+        [HttpGet("/v1/gopet/api/ClanEvent/leaderboard")]
+        public IActionResult GetClanEventLeaderboard([FromQuery] int limit = 20)
+        {
+            limit = Math.Clamp(limit, 1, 200);
+            using var conn = MYSQLManager.create();
+            // Đọc dạng dynamic rồi ép kiểu: SUM() trả decimal, COUNT() trả long nên Dapper không khớp được constructor của record
+            var clans = conn.Query(
+                @"SELECT s.clan_id AS ClanId, COALESCE(MAX(c.name), MAX(s.clan_name)) AS ClanName, SUM(s.Points) AS Points,
+                         SUM(s.BossKills) AS BossKills, SUM(s.GuardKills) AS GuardKills, COUNT(*) AS Contributors
+                  FROM `event_clan_score` s LEFT JOIN `clan` c ON c.clanId = s.clan_id
+                  GROUP BY s.clan_id HAVING SUM(s.Points) > 0
+                  ORDER BY Points DESC, MAX(s.UpdatedAt) ASC LIMIT @limit", new { limit })
+                .Select((r, i) => new ClanEventClanScoreDto(i + 1, (int)r.ClanId, (string)r.ClanName, (long)Convert.ToDecimal(r.Points),
+                    (int)Convert.ToDecimal(r.BossKills), (int)Convert.ToDecimal(r.GuardKills), (int)Convert.ToInt64(r.Contributors)))
+                .ToList();
+            var players = conn.Query(
+                @"SELECT user_id, name, clan_id, clan_name, Points, BossKills, GuardKills, UpdatedAt
+                  FROM `event_clan_score` WHERE Points > 0 ORDER BY Points DESC, UpdatedAt ASC LIMIT @limit", new { limit })
+                .Select(r => new ClanEventPlayerScoreDto((int)r.user_id, (string)r.name, (int)r.clan_id, (string)r.clan_name,
+                    (long)Convert.ToDecimal(r.Points), (int)r.BossKills, (int)r.GuardKills, (DateTime?)r.UpdatedAt))
+                .ToList();
+            return Ok(new BaseResponse<ClanEventLeaderboardDto>(1, "Thành công", new ClanEventLeaderboardDto(clans, players)));
+        }
+
         private string GetDebuggerDisplay()
         {
             return ToString();

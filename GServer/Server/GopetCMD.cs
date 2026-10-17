@@ -205,6 +205,10 @@ public class GopetCMD
     public const sbyte CUSTOM_REMOVE_ITEM_EQUIP = 107;
     public const sbyte REMOVE_BATTLE_BY_MOB_ID = 96;
     public const sbyte UPDATE_HP_BOSS = 89;
+    /// <summary>Vòng tròn vàng bảo hộ của Boss Hộ Vệ Bang (sự kiện bang hội): action 1 = thêm/cập nhật, 0 = xoá — xem ClanEvent2026.</summary>
+    public const sbyte ZONE_CIRCLE = 110;
+    /// <summary>Icon + đếm ngược buff vòng bảo hộ (sự kiện bang hội): UTF iconPath, int số giây còn lại (0 = tắt) — xem ClanEvent2026.</summary>
+    public const sbyte CLAN_EVENT_BUFF = 111;
 
     public const sbyte ARENA_MENU = 58;
     public const sbyte ARENA_BATTLE_START = -100;

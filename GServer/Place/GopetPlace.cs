@@ -62,6 +62,7 @@ public class GopetPlace : Place
         loadInfo(player);
         sendGameObj(player);
         sendMob(player);
+        Gopet.Data.Event.Year2026.ClanEvent2026.Instance.SendCirclesTo(this, player);
         sendListPet(player);
         sendPetBattleList(player);
         sendWing(player);
@@ -447,6 +448,12 @@ public class GopetPlace : Place
                 {
                     if (mob.getPetBattle(player) == null && player.controller.getPetBattle() == null)
                     {
+                        // Sự kiện bang hội: Boss Hộ Vệ Bang bị khoá tới khi hạ hết quái hộ vệ xung quanh
+                        if (Gopet.Data.Event.Year2026.ClanEvent2026.Instance.IsBossLocked(this, mob, out int guardsAlive))
+                        {
+                            player.Popup($"Hãy hạ hết {guardsAlive} hộ vệ xung quanh trước khi đánh boss!");
+                            return;
+                        }
                         if (mob is Boss boss && !(this is ChallengePlace))
                         {
                             if (boss.OwnerClan != null && boss.OwnerClan != player.controller.getClan()?.getClan())

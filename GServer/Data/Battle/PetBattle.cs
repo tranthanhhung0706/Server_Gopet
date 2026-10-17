@@ -147,6 +147,15 @@ namespace Gopet.Battle
             return Math.Min(10f, Math.Max(1f, baseMultiplier + bonus));
         }
 
+        /// <summary>
+        /// true = trận này đang đánh với boss "sát thương chuẩn" (BossTemplate.TrueDamage): mọi đòn của boss gây đúng
+        /// bằng atk — bỏ qua giáp, né, giảm atk (cánh/skill), giảm giáp, chí mạng.
+        /// </summary>
+        /// <summary>makeDamage dùng chung cho cả 2 chiều — chỉ áp "sát thương chuẩn" khi NGƯỜI TẤN CÔNG là quái (passiveBattleInfo).</summary>
+        private bool isPassiveMobAttacker(PetBattleInfo attackerInfo) => attackerInfo == passiveBattleInfo;
+
+        private bool IsTrueDamageBoss => isPetAttackMob() && mob is Boss tb && tb.Template.TrueDamage;
+
         private void ApplyHiddenStat(Pet pet, PetBattleInfo petBattleInfo)
         {
             foreach (var item in pet.TakeAllHiddenStat())
@@ -947,6 +956,8 @@ namespace Gopet.Battle
                             perExpPlus += clanMember.clan.Search(ItemInfo.Type.PERCENT_EXP).value / 100f;
                             coinPlus += clanMember.clan.Search(ItemInfo.Type.PERCENT_GEM).value / 100f;
                         }
+                        // Buff vòng bảo hộ Boss Hộ Vệ Bang (sự kiện bang hội): +20% exp khi còn hạn
+                        perExpPlus += Gopet.Data.Event.Year2026.ClanEvent2026.GetExpBuffPercent(activePlayer);
                         exp = genExpWhenMobDie(activePlayer, activePet, mob, mob.getMobLvInfo().exp);
                         exp = Math.Max(0, exp + Utilities.round(Utilities.GetValueFromPercent(exp, activePlayer.playerData.buffExp.getPercent() + perExpPlus)));
                         int constCoin = this.mob.getMobLvInfo() != null ? this.mob.getMobLvInfo().coin : 0;
@@ -1021,6 +1032,7 @@ namespace Gopet.Battle
                         {
                             petBattleTexts.AddRange(activePlayer.controller.onReiceiveGift(boss.Template.gift));
                             place.mobDie(mob);
+                            Gopet.Data.Event.Year2026.ClanEvent2026.Instance.OnKill(activePlayer, boss);
                             if (place is ChallengePlace)
                             {
                                 // Sự kiện Vượt Ải 2026: điểm = level boss × hệ số, chia cho mọi người đã đánh boss
@@ -1087,6 +1099,7 @@ namespace Gopet.Battle
                         winner.okDialog(Utilities.Format("Pet của bạn đã bị trừ %s exp", Utilities.FormatNumber(exp_sub_winner)));
                     }
                     nonWinner.okDialog(Utilities.Format("Pet của bạn đã bị trừ %s exp", Utilities.FormatNumber(exp_sub)));
+                    TransferClanFundOnPk(winner, winPlayerClanMember?.clan, nonWinner, nonPlayerClanMember?.clan);
                     nonPet.TimeDieZ = Utilities.CurrentTimeMillis + (1000l * 60 * 15);
                     MapManager.maps.get(MapManager.ID_LINH_THU_CITY).addRandom(nonWinner);
                 }
@@ -1102,6 +1115,64 @@ namespace Gopet.Battle
                 }
             }
 
+        }
+
+        /// <summary>Số quỹ bang bị trừ của bang thua / cộng cho bang thắng mỗi lần PK thắng người bang khác.</summary>
+        public const long PK_CLAN_FUND_STEAL = 100;
+        /// <summary>Mỗi cặp người chơi (không phân biệt thắng/thua) chỉ được tính cướp quỹ 1 lần trong khoảng này.</summary>
+        public static readonly TimeSpan PK_CLAN_FUND_PAIR_COOLDOWN = TimeSpan.FromHours(1);
+        static readonly object pkFundLock = new();
+        static readonly Dictionary<(int, int), DateTime> pkFundPairTime = new();
+
+        /// <summary>
+        /// PK thắng người BANG KHÁC: bang thắng +<see cref="PK_CLAN_FUND_STEAL"/> quỹ lấy từ bang thua. Bang thua không đủ quỹ
+        /// (fund &lt; 100) thì không chuyển gì. Không áp dụng khi 1 trong 2 không có bang hoặc cùng bang.
+        /// </summary>
+        private static void TransferClanFundOnPk(Player winner, Clan? winClan, Player loser, Clan? loseClan)
+        {
+            try
+            {
+                if (winClan == null || loseClan == null || winClan.clanId == loseClan.clanId) return;
+                int idA = winner.user.user_id, idB = loser.user.user_id;
+                var pair = idA < idB ? (idA, idB) : (idB, idA); // cặp không phân biệt ai thắng ai
+                bool moved = false;
+                bool onCooldown = false;
+                lock (pkFundLock)
+                {
+                    DateTime now = DateTime.Now;
+                    if (pkFundPairTime.TryGetValue(pair, out DateTime last) && now - last < PK_CLAN_FUND_PAIR_COOLDOWN)
+                    {
+                        onCooldown = true;
+                    }
+                    else if (loseClan.checkFund(PK_CLAN_FUND_STEAL))
+                    {
+                        loseClan.mineFund(PK_CLAN_FUND_STEAL);
+                        winClan.setFund(winClan.getFund() + PK_CLAN_FUND_STEAL);
+                        moved = true;
+                        pkFundPairTime[pair] = now; // chỉ tính lượt khi quỹ thực sự được chuyển
+                        if (pkFundPairTime.Count > 5000)
+                        {
+                            foreach (var old in pkFundPairTime.Where(kv => now - kv.Value >= PK_CLAN_FUND_PAIR_COOLDOWN).Select(kv => kv.Key).ToList())
+                            {
+                                pkFundPairTime.Remove(old);
+                            }
+                        }
+                    }
+                }
+                if (moved)
+                {
+                    winner.okDialog($"Bang {winClan.name} cướp được {PK_CLAN_FUND_STEAL} quỹ từ bang {loseClan.name}!");
+                    loser.okDialog($"Bang {loseClan.name} bị bang {winClan.name} cướp {PK_CLAN_FUND_STEAL} quỹ!");
+                }
+                else if (onCooldown)
+                {
+                    winner.okDialog($"Cặp người chơi này đã cướp quỹ trong vòng {(int)PK_CLAN_FUND_PAIR_COOLDOWN.TotalMinutes} phút qua nên không được thêm quỹ bang.");
+                }
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
         }
 
         private void win(Popup[] petBattleTexts, int coin, int exp)
@@ -1409,7 +1480,8 @@ namespace Gopet.Battle
 
 
 
-            foreach (ItemInfo itemInfo in petBattleInfo.getBuff())
+            bool trueDamageBoss = IsTrueDamageBoss && isPassiveMobAttacker(petBattleInfo);
+            foreach (ItemInfo itemInfo in trueDamageBoss ? new ItemInfo[0] : petBattleInfo.getBuff())
             {
                 if (damgeInfo.isSkillMiss())
                 {
@@ -1426,7 +1498,11 @@ namespace Gopet.Battle
                 }
             }
 
-            if (nonPet != null)
+            if (trueDamageBoss)
+            {
+                // boss sát thương chuẩn: không trừ giáp
+            }
+            else if (nonPet != null)
             {
                 int def = nonPet.getDef() + ItemInfo.getValueById(nonPetBattleInfo.getBuff(), ItemInfo.Type.DEF);
 
@@ -1468,6 +1544,11 @@ namespace Gopet.Battle
                 JArrayList<TurnEffect> turnEffects = new();
                 bool isMiss = randMiss(getNonUserPetBattleInfo());
                 int sum = mob.getAtk();
+                bool trueDamage = mob is Boss trueBoss && trueBoss.Template.TrueDamage;
+                if (trueDamage)
+                {
+                    isMiss = false; // không né được
+                }
                 if (mob is Boss boss)
                 {
                     if (boss.Template.typeBoss == BossTemplate.TYPE_BIRTHDAY_EVENT)
@@ -1482,12 +1563,12 @@ namespace Gopet.Battle
                 }
                 if (!isMiss)
                 {
-                    bool crit = RollCrit(mob, passiveBattleInfo);
+                    bool crit = !trueDamage && RollCrit(mob, passiveBattleInfo);
                     if (crit)
                     {
                         sum = Utilities.round(sum * GetCritMultiplier(passiveBattleInfo));
                     }
-                    foreach (ItemInfo itemInfo in passiveBattleInfo.getBuff())
+                    foreach (ItemInfo itemInfo in trueDamage ? new ItemInfo[0] : passiveBattleInfo.getBuff())
                     {
                         switch (itemInfo.id)
                         {
@@ -1506,7 +1587,7 @@ namespace Gopet.Battle
                     }
                     Pet pet = getNonPet();
                     int buffDef = ItemInfo.getValueById(getNonUserPetBattleInfo().getBuff(), ItemInfo.Type.DEF);
-                    bool flag = true;
+                    bool flag = !trueDamage;
                     if ((mob is Boss b))
                     {
                         if (b.Template.typeBoss == 0 || b.Template.typeBoss == BossTemplate.TYPE_BIRTHDAY_EVENT)
@@ -1568,7 +1649,7 @@ namespace Gopet.Battle
                     mob.mp -= petSkillLv.mpLost;
                     petBattleInfo.addSkillCoolDown(skill.skillID, GopetManager.MAX_SKILL_COOLDOWN);
                     JArrayList<TurnEffect> turnEffects = new();
-                    bool isMiss = randMiss(nonPetBattleInfo);
+                    bool isMiss = !IsTrueDamageBoss && randMiss(nonPetBattleInfo);
                     applySkill(petSkillLv, petBattleInfo, nonPetBattleInfo);
                     PetDamgeInfo damageInfo = makeDamage(petBattleInfo, nonPetBattleInfo, petSkillLv);
                     if (dotmana(petSkillLv))
