@@ -209,6 +209,8 @@ public class GopetCMD
     public const sbyte ZONE_CIRCLE = 110;
     /// <summary>Icon + đếm ngược buff vòng bảo hộ (sự kiện bang hội): UTF iconPath, int số giây còn lại (0 = tắt) — xem ClanEvent2026.</summary>
     public const sbyte CLAN_EVENT_BUFF = 111;
+    /// <summary>Đếm ngược chiếm vòng bảo hộ cho người đang đứng trong vòng: int số giây còn lại (0 = tắt) — xem ClanEvent2026.</summary>
+    public const sbyte CIRCLE_CAPTURE = 112;
 
     public const sbyte ARENA_MENU = 58;
     public const sbyte ARENA_BATTLE_START = -100;

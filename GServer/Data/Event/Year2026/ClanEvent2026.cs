@@ -88,6 +88,35 @@ namespace Gopet.Data.Event.Year2026
             public Dictionary<int, DateTime> ClanSince = new();
             /// <summary>Các bang đã nhận buff từ vòng này (mỗi bang 1 lần).</summary>
             public HashSet<int> RewardedClans = new();
+            /// <summary>userId những người đang được hiện đồng hồ đếm ngược chiếm vòng trên client (để tắt khi họ rời vòng).</summary>
+            public HashSet<int> Notified = new();
+        }
+
+        /// <summary>Gửi đồng hồ đếm ngược chiếm vòng cho 1 người (remainSeconds = 0 → client tắt đồng hồ).</summary>
+        static void SendCaptureTime(Player player, int remainSeconds)
+        {
+            try
+            {
+                Message m = GameController.messagePetService(GopetCMD.CIRCLE_CAPTURE);
+                m.putInt(remainSeconds);
+                m.cleanup();
+                player.session.sendMessage(m);
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+
+        /// <summary>Tắt đồng hồ đếm ngược của mọi người đang hiện trên vòng này (vòng hết hạn / bị chiếm).</summary>
+        static void ClearCaptureTimers(ProtectCircle c)
+        {
+            foreach (int uid in c.Notified)
+            {
+                var p = PlayerManager.get(uid);
+                if (p != null) SendCaptureTime(p, 0);
+            }
+            c.Notified.Clear();
         }
 
         readonly List<ProtectCircle> circles = new();
@@ -244,6 +273,7 @@ namespace Gopet.Data.Event.Year2026
                 {
                     if (now >= c.Expire)
                     {
+                        ClearCaptureTimers(c);
                         circles.Remove(c);
                         foreach (var bk in circleOfBoss.Where(kv => kv.Value == c).Select(kv => kv.Key).ToList()) circleOfBoss.Remove(bk);
                         c.Place.sendMessage(BuildCircleMessage(c, false));
@@ -290,7 +320,23 @@ namespace Gopet.Data.Event.Year2026
                                 if (online != null) GrantBuff(online);
                             }
                             captured = true;
+                            continue;
                         }
+                        // Đồng hồ đếm ngược trên client cho những thành viên đang đứng trong vòng
+                        int remain = Math.Max(1, (int)Math.Ceiling((CIRCLE_STAY - (now - c.ClanSince[clanId])).TotalSeconds));
+                        foreach (var p in members)
+                        {
+                            SendCaptureTime(p, remain);
+                            c.Notified.Add(p.user.user_id);
+                        }
+                    }
+                    // Người đã rời vòng (hoặc cả vòng vừa bị chiếm) → tắt đồng hồ
+                    var insideNow = captured ? new HashSet<int>() : insideByClan.Values.SelectMany(l => l.Select(p => p.user.user_id)).ToHashSet();
+                    foreach (int uid in c.Notified.Where(u => !insideNow.Contains(u)).ToList())
+                    {
+                        c.Notified.Remove(uid);
+                        var left = PlayerManager.get(uid);
+                        if (left != null) SendCaptureTime(left, 0);
                     }
                     if (captured)
                     {
