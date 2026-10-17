@@ -38,6 +38,11 @@
         /// Loại boss là boss sự kiện sinh nhật hoặc chỉ đánh giảm đc 1 máu
         /// </summary>
         public const int TYPE_BIRTHDAY_EVENT = 6;
+        /// <summary>
+        /// Boss lãnh địa bang hội — chỉ xuất hiện ở map 36 (ClanBossMap), mỗi bang 1 khu riêng, đánh lần lượt từ cấp
+        /// thấp nhất lên cấp cao nhất. Phần thưởng cấu hình ở cột `gift` như boss thường (vd quỹ bang GIFT_FUND_CLAN = 12).
+        /// </summary>
+        public const int TYPE_CLAN_BOSS = 5;
         #endregion
         public string getName(Player player)
         {

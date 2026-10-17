@@ -32,6 +32,9 @@ public class MapManager
                 case 22:
                     put(mapid, new MarketMap(mapid, true, mapTemplate));
                     break;
+                case Gopet.Data.Map.ClanBossMap.MAP_ID:
+                    put(mapid, new Gopet.Data.Map.ClanBossMap(mapid, true, mapTemplate));
+                    break;
                 case 30:
                     put(mapid, new ClanMap(mapid, true, mapTemplate));
                     break;
