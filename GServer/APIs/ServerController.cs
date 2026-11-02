@@ -183,6 +183,7 @@ namespace Gopet.APIs
                 GopetManager.ReloadDropItem();
                 GopetManager.ReloadAchievement();
                 GopetManager.ReloadTrungThuRecipe();
+                GopetManager.ReloadHalloweenRecipe();
             }
             catch (Exception ex)
             {

@@ -6169,6 +6169,53 @@ public class GameController
         player.okDialog(string.Format(player.Language.GetGiftCodeOK, String.Join(",", textInfo)));
     }
 
+    /// <summary>
+    /// Nhận ĐÚNG 1 mốc dùng hộp quà Halloween (chọn từ MENU_HALLOWEEN_MILESTONE_NORMAL/VIP) — cơ chế như ClaimTrungThuMilestone,
+    /// so mốc với player.NumUseHalloweenBoxNormal2026 (BoxType=0) hoặc NumUseHalloweenBoxVip2026 (BoxType=1).
+    /// </summary>
+    public void ClaimHalloweenMilestone(int milestoneId)
+    {
+        if (player.user.role == UserData.ROLE_NON_ACTIVE)
+        {
+            player.redDialog(player.Language.AccountNonAcitve);
+            return;
+        }
+
+        using var gameConn = MYSQLManager.create();
+
+        TrungThuMilestone milestone = gameConn.QueryFirstOrDefault<TrungThuMilestone>(
+            "SELECT id, boxType, name, threshold, giftData, usersOfUseThis FROM `halloween_milestone` WHERE id = @milestoneId", new { milestoneId });
+        if (milestone == null)
+        {
+            player.redDialog(player.Language.ItemWasSell);
+            return;
+        }
+        if (milestone.UsersOfUseThis.Contains(player.user.user_id))
+        {
+            player.redDialog("Bạn đã nhận mốc này rồi");
+            return;
+        }
+
+        int current = milestone.BoxType == 1 ? player.playerData.NumUseHalloweenBoxVip2026 : player.playerData.NumUseHalloweenBoxNormal2026;
+        if (current < milestone.Threshold)
+        {
+            player.redDialog(player.Language.HalloweenMilestoneFail, Utilities.FormatNumber(current));
+            return;
+        }
+
+        JArrayList<Popup> popups = player.controller.onReiceiveGift(milestone.GiftData);
+        JArrayList<String> textInfo = new();
+        foreach (Popup popup in popups)
+        {
+            textInfo.add(popup.getText());
+        }
+
+        milestone.UsersOfUseThis.add(player.user.user_id);
+        gameConn.Execute("UPDATE `halloween_milestone` SET usersOfUseThis = @UsersOfUseThis WHERE id = @Id", milestone);
+        HistoryManager.addHistory(new History(player).setLog($"Nhận quà mốc Halloween \"{milestone.Name}\" (mốc {milestone.Threshold})").setObj(new { milestone.Id }));
+        player.okDialog(string.Format(player.Language.GetGiftCodeOK, String.Join(",", textInfo)));
+    }
+
     public bool TryUseCardSkill(int skillId, int indexSlot, out Pet myPet)
     {
         myPet = player.playerData.petSelected;

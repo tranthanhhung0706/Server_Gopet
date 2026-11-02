@@ -40,7 +40,9 @@ namespace Gopet.APIs
                      NumBossFlowerCoin2026 AS NumBossFlowerCoin2026,
                      GREATEST(0, FlowerCoin) AS FlowerCoin, spendGold AS SpendGold,
                      NumUseMoonCakeBoxNormal2026 AS NumUseMoonCakeBoxNormal2026,
-                     NumUseMoonCakeBoxVip2026 AS NumUseMoonCakeBoxVip2026
+                     NumUseMoonCakeBoxVip2026 AS NumUseMoonCakeBoxVip2026,
+                     NumUseHalloweenBoxNormal2026 AS NumUseHalloweenBoxNormal2026,
+                     NumUseHalloweenBoxVip2026 AS NumUseHalloweenBoxVip2026
               FROM `player`";
 
         // Whitelist cột được sắp xếp — tránh SQL injection qua tên cột tự do.
@@ -52,6 +54,8 @@ namespace Gopet.APIs
             ["spendGold_desc"] = "SpendGold DESC, ID DESC",
             ["moonCakeBoxNormal_desc"] = "NumUseMoonCakeBoxNormal2026 DESC, ID DESC",
             ["moonCakeBoxVip_desc"] = "NumUseMoonCakeBoxVip2026 DESC, ID DESC",
+            ["halloweenBoxNormal_desc"] = "NumUseHalloweenBoxNormal2026 DESC, ID DESC",
+            ["halloweenBoxVip_desc"] = "NumUseHalloweenBoxVip2026 DESC, ID DESC",
             // Online gần nhất (cột LastTimeOnline — ghi lúc lưu/thoát game, nên người ĐANG online hiển thị lần lưu gần nhất).
             ["lastOnline_desc"] = "LastTimeOnline DESC, ID DESC",
             ["lastOnline_asc"] = "LastTimeOnline ASC, ID DESC",

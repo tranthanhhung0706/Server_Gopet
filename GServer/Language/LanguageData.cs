@@ -557,6 +557,16 @@ namespace Gopet.Language
         public string GuideChallenge2026 { get; set; } = "Trong thời gian diễn ra sự kiện, mỗi con quái bạn hạ trong phòng thử thách được cộng điểm bằng cấp của quái đó (quái cấp 10 cho 10 điểm).\n\nBoss cho điểm gấp 10 lần cấp của boss.\n\nĐi càng sâu, quái và boss cấp càng cao nên điểm càng lớn. Điểm cộng dồn và xếp hạng ở mục Top điểm sự kiện.";
         public string NhanQuaMocBoxNormalTrungThu2026Option { get; set; } = "Nhận quà mốc hộp thường";
         public string NhanQuaMocBoxVipTrungThu2026Option { get; set; } = "Nhận quà mốc hộp VIP";
+        public string CraftBoxNormalHalloween2026Option { get; set; } = "Chế tạo hộp quà halloween thường";
+        public string CraftBoxVipHalloween2026Option { get; set; } = "Chế tạo hộp quà halloween VIP";
+        public string TopBoxNormalHalloween2026Option { get; set; } = "Top dùng hộp halloween thường";
+        public string TopBoxVipHalloween2026Option { get; set; } = "Top dùng hộp halloween VIP";
+        public string GuideHalloween2026Option { get; set; } = "Hướng dẫn sự kiện";
+        public string GuideHalloween2026 { get; set; } = "Trong thời gian diễn ra sự kiện, đánh quái ở các map sẽ có tỉ lệ rớt ra 4 nguyên liệu: Bí ngô, Kẹo, Xương, Mắt quái vật.\n\nHộp THƯỜNG cần: 2 Bí ngô + 2 Kẹo + 1 Xương + 1 Mắt quái vật + 50.000 Ngọc.\n\nHộp VIP cần (gấp đôi hộp thường): 4 Bí ngô + 4 Kẹo + 2 Xương + 2 Mắt quái vật + 100.000 Ngọc + 10.000 Vàng.\n\nMở hộp ra sẽ ngẫu nhiên nhận 1 trong các vật phẩm giá trị, hộp VIP tỉ lệ vật phẩm quý cao hơn hộp thường.\n\nMỗi lần dùng hộp còn được tính vào Bảng xếp hạng riêng cho từng loại hộp, dùng đủ số lần còn được nhận thêm quà mốc riêng cho từng loại hộp.";
+        public string NhanQuaMocBoxNormalHalloween2026Option { get; set; } = "Nhận quà mốc hộp thường";
+        public string NhanQuaMocBoxVipHalloween2026Option { get; set; } = "Nhận quà mốc hộp VIP";
+        public string HalloweenMilestoneFail { get; set; } = "Chưa đạt mốc yêu cầu. Số hộp đã dùng hiện tại: {0}";
+        public string HalloweenMakeBoxOK { get; set; } = "Chế tạo hộp quà halloween thành công";
         public string TrungThuMilestoneFail { get; set; } = "Chưa đạt mốc yêu cầu. Số hộp đã dùng hiện tại: {0}";
         public string ViewTopFlowerGem { get; set; } = "TOP Dâng Ngọc, Tặng Hoa";
         public string PleaseGoToNPCToUseFlower { get; set; } = "Để dùng boá hoa bạn vui lòng đến gặp NPC Tran Chan để tặng!";

@@ -36,6 +36,8 @@ namespace Gopet.Manager
             _events.Add(ChallengeEvent2026.Instance);
             // Sự kiện bang hội 2026 — Boss Hộ Vệ Bang + quái hộ vệ xuất hiện mỗi giờ (eventKey = "clanevent2026").
             _events.Add(ClanEvent2026.Instance);
+            // Sự kiện Halloween 2026 — cơ chế như Trung Thu, cấu hình qua event_config (eventKey = "halloween2026").
+            _events.Add(Halloween2026.Instance);
         }
 
         public static void AddEvent(EventBase eventBase)

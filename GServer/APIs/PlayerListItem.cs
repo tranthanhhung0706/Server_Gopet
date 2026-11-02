@@ -31,5 +31,8 @@ namespace Gopet.APIs
         // Data/Event/Year2026/TrungThu2026.cs, dùng cho 2 bảng xếp hạng riêng.
         public int NumUseMoonCakeBoxNormal2026 { get; set; }
         public int NumUseMoonCakeBoxVip2026 { get; set; }
+        // Tổng số lần dùng Hộp quà halloween THƯỜNG/VIP (sự kiện Halloween2026).
+        public int NumUseHalloweenBoxNormal2026 { get; set; }
+        public int NumUseHalloweenBoxVip2026 { get; set; }
     }
 }

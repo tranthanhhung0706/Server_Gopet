@@ -73,6 +73,50 @@ public partial class MenuController
                     }
                 }
                 break;
+            case MENU_CRAFT_BOX_NORMAL_HALLOWEEN_2026:
+                Halloween2026.Instance.CraftGiftBox(player, false);
+                break;
+            case MENU_CRAFT_BOX_VIP_HALLOWEEN_2026:
+                Halloween2026.Instance.CraftGiftBox(player, true);
+                break;
+            case MENU_HALLOWEEN_MILESTONE_NORMAL:
+            case MENU_HALLOWEEN_MILESTONE_VIP:
+                {
+                    // index = itemId đã gán = id mốc (xem sendMenu.cs) — query lại DB để lấy dữ liệu mới nhất.
+                    TrungThuMilestone milestone;
+                    using (var conn = MYSQLManager.create())
+                    {
+                        milestone = conn.QueryFirstOrDefault<TrungThuMilestone>(
+                            "SELECT id, boxType, name, threshold, giftData, usersOfUseThis FROM `halloween_milestone` WHERE id = @id", new { id = index });
+                    }
+                    if (milestone == null)
+                    {
+                        player.redDialog(player.Language.ItemWasSell);
+                        return;
+                    }
+                    player.controller.objectPerformed.put(OBJKEY_HALLOWEEN_MILESTONE_REWARD, milestone);
+                    sendMenu(MENU_OPTION_HALLOWEEN_MILESTONE, player);
+                }
+                break;
+            case MENU_OPTION_HALLOWEEN_MILESTONE:
+                {
+                    if (!player.controller.objectPerformed.ContainsKey(OBJKEY_HALLOWEEN_MILESTONE_REWARD))
+                    {
+                        return;
+                    }
+                    TrungThuMilestone milestone = (TrungThuMilestone)player.controller.objectPerformed.get(OBJKEY_HALLOWEEN_MILESTONE_REWARD);
+                    switch (index)
+                    {
+                        case 0:
+                            player.okDialog(string.Format("{0}\n{1}", milestone.Name, player.controller.DescribeGiftData(milestone.GiftData)));
+                            return;
+                        case 1:
+                            player.controller.objectPerformed.Remove(OBJKEY_HALLOWEEN_MILESTONE_REWARD);
+                            player.controller.ClaimHalloweenMilestone(milestone.Id);
+                            return;
+                    }
+                }
+                break;
             case MENU_UNEQUIP_SKIN:
             case MENU_UNEQUIP_PET:
                 {

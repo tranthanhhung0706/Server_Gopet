@@ -291,6 +291,9 @@ public class GopetManager
     /// <summary>Công thức chế tạo hộp quà Trung Thu 2026 (bảng trung_thu_recipe), khoá theo boxItemId.</summary>
     public static HashMap<int, TrungThuRecipe> trungThuRecipe = new();
 
+    /// <summary>Công thức chế tạo hộp quà Halloween 2026 (bảng halloween_recipe), khoá theo boxItemId.</summary>
+    public static HashMap<int, HalloweenRecipe> halloweenRecipe = new();
+
     public static HashMap<int, TierItem> tierItem = new();
 
     public static HashMap<int, PetTier> petTier = new();
@@ -1017,6 +1020,8 @@ public class GopetManager
                 PETTEMPLATE_HASH_MAP.put(petTemplate.petId, petTemplate);
             });
             ServerMonitor.LogInfo("Tải dữ liệu thú cưng từ cơ sở dữ liệu OK");
+            // Sự kiện Halloween 2026: tự tạo bảng/cột/vật phẩm/NPC còn thiếu TRƯỚC khi nạp item + npc
+            Halloween2026.EnsureSchema(conn);
             itemTemplates.AddRange(QuerySafe<ItemTemplate>(conn, "SELECT * FROM `item`", "item"));
             int assetsId = 1;
             itemTemplates.ForEach(itemTemp =>
@@ -1203,6 +1208,10 @@ public class GopetManager
             foreach (var recipe in trungThuRecipeList)
             {
                 trungThuRecipe.put(recipe.BoxItemId, recipe);
+            }
+            foreach (var recipe in conn.Query<HalloweenRecipe>("SELECT * FROM `halloween_recipe`"))
+            {
+                halloweenRecipe.put(recipe.BoxItemId, recipe);
             }
             var itemTierList = conn.Query<TierItem>("SELECT * FROM `tier_item`");
             foreach (var tierItem1 in itemTierList)
@@ -1662,6 +1671,24 @@ public class GopetManager
     /// KHÔNG cần restart GServer — dùng sau khi sửa qua trang admin. Áp dụng ngay cho lần chế tạo
     /// TIẾP THEO (xem TrungThu2026.CraftGiftBox đọc GopetManager.trungThuRecipe).
     /// </summary>
+    /// <summary>
+    /// Nạp lại công thức chế tạo hộp quà Halloween 2026 (bảng halloween_recipe) từ DB vào RAM mà KHÔNG cần restart GServer.
+    /// </summary>
+    public static void ReloadHalloweenRecipe()
+    {
+        using var conn = MYSQLManager.create();
+        var recipeList = conn.Query<HalloweenRecipe>("SELECT * FROM `halloween_recipe`");
+
+        HashMap<int, HalloweenRecipe> local = new();
+        foreach (var recipe in recipeList)
+        {
+            local.put(recipe.BoxItemId, recipe);
+        }
+        halloweenRecipe = local;
+
+        ServerMonitor.LogInfo("Nạp lại công thức chế tạo Halloween 2026 từ cơ sở dữ liệu OK");
+    }
+
     public static void ReloadTrungThuRecipe()
     {
         using var conn = MYSQLManager.create();

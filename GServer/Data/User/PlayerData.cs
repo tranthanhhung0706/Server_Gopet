@@ -173,6 +173,10 @@ public class PlayerData
     /// hạng qua TrungThu2026.TopUseGiftBoxVip2026.
     /// </summary>
     public int NumUseMoonCakeBoxVip2026 { get; set; } = 0;
+    /// <summary>Sự kiện Halloween 2026 — tổng số lần mở Hộp quà halloween THƯỜNG (cột tự thêm bởi Halloween2026.EnsureSchema).</summary>
+    public int NumUseHalloweenBoxNormal2026 { get; set; } = 0;
+    /// <summary>Sự kiện Halloween 2026 — tổng số lần mở Hộp quà halloween VIP.</summary>
+    public int NumUseHalloweenBoxVip2026 { get; set; } = 0;
     /// <summary>
     /// Trường thuộc tính năng "Mốc nạp" — ghi lại mốc tổng nạp (user.tongnap, web DB
     /// gopettae_gopet_web) CAO NHẤT đã nhận thưởng, để biết mốc nào trong bảng nap_moc_reward
@@ -295,6 +299,8 @@ public class PlayerData
                             NumUseGiftBox2025 = @NumUseGiftBox2025,
                             NumUseMoonCakeBoxNormal2026 = @NumUseMoonCakeBoxNormal2026,
                             NumUseMoonCakeBoxVip2026 = @NumUseMoonCakeBoxVip2026,
+                            NumUseHalloweenBoxNormal2026 = @NumUseHalloweenBoxNormal2026,
+                            NumUseHalloweenBoxVip2026 = @NumUseHalloweenBoxVip2026,
                             NapMocClaimed = @NapMocClaimed
                             WHERE ID = @ID", playerData);
     }

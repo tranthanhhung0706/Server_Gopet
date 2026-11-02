@@ -147,6 +147,37 @@ public partial class MenuController
             case OP_NHAN_QUA_MOC_BOX_VIP_TRUNG_THU_2026:
                 sendMenu(MENU_TRUNG_THU_MILESTONE_VIP, player);
                 break;
+            case OP_CRAFT_BOX_NORMAL_HALLOWEEN_2026:
+                if (!Halloween2026.Instance.Condition)
+                {
+                    player.redDialog(player.Language.EventHadFinished);
+                    break;
+                }
+                sendMenu(MENU_CRAFT_BOX_NORMAL_HALLOWEEN_2026, player);
+                break;
+            case OP_CRAFT_BOX_VIP_HALLOWEEN_2026:
+                if (!Halloween2026.Instance.Condition)
+                {
+                    player.redDialog(player.Language.EventHadFinished);
+                    break;
+                }
+                sendMenu(MENU_CRAFT_BOX_VIP_HALLOWEEN_2026, player);
+                break;
+            case OP_XEM_TOP_BOX_NORMAL_HALLOWEEN_2026:
+                showTop(Halloween2026.TopUseGiftBoxNormal2026.Instance, player);
+                break;
+            case OP_XEM_TOP_BOX_VIP_HALLOWEEN_2026:
+                showTop(Halloween2026.TopUseGiftBoxVip2026.Instance, player);
+                break;
+            case OP_GUIDE_HALLOWEEN_2026:
+                player.okDialog(player.Language.GuideHalloween2026);
+                break;
+            case OP_NHAN_QUA_MOC_BOX_NORMAL_HALLOWEEN_2026:
+                sendMenu(MENU_HALLOWEEN_MILESTONE_NORMAL, player);
+                break;
+            case OP_NHAN_QUA_MOC_BOX_VIP_HALLOWEEN_2026:
+                sendMenu(MENU_HALLOWEEN_MILESTONE_VIP, player);
+                break;
             case OP_XEM_TOP_CHALLENGE_2026:
                 showTop(ChallengeEvent2026.TopChallengeScore2026.Instance, player);
                 break;

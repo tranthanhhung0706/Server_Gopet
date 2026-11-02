@@ -162,6 +162,16 @@ public partial class MenuController
     public const int MENU_TRUNG_THU_MILESTONE_VIP = 1108;
     /// <summary>Popup 2 lựa chọn sau khi chọn 1 mốc Trung Thu: xem thông tin / nhận mốc.</summary>
     public const int MENU_OPTION_TRUNG_THU_MILESTONE = 1109;
+    /// <summary>Popup xác nhận công thức + chi phí trước khi chế tạo Hộp quà halloween THƯỜNG.</summary>
+    public const int MENU_CRAFT_BOX_NORMAL_HALLOWEEN_2026 = 1110;
+    /// <summary>Popup xác nhận công thức + chi phí trước khi chế tạo Hộp quà halloween VIP.</summary>
+    public const int MENU_CRAFT_BOX_VIP_HALLOWEEN_2026 = 1111;
+    /// <summary>Danh sách mốc quà hộp halloween thường (bảng halloween_milestone, boxType=0).</summary>
+    public const int MENU_HALLOWEEN_MILESTONE_NORMAL = 1112;
+    /// <summary>Danh sách mốc quà hộp halloween VIP (bảng halloween_milestone, boxType=1).</summary>
+    public const int MENU_HALLOWEEN_MILESTONE_VIP = 1113;
+    /// <summary>Popup 2 lựa chọn sau khi chọn 1 mốc Halloween: xem thông tin / nhận mốc.</summary>
+    public const int MENU_OPTION_HALLOWEEN_MILESTONE = 1114;
     public static readonly MenuItemInfo[] ADMIN_INFOS = new MenuItemInfo[]{
         new AdminItemInfo("Đặt chỉ số pet đang đi theo", "Đặt chỉ số cho pet đi theo", "items/4000766.png"),
         new AdminItemInfo("Dịch chuyển đến người chơi", "Dịch chuyển đến người chơi chỉ định", "items/4000766.png"),
@@ -486,6 +496,14 @@ public partial class MenuController
     public const int OP_GUIDE_CHALLENGE_2026 = 113;
     /// <summary>Xem bảng xếp hạng bang theo điểm Sự kiện bang hội 2026 (ClanEvent2026.TopClanEvent2026).</summary>
     public const int OP_XEM_TOP_CLAN_EVENT_2026 = 114;
+    /// <summary>Các option NPC sự kiện Halloween 2026 (Halloween2026).</summary>
+    public const int OP_CRAFT_BOX_NORMAL_HALLOWEEN_2026 = 115;
+    public const int OP_CRAFT_BOX_VIP_HALLOWEEN_2026 = 116;
+    public const int OP_XEM_TOP_BOX_NORMAL_HALLOWEEN_2026 = 117;
+    public const int OP_XEM_TOP_BOX_VIP_HALLOWEEN_2026 = 118;
+    public const int OP_GUIDE_HALLOWEEN_2026 = 119;
+    public const int OP_NHAN_QUA_MOC_BOX_NORMAL_HALLOWEEN_2026 = 120;
+    public const int OP_NHAN_QUA_MOC_BOX_VIP_HALLOWEEN_2026 = 121;
     /// <summary>
     /// Option Custom
     /// Trao đổi thưởng bằng
@@ -655,6 +673,8 @@ public partial class MenuController
     public const int OBJKEY_BUY_SHOP_ITEM_PAYMENT_INDEX = 77;
     /// <summary>Khoá để lưu mốc Trung Thu (TrungThuMilestone) đang được chọn từ MENU_TRUNG_THU_MILESTONE_NORMAL/VIP.</summary>
     public const int OBJKEY_TRUNG_THU_MILESTONE_REWARD = 78;
+    /// <summary>Khoá lưu mốc Halloween đang được chọn từ MENU_HALLOWEEN_MILESTONE_NORMAL/VIP.</summary>
+    public const int OBJKEY_HALLOWEEN_MILESTONE_REWARD = 82;
     /// <summary>Khoá lưu itemTemplateId đang chờ xác nhận "Xoá nhanh" (huỷ hàng loạt) — xem GameController.confirmFastRemoveItemEquip.</summary>
     public const int OBJKEY_FAST_REMOVE_ITEM_EQUIP_TEMPLATE = 79;
     /// <summary>Khoá lưu List&lt;int&gt; itemId đang chờ xác nhận "Xoá nhanh theo tuỳ chọn" — xem GameController.confirmCustomRemoveItemEquip.</summary>
